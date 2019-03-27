@@ -1,0 +1,36 @@
+$None-Color: #B4B4B4;
+$Blue-Color: #338AFF;
+html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+ul, li {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+.confirm-btn {
+    font-size: 14px;
+    padding: 8px 24px;
+}
+.none-status, .none-status:hover, .none-status:focus {
+    background: $None-Color;
+    border: 1px solid $None-Color;
+    font-size: 14px;
+    padding: 8px 24px;
+}
+.error-border-input {
+    .el-input__inner {
+        border: 1px solid #BF0000;
+    }
+}
+.blue-text {
+    color: $Blue-Color;
+}
+.fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
+}
