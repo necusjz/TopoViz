@@ -72,6 +72,7 @@ export default class ErrorDialog extends Vue {
   color: #282828;
   text-align: center;
   p {
+    display: inline-block;
     text-align: left;
   }
 }
