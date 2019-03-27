@@ -1,10 +1,10 @@
 <template>
   <div class="rca-topo-board">
-    <div class="topo-board-left">
-      <div class="topo-board-item" v-show="isNoneData">
-        <i class="el-icon-warning"></i>
-        无数据
-      </div>
+    <div class="topo-board-item" v-if="isNoneData">
+      <i class="el-icon-warning"></i>
+      无数据
+    </div>
+    <div class="topo-board-left" v-else>
       <div class="topo-board-item" v-show="groupId">
         <span class="tag-square tag-blue"></span>
         <span class="tag-label">Group ID: {{groupId}}</span>
