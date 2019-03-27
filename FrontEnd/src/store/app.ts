@@ -5,7 +5,7 @@ const state: AppState = {
     userName: 'RCA_234234',
     groupId: '',
     regValue: '',
-    isNoneData: false,
+    isNoneData: true,
 };
 
 const mutations: MutationTree<AppState> = {
