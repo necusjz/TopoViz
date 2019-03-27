@@ -26,8 +26,8 @@ export default class StaticsBoard extends Vue {
 .rca-statics-board {
   font-size: 16px;
   color: #55657e;
-  line-height: 22px;
-  padding: 14px 0;
+  line-height: 20px;
+  padding: 20px 0;
   text-align: left;
   display: flex;
   justify-content: space-between;
