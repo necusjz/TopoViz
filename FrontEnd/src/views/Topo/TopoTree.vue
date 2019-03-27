@@ -169,7 +169,7 @@ export default class TopoTree extends Vue {
     height: 100%;
     background-image: url('../../assets/none-topoTree.png');
     background-position: center;
-    background-size: 30% 30%;
+    background-size: 30% auto;
     background-repeat: no-repeat;
   }
   .stage-toolbar {

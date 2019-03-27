@@ -78,7 +78,7 @@ export default class AppMain extends Vue {
     .app-topo-chart {
       background-image: url('../assets/none-topoChart.png');
       background-position: center;
-      background-size: 30% 30%;
+      background-size: 30% auto;
       background-repeat: no-repeat;
     }
     .app-topo-pagination {

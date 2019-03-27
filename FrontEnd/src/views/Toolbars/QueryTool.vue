@@ -9,8 +9,9 @@
           v-model="groupId"
           size="small"
           class="app-query-tool-group"
-          :class="{'error-border-input': visibleErrorTip}"
-        ></el-input>
+          :class="{'error-border-input': visibleErrorTip}">
+          <!-- <template slot="prefix">Group ID: </template> -->
+        </el-input>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
       </div>
       <div class="app-query-tool-item app-query-tool-regulation">
@@ -18,8 +19,7 @@
           v-model="regulationType"
           class="query-tool-reg-select"
           placeholder="请选择相关查询信息"
-          size="small"
-        >
+          size="small">
           <el-option
             v-for="item in options"
             :key="item.value"
@@ -32,17 +32,12 @@
           v-model="regulationValue"
           size="small"
           class="app-query-tool-reg"
-          v-show="regulationType"
-        ></el-input>
+          v-show="regulationType">
+        </el-input>
       </div>
       <div class="app-query-tool-item">
-        <el-button
-          size="small"
-          type="primary"
-          class="confirm-btn"
-          :class="{'none-status': !groupId && !regulationValue}"
-          @click="queryTopoData"
-        >查看</el-button>
+        <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !groupId && !regulationValue}"
+          @click="queryTopoData">查看</el-button>
       </div>
     </div>
   </div>
@@ -69,13 +64,11 @@ export default class QueryTool extends Vue {
     this.options = ruleOptions;
   }
   public queryTopoData() {
-    if (this.groupId) {
-      this.$store.commit("SET_GROUPID", this.groupId);
-      this.$store.commit("SET_REGVALUE", this.regulationValue);
-    } else {
-      this.visibleErrorTip = true;
-    }
-    bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
+    this.$store.commit("SET_GROUPID", this.groupId);
+    this.$store.commit("SET_REGVALUE", this.regulationValue);
+    this.visibleErrorTip = !this.groupId;
+    this.$store.commit('SET_ISNONEDATA', !this.groupId);
+    // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
   }
 }
@@ -102,6 +95,13 @@ export default class QueryTool extends Vue {
     padding-right: 0;
     .app-query-tool-group {
       width: 220px;
+      // .el-input__inner {
+      //   padding-left: 70px;
+      // }
+      // .el-input__prefix {
+      //   line-height: 36px;
+      //   color: #55657E;
+      // }
     }
     .app-query-tool-item {
       position: relative;
