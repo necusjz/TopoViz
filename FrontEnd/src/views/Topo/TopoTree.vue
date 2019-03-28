@@ -41,6 +41,8 @@ export default class TopoTree extends Vue {
   public watchData(val: boolean) {
     if (!val) {
       this.initTopoTree();
+    } else {
+      this.stage.clearAllLayers();
     }
   }
   mounted() {
@@ -49,7 +51,9 @@ export default class TopoTree extends Vue {
     }
   }
   public initTopoTree() {
-    this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+    if (!this.stage) {
+      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+    }
     const g = new graphlib.Graph();
     g.setGraph({
       rankdir: 'BT',
