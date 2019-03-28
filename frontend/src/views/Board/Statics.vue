@@ -2,7 +2,7 @@
   <div class="rca-statics-board">
     <div class="rca-dec">
       <span>RCA结果汇总: </span>
-      <span v-if="isNoneData">无数据</span>
+      <span v-if="isImported">无数据</span>
       <div class="rca-statics" v-else>
         <span>共38个警告; 其中包含24个P警告, 14个C警告;</span>
         <span class="dec-group">共12个组，其中5组已确认，7组未确认</span>
@@ -17,7 +17,7 @@ import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
 @Component
 export default class StaticsBoard extends Vue {
-  @State((state) => state.app.isNoneData) private isNoneData: any;
+  @State((state) => state.app.isImported) private isImported: any;
 }
 </script>
 
