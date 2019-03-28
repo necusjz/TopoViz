@@ -1,2 +1,5 @@
-/FrontEnd/node_modules
-/FrontEnd/dist
+/frontend/node_modules
+*.pyc
+.DS_Store
+.idea
+
