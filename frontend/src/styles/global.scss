@@ -28,6 +28,9 @@ ul, li {
 .blue-text {
     color: $Blue-Color;
 }
+.bg-gray {
+    background: rgba(67, 146, 255, 0.06);
+}
 .fade-enter-active, .fade-leave-active {
     transition: opacity .5s;
 }
