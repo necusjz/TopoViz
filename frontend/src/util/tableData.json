@@ -1,0 +1,12 @@
+[{
+    "alarmSourceName": "4765820-RTN950-01",
+    "company": "华为",
+    "firstTime": "2018-12-31 23:12:26",
+    "lastTime": "2018-12-31 23:12:26",
+    "level": "紧急",
+    "clearTime": "2018-12-31 23:12:26",
+    "domain": "微波+数通",
+    "Group_ID": "POS_32480981",
+    "RCA_result": "P",
+    "RCA_reg": "X0934_RTV_EDS"
+}]
