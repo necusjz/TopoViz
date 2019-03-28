@@ -10,7 +10,6 @@
           size="small"
           class="app-query-tool-group"
           :class="{'error-border-input': visibleErrorTip}">
-          <!-- <template slot="prefix">Group ID: </template> -->
         </el-input>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
       </div>
@@ -45,9 +44,11 @@
 
 <script lang="ts">
 import { Component, Vue, Provide, Watch } from "vue-property-decorator";
+import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
-import { VisibleType } from '@/types/type';
+import { VisibleType, AlarmData } from '@/types/type';
+import TableData from "@/util/tableData.json";
 
 @Component
 export default class QueryTool extends Vue {
@@ -55,11 +56,12 @@ export default class QueryTool extends Vue {
   @Provide() private regulationType: string = "";
   @Provide() private regulationValue: string = "";
   @Provide() private visibleErrorTip: boolean = false;
+  @Provide() private options: { label: string; value: string }[] = [];
+  @State((state) => state.app.alarmDatas) private alarmDatas: any;
   @Watch("groupId")
   public watchGroupId(val: string) {
     this.visibleErrorTip = !val;
   }
-  @Provide() private options: { label: string; value: string }[] = [];
   mounted() {
     this.options = ruleOptions;
   }
@@ -70,6 +72,12 @@ export default class QueryTool extends Vue {
     this.$store.commit('SET_ISNONEDATA', !this.groupId);
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+    const tabData: AlarmData[] = [];
+    const len: number = Math.floor(Math.random() * 500);
+    for (let i = 2; i < len; i++) {
+      tabData[i - 2] = { ...TableData[0], alarmName: `X0934_RTN950-0${i}`, Group_ID: `POS_32480${i}`, isConfirmed: Math.random() > 0.5};
+    }
+    this.$store.commit('SET_ALARMDATAS', tabData);
   }
 }
 </script>
