@@ -55,6 +55,9 @@ export default class Render {
   public getCanvasDom(): HTMLCanvasElement {
     const mainCanvas: HTMLCanvasElement = this.canvasHelper.getCanvasDom();
     mainCanvas.style.zIndex = '0';
+    mainCanvas.style.position = 'absolute';
+    mainCanvas.style.top = '0';
+    mainCanvas.style.left = '0';
     return mainCanvas;
   }
   /**
