@@ -1,15 +1,8 @@
 [
     {
-        "id": 111,
-        "content": "Parent1",
-        "pId": null,
-        "childs": [],
-        "type": "router"
-    },
-    {
         "id": 1,
         "content": "Parent1",
-        "pId": 111,
+        "pId": null,
         "childs": [],
         "type": "router"
     },
@@ -92,6 +85,13 @@
     },
     {
         "id": 14,
+        "content": "Node6",
+        "pId": 3,
+        "childs": [],
+        "type": "server"
+    },
+    {
+        "id": 15,
         "content": "Node6",
         "pId": 3,
         "childs": [],

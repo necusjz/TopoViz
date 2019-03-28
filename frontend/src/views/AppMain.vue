@@ -11,7 +11,7 @@
           <TopoTree></TopoTree>
         </div>
         <div class="app-topo-chart">
-          <TopoChart v-if="!isNoneData"></TopoChart>
+          <TopoChart v-show="!isNoneData"></TopoChart>
         </div>
         <div class="app-topo-pagination">
           <TopoTablePagination></TopoTablePagination>
