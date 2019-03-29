@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template
@@ -9,7 +9,7 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 
 
-# upload excel file
+# return homepage
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
