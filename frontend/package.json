@@ -10,8 +10,10 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "@types/cytoscape": "^3.4.0",
     "@types/dagre-d3": "^0.4.39",
     "axios": "^0.18.0",
+    "cytoscape": "^3.5.1",
     "dagre-d3": "^0.6.3",
     "element-ui": "^2.6.1",
     "vue": "^2.6.6",

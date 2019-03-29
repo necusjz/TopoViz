@@ -71,7 +71,7 @@ export default class AppMain extends Vue {
     }
   }
   .app-scroll-wrap {
-    height: calc(100% - 60px);
+    height: calc(100% - 30px);
     overflow-x: hidden;
   }
   &.none {

@@ -77,20 +77,6 @@
         "type": "switch"
     },
     {
-        "id": 13,
-        "content": "Node6",
-        "pId": 3,
-        "childs": [],
-        "type": "pc"
-    },
-    {
-        "id": 14,
-        "content": "Node6",
-        "pId": 3,
-        "childs": [],
-        "type": "server"
-    },
-    {
         "id": 15,
         "content": "Node6",
         "pId": 3,
