@@ -723,6 +723,11 @@
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.1.7.tgz#1b8e33b61a8c09cbe1f85133071baa0dbf9fa71a"
   integrity sha512-2Y8uPt0/jwjhQ6EiluT0XCri1Dbplr0ZxfFXUz+ye13gaqE8u5gL5ppao1JrUYr9cIip5S6MvQzBS7Kke7U9VA==
 
+"@types/cytoscape@^3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@types/cytoscape/-/cytoscape-3.4.0.tgz#413d9dcfaef246e28834bc7d647227c6f2a0b8dc"
+  integrity sha512-3b8iY2OAn1AHR2bF71QKSY408eemwHD89xETSYyP4FwGD9aYSYlUp6jA5IUSYhuAGfPRZnbVrcP08a0w9uk8OA==
+
 "@types/d3@^3":
   version "3.5.41"
   resolved "https://registry.yarnpkg.com/@types/d3/-/d3-3.5.41.tgz#57f08fc79b75f0fecb0b3547abc22e46e9d660e4"
@@ -2735,6 +2740,14 @@ cypress@^3.1.5:
     url "0.11.0"
     yauzl "2.10.0"
 
+cytoscape@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.5.1.tgz#c26b7fa3f829126720a835a6a8fc23b6ed1da921"
+  integrity sha512-Ql+76pA061ey3IASg116apVG0MK9fR06PlYJGs29bmI+5vvCtzuZpt4VvETshliMd/z2Eh8LsRmyx66lOyZwTQ==
+  dependencies:
+    heap "^0.2.6"
+    lodash.debounce "^4.0.8"
+
 d3-array@1, d3-array@^1.2.0:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.4.tgz#635ce4d5eea759f6f605863dbcfc30edc737f71f"
@@ -4410,6 +4423,11 @@ he@1.2.x, he@^1.1.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
+heap@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/heap/-/heap-0.2.6.tgz#087e1f10b046932fc8594dd9e6d378afc9d1e5ac"
+  integrity sha1-CH4fELBGky/IWU3Z5tN4r8nR5aw=
+
 hex-color-regex@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
@@ -5414,6 +5432,11 @@ lodash.clonedeep@^4.3.2:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
   integrity sha1-4j8/nE+Pvd6HJSnBBxhXoIblzO8=
+
+lodash.debounce@^4.0.8:
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
+  integrity sha1-gteb/zCmfEAF/9XiUVMArZyk168=
 
 lodash.defaultsdeep@^4.6.0:
   version "4.6.0"
