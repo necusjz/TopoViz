@@ -76,7 +76,7 @@ export default class CanvasHelper {
    * @param pt 世界坐标
    */
   public worldCoordinateToLocal(pt: Vertex): Vertex {
-    return [(pt[0] * this.retina) + 0.5, (-pt[1] * this.retina) + 0.5];
+    return [Math.round((pt[0] * this.retina)), Math.round((-pt[1] * this.retina))];
   }
   /**
    * 转换世界坐标为以右上角为基准点的屏幕坐标

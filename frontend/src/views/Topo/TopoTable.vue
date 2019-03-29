@@ -89,8 +89,8 @@
 <script lang="ts">
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
-import TableData from "./tableData.json";
 import TopoInput from "../Edit/TopoInput.vue";
+import { AlarmData } from '@/types/type';
 
 interface CellData {
   row: any;
@@ -109,6 +109,7 @@ export default class StaticsBoard extends Vue {
   @Provide() private inputValue: string = "";
   @Prop() private editAble!: boolean;
   @Prop() private tableData!: any[];
+  @State((state) => state.app.pageData) private pageData: any;
   public handleSelectionChange(val: any) {
     //console.log(val);
   }
@@ -123,7 +124,7 @@ export default class StaticsBoard extends Vue {
       }
     }
   }
-  public inputBlur(newRow: any) {
+  public inputBlur(newRow: AlarmData) {
     console.log(newRow);
     this.editCellId = "";
   }
