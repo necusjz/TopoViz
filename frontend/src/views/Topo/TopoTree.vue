@@ -25,6 +25,7 @@ import { Node, VisibleType } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
+import cytoscape from 'cytoscape';
 const { graphlib, dagre } = require('dagre-d3');
 
 @Component({
@@ -36,6 +37,7 @@ export default class TopoTree extends Vue {
   @Prop() private msg!: string;
   @Provide() private stage: any
   @Provide() private center: Vertex = [0, 0];
+  @Provide() private cy: any;
   @State((state) => state.app.isNoneData) isNoneData: any;
   @Watch('isNoneData')
   public watchData(val: boolean) {
@@ -47,7 +49,7 @@ export default class TopoTree extends Vue {
   }
   mounted() {
     if (!this.isNoneData) {
-      this.initTopoTree();
+      this.initTopoTree1();
     }
   }
   public initTopoTree() {
@@ -78,15 +80,64 @@ export default class TopoTree extends Vue {
       stage.setView(this.center);
     });
   }
+  public initTopoTree1() {
+        const images = [];
+    images.push(require(`../../assets/pc.png`));
+    images.push(require(`../../assets/router.png`));
+    images.push(require(`../../assets/server.png`));
+    images.push(require(`../../assets/switch.png`));
+    this.cy = cytoscape({
+      container: document.getElementById('stage'), 
+      style: [
+        { selector: 'node[label = "Person"]', 
+          css: {'background-color': '#6FB1FC', 'content': 'data(name)'}
+        },
+        {
+          selector: 'node',
+          css: {'background-color': '#F5A45D', 'background-image': 'data(icon)', 'content': 'data(label)', 'background-fit': 'cover'}
+        },
+        { selector: 'edge', 
+          css: {'target-arrow-shape': 'triangle'}
+        }        
+      ],
+      elements: {
+        nodes: [
+          {data: {id: '172', name: 'Tom Cruise', label: '172', icon: images[0]}},
+          {data: {id: '183', title: 'Top Gun', label: '183', icon: images[1]}},
+          {data: {id: '184', title: 'Gun', label: '184', icon: images[2]}},
+          {data: {id: '185', title: 'Gun183', label: '185', icon: images[3]}}
+        ],
+        edges: [
+          {data: {source: '172', target: '183', relationship: 'Acted_In'}},
+          {data: {source: '184', target: '185', relationship: 'Acted_In'}},
+          {data: {source: '183', target: '185', relationship: 'Acted_In'}},
+        ]
+      },
+      zoom: 1,
+      minZoom: 0.1,
+      maxZoom: 20,
+      wheelSensitivity: 0.5,
+      layout: { name: 'breadthfirst', rows: 1 }
+    });
+    this.cy.on('click', 'node', (evt: any) => {
+      console.log(evt);
+    });
+  }
   public zoom(step: number) {
     if (this.isNoneData) {
       return;
     }
+    // const cy: cytoscape.Core = this.cy;
+    // const zoom: number = cy.zoom();
+    // const center = (cy as any).getCenterPan();
+    // console.log(center);
     const stage: xCanvas.Stage = this.stage;
     if (step > 0) {
       stage.zoomIn();
+      // cy.zoom(zoom + 0.5);
     } else {
       stage.zoomOut();
+      // cy.zoom(zoom - 0.5)
     }
   }
   public clearEvent() {
@@ -156,7 +207,7 @@ export default class TopoTree extends Vue {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
+<style lang="scss">
 .app-stage {
   position: relative;
   width: 100%;
@@ -167,6 +218,9 @@ export default class TopoTree extends Vue {
     cursor: pointer;
     background-image: url('../../assets/topo-bg.jpg');
     background-size: cover;
+    canvas {
+      left: 0;
+    }
   }
   .none-topoTree {
     width: 100%;
