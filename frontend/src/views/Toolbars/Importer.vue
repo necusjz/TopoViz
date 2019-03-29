@@ -24,13 +24,14 @@
       ></el-date-picker>
     </div>
     <div class="app-importer-item">
-      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !targetName && !formatName}">确定</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !targetName && !formatName}" @click="submitData">确定</el-button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
+import { postTopoData } from '@/api/request';
 
 @Component
 export default class Importer extends Vue {
@@ -48,6 +49,15 @@ export default class Importer extends Vue {
       this.formatName = this.formatFile.name;
     }
     return false;
+  }
+  public submitData() {
+    const form: FormData = new FormData();
+    form.append('file1', this.targetFile);
+    form.append('file2', this.formatFile);
+    form.append('date', JSON.stringify(this.dateValue));
+    postTopoData(form).then((res: any) => {
+      console.log(res);
+    });
   }
 }
 </script>
@@ -84,6 +94,9 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       width: 180px;
       text-align: left;
       font-size: 14px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
     .upload-icon {
       display: inline-block;
