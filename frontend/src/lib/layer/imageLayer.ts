@@ -45,6 +45,11 @@ export default class ImageLayer extends Layer {
     return new Promise((resolve, reject) => {
       image.addEventListener('load', () => {
         self._setImage(image);
+        // const canvas: HTMLCanvasElement = document.createElement('canvas');
+        // canvas.width = this.width * 3;
+        // canvas.height = this.height * 3;
+        // const context:  CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
+        // context.drawImage(image, 0, 0, this.width * 3, this.height * 3);
         resolve(image);
       });
       image.addEventListener('error', () => {

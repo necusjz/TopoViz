@@ -31,9 +31,8 @@ export default class TopoInput extends Vue {
     // 校验输入的数据
     const validStr: string = this.inputValue.trim();
     if (validStr) {
-      const obj = { ...this.row };
-      obj[this.attr] = validStr;
-      this.$emit("blur", obj);
+      this.row[this.attr] = validStr;
+      this.$emit("blur", this.row);
     }
   }
 }
