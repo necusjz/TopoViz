@@ -2,5 +2,3 @@ frontend/node_modules
 *.pyc
 .DS_Store
 .idea
-backend/static
-backend/templates
