@@ -3,8 +3,7 @@
 
 import os
 import pandas as pd
-import json
-import json2html
+
 from flask import Flask, request, redirect, url_for, render_template
 from werkzeug import secure_filename
 from flask_cors import CORS
@@ -38,18 +37,18 @@ def upload():
     return render_template('index.html')
 
 
-@app.route("/analyze")
+@app.route('/analyze')
 def analyze():
     for excel in os.listdir(app.config['UPLOAD_FOLDER']):
-        if excel.endswith(".csv"):
-            df = pd.read_csv(app.config['UPLOAD_FOLDER'] + "\\" + excel, sep=",")
+        if excel.endswith('.csv'):
+            df = pd.read_csv(app.config['UPLOAD_FOLDER'] + '\\' + excel, sep=',')
             data = df.describe()
-            os.remove(app.config['UPLOAD_FOLDER'] + "\\" + excel)
+            os.remove(app.config['UPLOAD_FOLDER'] + '\\' + excel)
             return data.to_html()
-        elif excel.endswith(".xlsx") or excel.endswith(".xls"):
-            df = pd.read_excel(app.config['UPLOAD_FOLDER'] + "\\" + excel, sep=",")
+        elif excel.endswith('.xlsx') or excel.endswith('.xls'):
+            df = pd.read_excel(app.config['UPLOAD_FOLDER'] + '\\' + excel, sep=',')
             data = df.describe()
-            os.remove(app.config['UPLOAD_FOLDER'] + "\\" + excel)
+            os.remove(app.config['UPLOAD_FOLDER'] + '\\' + excel)
             return data.to_html()
 
 
