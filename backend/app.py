@@ -9,13 +9,18 @@ from flask import Flask, request, redirect, url_for, render_template
 from werkzeug import secure_filename
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
 
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -35,26 +40,17 @@ def upload():
 
 @app.route("/analyze")
 def analyze():
-    for excel in os.listdir('./flask_upload'):
+    for excel in os.listdir(app.config['UPLOAD_FOLDER']):
         if excel.endswith(".csv"):
-            df = pd.read_csv("flask_upload" + "\\" + excel, sep=",")
+            df = pd.read_csv(app.config['UPLOAD_FOLDER'] + "\\" + excel, sep=",")
             data = df.describe()
-            os.remove("flask_upload" + "\\" + excel)
+            os.remove(app.config['UPLOAD_FOLDER'] + "\\" + excel)
             return data.to_html()
         elif excel.endswith(".xlsx") or excel.endswith(".xls"):
-            df = pd.read_excel("C:\Users\windows 7\Desktop\Flask_Upload" + "\\" + file,sep=",")
+            df = pd.read_excel(app.config['UPLOAD_FOLDER'] + "\\" + excel, sep=",")
             data = df.describe()
-            os.remove("C:\Users\windows 7\Desktop\Flask_Upload" + "\\" + file)
+            os.remove(app.config['UPLOAD_FOLDER'] + "\\" + excel)
             return data.to_html()
-
-
-@app.route('/post/excel', methods=['POST'])
-def postExcel():
-    file1 = request.files.get('file1')
-    file2 = request.files.get('file2')
-    date = request.form.get('date')
-    # file1.save('aa.doc') 保存文件
-    return json.dumps({'data': '1'})
 
 
 if __name__ == '__main__':
