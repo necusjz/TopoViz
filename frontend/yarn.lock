@@ -780,6 +780,13 @@
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.2.tgz#690a1475b84f2a884fd07cd797c00f5f31356ea8"
   integrity sha512-ce5d3q03Ex0sy4R14722Rmt6MT07Ua+k4FwDfdcToYJcMKNtRVQvJ6JCAPdAmAnbRb6CsX6aYb9m96NGod9uTw==
 
+"@types/vis@^4.21.12":
+  version "4.21.12"
+  resolved "https://registry.yarnpkg.com/@types/vis/-/vis-4.21.12.tgz#e8e946ef54bd0dd19fbd2f9f4a73d10432a4ddb1"
+  integrity sha512-eRNGGIk4opzyoJSLvfKoR/TcyrzHKeWgrZPKlAlZVchNQwNeRaUmWpLiHfhb58HGFVAPEGw6nax05xq2WQ90EQ==
+  dependencies:
+    moment ">=2.13.0"
+
 "@types/webpack-env@^1.13.6":
   version "1.13.9"
   resolved "https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.13.9.tgz#a67287861c928ebf4159a908d1fb1a2a34d4097a"
@@ -5885,7 +5892,7 @@ mocha@^5.2.0:
     mkdirp "0.5.1"
     supports-color "5.4.0"
 
-moment@2.24.0:
+moment@2.24.0, moment@>=2.13.0:
   version "2.24.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==

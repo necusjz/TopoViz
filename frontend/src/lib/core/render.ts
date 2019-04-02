@@ -18,6 +18,7 @@ export default class Render {
   private stage: Stage;
   private canvasHelper: CanvasHelper;
   private cacheHelper: CanvasHelper;
+  private isBatching: boolean =  false;
   constructor(w: number, h: number, stage: Stage) {
     const scale: number = stage.getZoom();
     this.canvasHelper = new CanvasHelper(w, h, this, scale);
@@ -88,6 +89,13 @@ export default class Render {
    */
   public getBound(): math.Bound {
     return this.canvasHelper.getViewBound();
+  }
+  /**
+   * 设置批处理状态，减少重绘次数
+   * @param status Boolean
+   */
+  public setBatch(status: boolean) {
+    this.isBatching = status;
   }
   /**
    * 返回加载所有图层的画布canvas
@@ -225,6 +233,9 @@ export default class Render {
    * 画布重绘
    */
   public redraw() {
+    if (this.isBatching) {
+      return;
+    }
     this.canvasHelper.clear();
     // this.canvasHelper.setBackground('#c6c6c6');
     this.canvasHelper.startDraw(true);
