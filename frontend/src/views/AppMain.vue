@@ -5,14 +5,17 @@
       <Importer></Importer>
       <div class="app-rca-body">
         <StaticsBoard></StaticsBoard>
-        <QueryTool></QueryTool>
-        <div class="app-topo-tree">
-          <TopoBoard></TopoBoard>
-          <TopoTree></TopoTree>
+        <div v-show="!isCheckStatics">
+          <QueryTool></QueryTool>
+          <div class="app-topo-tree">
+            <TopoBoard></TopoBoard>
+            <TopoTree></TopoTree>
+          </div>
+          <div class="app-topo-chart">
+            <TopoChart v-show="!isNoneData"></TopoChart>
+          </div>
         </div>
-        <div class="app-topo-chart">
-          <TopoChart v-show="!isNoneData"></TopoChart>
-        </div>
+        <StaticsTable v-if="isCheckStatics"></StaticsTable>
         <div class="app-topo-pagination">
           <TopoTablePagination></TopoTablePagination>
         </div>
@@ -34,6 +37,7 @@ import TopoTree from "./Topo/TopoTree.vue";
 import TopoChart from './Topo/TopoChart.vue';
 import TopoTablePagination from './Pagination/TopoPagination.vue';
 import ErrorDialog from './Dialog/ErrorDialog.vue';
+import StaticsTable from './Table/StaticsTable.vue';
 
 @Component({
   components: {
@@ -46,10 +50,12 @@ import ErrorDialog from './Dialog/ErrorDialog.vue';
     TopoChart,
     TopoTablePagination,
     ErrorDialog,
+    StaticsTable,
   }
 })
 export default class AppMain extends Vue {
   @State((state) => state.app.isNoneData) private isNoneData: any;
+  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
 }
 </script>
 
