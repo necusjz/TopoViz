@@ -23,11 +23,11 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/upload', methods=['POST'])
 def upload():
     if request.method == 'POST':
-        file1 = request.files('file1')
-        file2 = request.files('file2')
+        file1 = request.files['file1']
+        file2 = request.files['file2']
         date = request.form.get('date')
         if file1 and file2 and date and allowed_file(file1.filename) and \
                 allowed_file(file2.filename):
@@ -41,19 +41,16 @@ def upload():
 
 @app.route('/analyze')
 def analyze():
-    for excel in os.listdir(app.config['UPLOAD_FOLDER']):
-        if excel.endswith('.csv'):
-            df = pd.read_csv(app.config['UPLOAD_FOLDER'] + '\\' + excel,
-                             sep=',')
+    for file in os.listdir(app.config['UPLOAD_FOLDER']):
+        if file.endswith('.csv'):
+            df = pd.read_csv(app.config['UPLOAD_FOLDER'] + '/' + file, sep=',')
             data = df.describe()
-            os.remove(app.config['UPLOAD_FOLDER'] + '\\' + excel)
-            return data.to_html()
-        elif excel.endswith('.xlsx') or excel.endswith('.xls'):
-            df = pd.read_excel(app.config['UPLOAD_FOLDER'] + '\\' + excel,
+            return data.to_json()
+        elif file.endswith('.xlsx') or file.endswith('.xls'):
+            df = pd.read_excel(app.config['UPLOAD_FOLDER'] + '/' + file,
                                sep=',')
             data = df.describe()
-            os.remove(app.config['UPLOAD_FOLDER'] + '\\' + excel)
-            return data.to_html()
+            return data.to_json()
 
 
 if __name__ == '__main__':
