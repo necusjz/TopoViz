@@ -1,6 +1,6 @@
 <template>
   <div class="app-title-wrap">
-    <img src="../../assets/logo.png" class="app-logo">
+    <!-- <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics"> -->
     <div class="app-top-right">
       <i class="app-help app-icon"></i>
       <i class="app-account app-icon"></i>
@@ -25,6 +25,7 @@ import { State } from 'vuex-class';
 @Component
 export default class Title extends Vue {
   @State((state) => state.app.userName) private userName: any;
+  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
 }
 </script>
 <style lang="scss" scoped>
