@@ -16,8 +16,10 @@ export interface AppState {
     userName: string;
     groupId: string;
     regValue: string;
+    regType: string;
     isImported: boolean;
     isNoneData: boolean;
+    isCheckStatics: boolean;
     alarmDatas: AlarmData[];
     tableData: AlarmData[];
     pageData: AlarmData[];

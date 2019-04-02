@@ -323,6 +323,19 @@ export default class Stage extends Evt {
     this.render.resize(this.container.clientWidth, this.container.clientHeight);
   }
   /**
+   * 开启批处理
+   */
+  public startBatch() {
+    this.render.setBatch(true);
+  }
+  /**
+   * 关闭批处理
+   */
+  public endBatch() {
+    this.render.setBatch(false);
+    this.render.redraw();
+  }
+  /**
    * 设置stage初始化参数
    * @param options options参数
    */

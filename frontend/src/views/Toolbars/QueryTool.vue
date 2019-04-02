@@ -47,7 +47,7 @@ import { Component, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
-import { VisibleType, AlarmData } from '@/types/type';
+import { VisibleType, AlarmData, Rules } from '@/types/type';
 import TableData from "@/util/tableData.json";
 
 @Component
@@ -68,6 +68,8 @@ export default class QueryTool extends Vue {
   public queryTopoData() {
     this.$store.commit("SET_GROUPID", this.groupId);
     this.$store.commit("SET_REGVALUE", this.regulationValue);
+    const inde: any = this.regulationType.toUpperCase();
+    this.$store.commit("SET_REGTYPE", Rules[inde]);
     this.visibleErrorTip = !this.groupId;
     this.$store.commit('SET_ISNONEDATA', !this.groupId);
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
@@ -103,13 +105,6 @@ export default class QueryTool extends Vue {
     padding-right: 0;
     .app-query-tool-group {
       width: 220px;
-      // .el-input__inner {
-      //   padding-left: 70px;
-      // }
-      // .el-input__prefix {
-      //   line-height: 36px;
-      //   color: #55657E;
-      // }
     }
     .app-query-tool-item {
       position: relative;

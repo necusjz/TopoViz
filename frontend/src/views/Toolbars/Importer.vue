@@ -1,5 +1,10 @@
 <template>
   <div class="app-importer-wrap">
+     <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics">
+    <div class="app-importer-item app-back-wrap" v-if="isCheckStatics" @click="goBack">
+      <i class="el-icon-back"></i>
+      <span class="app-back">返回</span>
+    </div>
     <div class="app-importer-item app-importer-excel">
       <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false">
         <el-button size="small" class="upload-btn">{{targetName || '导入Topo数据'}}
@@ -31,6 +36,7 @@
 
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
+import { State } from 'vuex-class';
 import { postTopoData } from '@/api/request';
 
 @Component
@@ -40,6 +46,7 @@ export default class Importer extends Vue {
   @Provide() private formatName: string = '';
   @Provide() private targetFile: any;
   @Provide() private formatFile: any;
+  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
   public beforeUpload(type: string, file: File) {
     if (type === 'target') {
       this.targetFile = file;
@@ -59,6 +66,9 @@ export default class Importer extends Vue {
       console.log(res);
     });
   }
+  public goBack() {
+    this.$store.commit('SET_ISCHECKSTATICS', false);
+  }
 }
 </script>
 <style lang="scss">
@@ -77,10 +87,26 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       padding-right: 40px;
     }
   }
+  .app-back-wrap:nth-of-type(1) {
+    padding-right: 0;
+    cursor: pointer;
+    .app-back {
+      padding-left: 10px;
+    }
+  }
+  .app-logo {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    transform: translateY(-30%);
+    box-shadow: 0 4px 8px 0 #30a1fa;
+    border-radius: 50%;
+    z-index: 6;
+  }
   .app-importer-excel {
     display: inline-flex;
     justify-content: space-around;
-    padding-left: 80px;
+    padding-left: 20px;
     .upload-format {
       margin-left: 20px;
     }

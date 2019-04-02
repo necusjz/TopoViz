@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/cytoscape": "^3.4.0",
     "@types/dagre-d3": "^0.4.39",
+    "@types/vis": "^4.21.12",
     "axios": "^0.18.0",
     "cytoscape": "^3.5.1",
     "dagre-d3": "^0.6.3",
