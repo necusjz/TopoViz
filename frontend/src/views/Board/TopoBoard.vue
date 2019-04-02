@@ -12,7 +12,7 @@
       </div>
       <div class="topo-board-item" v-show="regValue">
         <span class="tag-square tag-green"></span>
-        <span class="tag-label">RCA 规则: {{groupId}}</span>
+        <span class="tag-label">{{regType}}: {{groupId}}</span>
       </div>
     </div>
     <div class="topo-board-right">
@@ -25,10 +25,12 @@
 <script lang="ts">
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
+import { Rules } from '@/types/type';
 @Component
 export default class StaticsBoard extends Vue {
   @State((state) => state.app.groupId) private groupId: any;
   @State((state) => state.app.regValue) private regValue: any;
+  @State((state) => state.app.regType) private regType: any;
   @State((state) => state.app.isNoneData) private isNoneData: any;
   @Provide() private status: boolean = false;
 }

@@ -11,7 +11,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
-import TopoTable from "./TopoTable.vue";
+import TopoTable from "../Table/TopoTable.vue";
 import TableData from "./tableData.json";
 import { AlarmData } from '@/types/type';
 

@@ -15,48 +15,48 @@
     <el-table-column type="selection" width="55" v-if="editAble"></el-table-column>
     <el-table-column prop="alarmName" label="告警名称">
       <template slot-scope="scope">
-        <span :id="scope.row.alarmName">{{scope.row.alarmName}}</span>
+        <span :id="scope.row.alarmName" :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
         <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="alarmSourceName" label="告警源名称">
       <template slot-scope="scope">
-        <span>{{scope.row.alarmSourceName}}</span>
+        <span :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="company" label="厂商" min-width="60">
       <template slot-scope="scope">
-        <span>{{scope.row.company}}</span>
+        <span :title="scope.row.company">{{scope.row.company}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="firstTime" label="首次发生时间">
       <template slot-scope="scope">
-        <span>{{scope.row.firstTime}}</span>
+        <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="lastTime" label="最近发生时间">
       <template slot-scope="scope">
-        <span>{{scope.row.lastTime}}</span>
+        <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="level" label="级别" width="50">
       <template slot-scope="scope">
-        <span>{{scope.row.level}}</span>
+        <span :title="scope.row.level">{{scope.row.level}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="clearTime" label="清除时间">
       <template slot-scope="scope">
-        <span>{{scope.row.clearTime}}</span>
+        <span :title="scope.row.clearTime">{{scope.row.clearTime}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="domain" label="域">
       <template slot-scope="scope">
-        <span>{{scope.row.domain}}</span>
+        <span :title="scope.row.domain">{{scope.row.domain}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="Group_ID" label="Group ID">
       <template slot-scope="scope">
-        <span>{{scope.row.Group_ID}}</span>
+        <span :title="scope.row.Group_ID">{{scope.row.Group_ID}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="RCA_result" label="RCA结果">
@@ -73,7 +73,7 @@
     </el-table-column>
     <el-table-column prop="RCA_reg" label="RCA 规则">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.alarmName}-reg`">{{scope.row.RCA_reg}}</span>
+        <span v-show="editCellId !== `${scope.row.alarmName}-reg`" :title="scope.row.RCA_reg">{{scope.row.RCA_reg}}</span>
         <TopoInput
           class="topoTable-hidden-input"
           v-if="editCellId === `${scope.row.alarmName}-reg`"
@@ -104,7 +104,7 @@ interface CellData {
     TopoInput
   }
 })
-export default class StaticsBoard extends Vue {
+export default class TopoTable extends Vue {
   @Provide() private editCellId: string = "";
   @Provide() private inputValue: string = "";
   @Prop() private editAble!: boolean;
@@ -184,9 +184,6 @@ export default class StaticsBoard extends Vue {
     text-align: center;
     font-weight: 600;
   }
-  // .left-align .cell{
-  //   text-align: left;
-  // }
   .bg-gray {
     background: rgba(67, 146, 255, 0.06);
   }
@@ -195,6 +192,9 @@ export default class StaticsBoard extends Vue {
       position: relative;
       text-align: center;
       color: #282828;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
     span {
       display: inline-block;
