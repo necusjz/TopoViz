@@ -27,6 +27,7 @@ import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
 import cytoscape from 'cytoscape';
 const { graphlib, dagre } = require('dagre-d3');
+import ForceDirect from '@/util/force-direct';
 
 @Component({
   components: {
@@ -39,35 +40,27 @@ export default class TopoTree extends Vue {
   @Provide() private center: Vertex = [0, 0];
   @Provide() private cy: any;
   @State((state) => state.app.isNoneData) isNoneData: any;
-  @Watch('isNoneData')
-  public watchData(val: boolean) {
-    if (!val) {
-      this.initTopoTree();
-    } else {
-      this.stage.clearAllLayers();
-    }
-  }
-  mounted() {
-    if (!this.isNoneData) {
-      this.initTopoTree1();
-    }
+  @State((state) => state.app.tableData) private tableData: any;
+  @Watch('tableData')
+  public watchTableData(val: any) {
+    this.initTopoTree2();
   }
   public initTopoTree() {
     if (!this.stage) {
       this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
     }
-    const g = new graphlib.Graph();
+    const g = new graphlib.Graph()
     g.setGraph({
       rankdir: 'BT',
       // align: 'dl', // 'dl、dr、ul、ur'
       ranksep: 80,
     });
     for (const node of dJson) {
-      g.setNode(String(node.id), node);
+      g.setNode(node.id, node);
     }
     for (const node of dJson) {
       if (node.pId) {
-        g.setEdge(String(node.pId), String(node.id), {source: g.node(String(node.pId)), target: node});
+        g.setEdge(node.pId, node.id, {source: g.node(node.pId), target: node});
       }
     }
     dagre.layout(g);
@@ -81,7 +74,7 @@ export default class TopoTree extends Vue {
     });
   }
   public initTopoTree1() {
-        const images = [];
+    const images = [];
     images.push(require(`../../assets/pc.png`));
     images.push(require(`../../assets/router.png`));
     images.push(require(`../../assets/server.png`));
@@ -119,25 +112,54 @@ export default class TopoTree extends Vue {
       wheelSensitivity: 0.5,
       layout: { name: 'breadthfirst', rows: 1 }
     });
-    this.cy.on('click', 'node', (evt: any) => {
-      console.log(evt);
+    console.log(this.cy);
+    this.cy.on('click', (evt: any) => {
+      console.log(evt.position);
     });
+  }
+  public initTopoTree2() {
+    if (!this.stage) {
+      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+    }
+    const images = [];
+    images.push(require(`../../assets/pc.png`));
+    images.push(require(`../../assets/router.png`));
+    images.push(require(`../../assets/server.png`));
+    images.push(require(`../../assets/switch.png`));
+    const nodes = [];
+    for (let i = 0; i < 20; i++) {
+      nodes.push({id: i, icon: images[i % 4]});
+    }
+    const edges = [];
+    for (let i = 0; i < 10; i++) {
+      edges.push({source: Math.floor(Math.random() * 20), target: Math.floor(Math.random() * 20)});
+    }
+    const force = new ForceDirect();
+    for (const node of nodes) {
+      force.setNode(node);
+    }
+    for (const edge of edges) {
+      const source = force.getNode(edge.source);
+      const target = force.getNode(edge.target);
+      if (source && target) {
+        force.setEdge({source, target});
+      }
+    }
+    const data = force.run((nodes: any, edges: any) => {
+      this.createNetWork(nodes, edges);
+    });
+    // this.createNetWork(data.nodes, data.edges);
+    this.clearEvent();
   }
   public zoom(step: number) {
     if (this.isNoneData) {
       return;
     }
-    // const cy: cytoscape.Core = this.cy;
-    // const zoom: number = cy.zoom();
-    // const center = (cy as any).getCenterPan();
-    // console.log(center);
     const stage: xCanvas.Stage = this.stage;
     if (step > 0) {
       stage.zoomIn();
-      // cy.zoom(zoom + 0.5);
     } else {
       stage.zoomOut();
-      // cy.zoom(zoom - 0.5)
     }
   }
   public clearEvent() {
@@ -183,22 +205,26 @@ export default class TopoTree extends Vue {
   }
   public createNetWork(nodes: any[], edges: any[]) {
     const stage: xCanvas.Stage = this.stage;
+    stage.startBatch();
+    this.stage.clearAllLayers();
     const size: number = 40;
     edges.forEach((edge: any) => {
       const pts: Vertex[] = [];
-      pts.push([edge.source.x, edge.source.y - size / 2 - 3], [edge.target.x, edge.target.y + size / 2 + 3]);
+      pts.push([edge.source.x, edge.source.y], [edge.target.x, edge.target.y]);
       const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
       const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
       const group = new xCanvas.LayerGroup([leader, arrow]).addTo(stage);
     });
     let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
     nodes.forEach((node: any) => {
-      const url = require(`../../assets/${node.type}.png`);
+      // const url = require(`../../assets/${node.type}.png`);
+      const url = node.icon;
       const childLayer = new xCanvas.ImageLayer(url, node.x, node.y, size, size).addTo(stage);
       bound = bound ? bound.expand(childLayer.getBound()) : childLayer.getBound();
     });
     this.center = bound.getCenter();
     stage.setView(this.center);
+    stage.endBatch();
   }
   public leaveContainer() {
     bus.$emit(VisibleType.TIPVISIBLE, false);
