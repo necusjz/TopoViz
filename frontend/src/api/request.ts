@@ -7,3 +7,12 @@ export function postTopoData(data: FormData) {
         data: data
     })
 }
+
+export function getAlarmDatas(params: {groupId?: string, addCondition?: number, addValue?: string}) {
+    return service({
+        url: 'analyze',
+        method: 'get',
+        params
+    })
+}
+

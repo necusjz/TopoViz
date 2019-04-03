@@ -6,12 +6,12 @@
       <span class="app-back">返回</span>
     </div>
     <div class="app-importer-item app-importer-excel">
-      <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false">
+      <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false" :disabled="hasUpload">
         <el-button size="small" class="upload-btn">{{targetName || '导入Topo数据'}}
           <i class="upload-icon"></i>
         </el-button>
       </el-upload>
-      <el-upload class="upload-format" action :before-upload="beforeUpload.bind(null, 'format')" :show-file-list="false">
+      <el-upload class="upload-format" action :before-upload="beforeUpload.bind(null, 'format')" :show-file-list="false" :disabled="hasUpload">
         <el-button size="small" class="upload-btn">{{formatName || '导入历史告警数据'}}
           <i class="upload-icon"></i>
         </el-button>
@@ -25,11 +25,14 @@
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         :default-time="['12:00:00']"
+        value-format="timestamp"
+        :clearable="false"
+        :disabled="hasUpload"
         size="small"
       ></el-date-picker>
     </div>
     <div class="app-importer-item">
-      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !targetName && !formatName}" @click="submitData">确定</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': unavailable}" @click="submitData">确定</el-button>
     </div>
   </div>
 </template>
@@ -39,15 +42,17 @@ import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { postTopoData } from '@/api/request';
 import bus from '@/util/bus';
-import { VisibleType } from '@/types/type';
+import { VisibleType, StaticsRes } from '@/types/type';
 
 @Component
 export default class Importer extends Vue {
-  @Provide() private dateValue: any = [];
+  @Provide() private dateValue: string[] = [];
   @Provide() private targetName: string = '';
   @Provide() private formatName: string = '';
   @Provide() private targetFile: any;
   @Provide() private formatFile: any;
+  @Provide() private hasUpload: boolean = false;
+  @Provide() private unavailable: boolean = true;
   @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
@@ -61,15 +66,26 @@ export default class Importer extends Vue {
     } else {
       bus.$emit(VisibleType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
     }
+    if (this.targetFile && this.formatFile) {
+      this.unavailable = false;
+    }
     return false;
   }
   public submitData() {
+    if (this.hasUpload) {
+      bus.$emit(VisibleType.ERRORVISIBLE, {title: '提示', content: '<p>请刷新页面再重新上传数据</p>'});
+      return;
+    }
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
     form.append('date', JSON.stringify(this.dateValue));
-    postTopoData(form).then((res: any) => {
+    postTopoData(form).then((res: StaticsRes) => {
       console.log(res);
+      this.hasUpload = true;
+      this.unavailable = true;
+      this.$store.commit('SET_ISIMPORTED', true);
+      this.$store.commit('SET_STATICS', res);
     });
   }
   public goBack() {
@@ -101,13 +117,11 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
     }
   }
   .app-logo {
-    position: relative;
     width: 70px;
     height: 70px;
     transform: translateY(-30%);
     box-shadow: 0 4px 8px 0 #30a1fa;
     border-radius: 50%;
-    z-index: 6;
   }
   .app-importer-excel {
     display: inline-flex;
@@ -117,13 +131,13 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       margin-left: 20px;
     }
     .upload-btn {
+      width: 180px;
       position: relative;
       background-image: $Btn_Background;
       border: 1px solid #bdc8d1;
       border-radius: 4px;
       color: #778296;
       padding: 8px 12px;
-      width: 180px;
       text-align: left;
       font-size: 14px;
       text-overflow: ellipsis;
@@ -144,6 +158,7 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   .app-importor-date {
     cursor: pointer;
     .app-importer-date {
+      width: 360px;
       height: 30px;
       background-image: $Btn_Background;
       color: #778296;
