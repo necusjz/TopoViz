@@ -38,6 +38,8 @@
 import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { postTopoData } from '@/api/request';
+import bus from '@/util/bus';
+import { VisibleType } from '@/types/type';
 
 @Component
 export default class Importer extends Vue {
@@ -48,12 +50,16 @@ export default class Importer extends Vue {
   @Provide() private formatFile: any;
   @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
   public beforeUpload(type: string, file: File) {
-    if (type === 'target') {
-      this.targetFile = file;
-      this.targetName = this.targetFile.name;
+    if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
+      if (type === 'target') {
+        this.targetFile = file;
+        this.targetName = this.targetFile.name;
+      } else {
+        this.formatFile = file;
+        this.formatName = this.formatFile.name;
+      }
     } else {
-      this.formatFile = file;
-      this.formatName = this.formatFile.name;
+      bus.$emit(VisibleType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
     }
     return false;
   }
