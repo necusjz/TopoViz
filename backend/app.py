@@ -13,7 +13,7 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
-df = pd.DataFrame(columns = 'Acked')
+df = pd.DataFrame(columns=['Acked', 'Acked By'])
 
 
 def allowed_file(filename):
