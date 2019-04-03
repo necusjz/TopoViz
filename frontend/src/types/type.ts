@@ -23,6 +23,8 @@ export interface AppState {
     alarmDatas: AlarmData[];
     tableData: AlarmData[];
     pageData: AlarmData[];
+    confirmData: GroupData[];
+    unconfirmData: GroupData[];
 }
 
 export interface AlarmData {
@@ -39,6 +41,11 @@ export interface AlarmData {
     RCA_reg: string,
     isConfirmed: boolean,
     [k: string]: any,
+}
+
+export interface GroupData {
+    groupId: string;
+    precision: string;
 }
 export enum Rules {
     COMPANY = '厂商',

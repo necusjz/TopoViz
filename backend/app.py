@@ -38,9 +38,9 @@ def upload():
             file2.save(os.path.join(app.config['UPLOAD_FOLDER'], filename2))
 
         df = []
-        if file2.endswith('.csv'):
+        if file2.filename.endswith('.csv'):
             df = pd.read_csv(file2)
-        elif file2.endswith('.xlsx') or file2.endswith('xls'):
+        elif file2.filename.endswith('.xlsx') or file2.filename.endswith('xls'):
             df = pd.read_excel(file2)
 
         data = dict()
