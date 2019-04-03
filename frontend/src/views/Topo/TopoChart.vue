@@ -1,8 +1,8 @@
 <template>
   <div class="rca-topo-table">
     <div class="topo-table-tabs">
-      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认</div>
-      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认</div>
+      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">待处理  20</div>
+      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已处理  38</div>
     </div>
     <TopoTable :editAble="activeType === 0" :tableData="tabData"></TopoTable>
   </div>
