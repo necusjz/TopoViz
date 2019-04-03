@@ -3,7 +3,7 @@
     <div class="dialog-title" slot="title">
       <div class="title-label">
         <i class="el-icon-warning"></i>
-        <span class="label">错误提示</span>
+        <span class="label">{{errorTitle}}</span>
       </div>
       <div class="title-close" @click="closeDialog">
         <i class="el-icon-close"></i>
@@ -24,10 +24,16 @@ import bus from "../../util/bus";
 export default class ErrorDialog extends Vue {
   @Provide() private dialogVisible: boolean = false;
   @Provide() private errorHtml: string = "";
+  @Provide() private errorTitle: string = "错误提示";
   mounted() {
-    bus.$on(VisibleType.ERRORVISIBLE, (msg: string) => {
+    bus.$on(VisibleType.ERRORVISIBLE, (obj: string | {title: string, content: string}) => {
       this.dialogVisible = true;
-      this.errorHtml = msg;
+      if (typeof obj === 'string') {
+        this.errorHtml = obj;
+      } else {
+        this.errorTitle = obj.title;
+        this.errorHtml = obj.content;
+      }
     });
   }
   public closeDialog() {
