@@ -13,7 +13,6 @@ export enum VisibleType {
 }
 
 export interface AppState {
-    userName: string;
     groupId: string;
     regValue: string;
     regType: string;
@@ -48,9 +47,19 @@ export interface GroupData {
     precision: string;
 }
 export enum Rules {
-    COMPANY = '厂商',
-    ALARMNAME = '告警名称',
-    RCAREG = 'RCA规则',
-    PALARM = 'P警告',
-    CALARM = 'C警告',
+    company,
+    alarmName,
+    rcaReg ,
+    pAlarm,
+    cAlarm,
+}
+
+export interface StaticsRes {
+    c_count: number;
+    confirmed: number;
+    group_count: number;
+    group_id: string[];
+    p_count: number;
+    total_alarm: number;
+    unconfirmed: number;
 }

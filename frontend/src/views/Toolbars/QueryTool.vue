@@ -11,7 +11,6 @@
           class="app-query-tool-group"
           :class="{'error-border-input': visibleErrorTip}"
           :fetch-suggestions="suggestion"
-          @blur="inputBlur"
           @keyup.enter.native="queryTopoData">
         </el-autocomplete>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
@@ -34,7 +33,7 @@
           v-model="regulationValue"
           size="small"
           class="app-query-tool-reg"
-          v-show="regulationType">
+          v-show="regulationType !== ''">
         </el-input>
       </div>
       <div class="app-query-tool-item">
@@ -52,6 +51,7 @@ import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
 import { VisibleType, AlarmData, Rules } from '@/types/type';
 import TableData from "@/util/tableData.json";
+import { getAlarmDatas } from '@/api/request';
 
 @Component
 export default class QueryTool extends Vue {
@@ -59,38 +59,39 @@ export default class QueryTool extends Vue {
   @Provide() private regulationType: string = "";
   @Provide() private regulationValue: string = "";
   @Provide() private visibleErrorTip: boolean = false;
-  @Provide() private options: { label: string; value: string }[] = [];
+  @Provide() private options: { label: string; value: number }[] = [];
   @State((state) => state.app.alarmDatas) private alarmDatas: any;
   @State((state) => state.app.tableData) private tableData!: AlarmData[];
+  @State((state) => state.project.groupIds) private groupIds!: string[];
+  @Watch('groupId')
+  public watchGroupId(val: string) {
+    if (val && !this.visibleErrorTip) {
+      this.visibleErrorTip = false;
+    }
+  }
   mounted() {
     this.options = ruleOptions;
   }
   public suggestion(val: string, cb: any) {
-    let suggestions = [];
-    if (val) {
-      suggestions = this.tableData.filter((alarmData: AlarmData) => alarmData.Group_ID.toLowerCase().includes(val.toLowerCase()))
-                        .map((alarmData: AlarmData) => {
-                          return {value: alarmData.Group_ID};
-                        });
-    } else {
-      suggestions = this.tableData.map((alarmData: AlarmData) => {
-        return {value: alarmData.Group_ID};
-      }); 
-    }
+    const suggestions = this.groupIds.filter((id: string) => val ? id.toLowerCase().includes(val.toLowerCase()) : true)
+      .map((id: string) => {
+        return {value: id};
+      });
     cb(suggestions);
-  }
-  public inputBlur() {
-    if (!this.groupId) {
-      this.visibleErrorTip = true;
-    }
   }
   public queryTopoData() {
     this.$store.commit("SET_GROUPID", this.groupId);
     this.$store.commit("SET_REGVALUE", this.regulationValue);
-    const inde: any = this.regulationType.toUpperCase();
+    const inde: any = this.regulationType;
     this.$store.commit("SET_REGTYPE", Rules[inde]);
     this.visibleErrorTip = !this.groupId;
     this.$store.commit('SET_ISNONEDATA', !this.groupId);
+    if (!this.groupId) {
+      this.visibleErrorTip = true;
+    }
+    getAlarmDatas({groupId: this.groupId, addCondition: inde, addValue: this.regulationValue}).then((data: any) => {
+      console.log(data);
+    });
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
     const tabData: AlarmData[] = [];
