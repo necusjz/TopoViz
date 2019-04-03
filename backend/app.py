@@ -30,7 +30,7 @@ def index():
 def upload():
     file1 = request.files['file1']
     file2 = request.files['file2']
-    date = request.form.get('date')
+    date = json.loads(request.form.get('date'))
     if file1 and file2 and date and allowed_file(file1.filename) and \
             allowed_file(file2.filename):
         filename1 = secure_filename(file1.filename)
@@ -44,8 +44,8 @@ def upload():
     elif file2.filename.endswith('.xlsx') or file2.filename.endswith('xls'):
         df = pd.read_excel(file2)
 
-    a_time = datetime.fromtimestamp(date[0])
-    z_time = datetime.fromtimestamp(date[1])
+    a_time = datetime.fromtimestamp(date[0] / 1000)
+    z_time = datetime.fromtimestamp(date[1] / 1000)
     df['First Occurrence'] = pd.to_datetime(df['First Occurrence'])
     mask = (a_time <= df['First Occurrence']) & (df['First Occurrence']
                                                  <= z_time)
@@ -85,7 +85,7 @@ def analyze():
     data['topo'] = []
     data['table'] = df.stack().to_json()
 
-    return json.dump(data)
+    return json.dumps(data)
 
 
 if __name__ == '__main__':
