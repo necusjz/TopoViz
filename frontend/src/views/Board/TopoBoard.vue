@@ -12,7 +12,7 @@
       </div>
       <div class="topo-board-item" v-show="regValue">
         <span class="tag-square tag-green"></span>
-        <span class="tag-label">{{regType}}: {{groupId}}</span>
+        <span class="tag-label">{{regType}}: {{regValue}}</span>
       </div>
     </div>
     <div class="topo-board-right">

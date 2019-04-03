@@ -114,7 +114,7 @@ export default class TopoTable extends Vue {
     //console.log(val);
   }
   public handleCellDbclick(row: any, column: any) {
-    if (this.editAble && column.property) {
+    if (column.property) {
       if (column.property.includes("RCA_reg")) {
         this.editCellId = `${row.alarmName}-reg`;
         this.inputValue = row.RCA_reg;
