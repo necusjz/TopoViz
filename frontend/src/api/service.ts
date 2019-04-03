@@ -25,7 +25,7 @@ service.interceptors.response.use(
   },
 );
 
-function request(options: {url: string, method: string, [k: string]: any}): Promise<{}> {
+function request(options: {url: string, method: string, [k: string]: any}): Promise<any> {
   return new Promise((resolve, reject) => {
     service(options).then((res: any) => {
       resolve(res);

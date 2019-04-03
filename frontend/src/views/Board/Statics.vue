@@ -7,8 +7,8 @@
     <div class="rca-dec" v-else>
       <span>RCA结果汇总: </span>
       <div class="rca-statics" v-if="isImported">
-        <span>共38个警告; 其中包含24个P警告, 14个C警告;</span>
-        <span class="dec-group" @click="checkStatics">共12个组，其中5组已确认，7组未确认</span>
+        <span>共{{total_count}}个警告; 其中包含{{p_count}}个P警告, {{c_count}}个C警告;</span>
+        <span class="dec-group" @click="checkStatics">共{{group_count}}个组，其中{{confirmed_count}}组已确认，{{unconfirmed_count}}组未确认</span>
       </div>
       <span v-else>无</span>
     </div>
@@ -23,6 +23,12 @@ import { State } from 'vuex-class';
 export default class StaticsBoard extends Vue {
   @State((state) => state.app.isImported) private isImported: any;
   @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
+  @State((state) => state.project.total_count) private total_count!: number;
+  @State((state) => state.project.p_count) private p_count!: number;
+  @State((state) => state.project.c_count) private c_count!: number;
+  @State((state) => state.project.group_count) private group_count!: number;
+  @State((state) => state.project.confirmed_count) private confirmed_count!: number;
+  @State((state) => state.project.unconfirmed_count) private unconfirmed_count!: number;
   public checkStatics() {
     this.$store.commit('SET_ISCHECKSTATICS', true);
   }
@@ -45,10 +51,14 @@ export default class StaticsBoard extends Vue {
 }
 .rca-statics {
   display: inline-block;
+  transition: opacity 0.3;
 }
 .dec-group {
   text-decoration: underline;
   cursor: pointer;
+  &:hover {
+    color: #338AFF;
+  }
 }
 .statics-precision {
   padding-right: 5px;
