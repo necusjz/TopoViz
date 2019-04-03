@@ -156,5 +156,3 @@ export default class QueryTool extends Vue {
   }
 }
 </style>
-
-ß
