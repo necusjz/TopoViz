@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 import pandas as pd
 
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, render_template
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 
@@ -35,8 +36,24 @@ def upload():
             filename2 = secure_filename(file2.filename)
             file1.save(os.path.join(app.config['UPLOAD_FOLDER'], filename1))
             file2.save(os.path.join(app.config['UPLOAD_FOLDER'], filename2))
-            return redirect(url_for('analyze'))
-    return render_template('index.html')
+
+        df = []
+        if file2.endswith('.csv'):
+            df = pd.read_csv(file2)
+        elif file2.endswith('.xlsx') or file2.endswith('xls'):
+            df = pd.read_excel(file2)
+
+        data = dict()
+        data['total_alarm'] = int(df.shape[0])
+        data['p_count'] = int(df[df['RCA Result'] == 1]['RCA Result'].count())
+        data['c_count'] = int(df[df['RCA Result'] == 2]['RCA Result'].count())
+        data['group_count'] = int(pd.Series(df['RCA Group ID']).nunique())
+        data['confirmed'] = 0
+        data['unconfirmed'] = data['group_count']
+
+        data['group_id'] = df['RCA Group ID'].drop_duplicates().tolist()
+
+    return json.dumps(data)
 
 
 @app.route('/analyze')
