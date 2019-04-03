@@ -24,7 +24,7 @@ import { State } from 'vuex-class';
 
 @Component
 export default class Title extends Vue {
-  @State((state) => state.app.userName) private userName: any;
+  @State((state) => state.user.userName) private userName: any;
   @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
 }
 </script>

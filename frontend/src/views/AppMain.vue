@@ -5,19 +5,26 @@
       <Importer></Importer>
       <div class="app-rca-body">
         <StaticsBoard></StaticsBoard>
-        <div v-show="!isCheckStatics">
-          <QueryTool></QueryTool>
-          <div class="app-topo-tree">
-            <TopoBoard></TopoBoard>
-            <TopoTree></TopoTree>
+        <transition name="fade">
+          <div v-show="!isCheckStatics">
+            <QueryTool></QueryTool>
+            <div class="app-topo-tree">
+              <TopoBoard></TopoBoard>
+              <TopoTree></TopoTree>
+            </div>
+            <div class="app-topo-chart">
+              <TopoChart v-show="!isNoneData"></TopoChart>
+            </div>
+            <div class="app-topo-pagination">
+              <TopoTablePagination></TopoTablePagination>
+            </div>
           </div>
-          <div class="app-topo-chart">
-            <TopoChart v-show="!isNoneData"></TopoChart>
+        </transition>
+        <div v-if="isCheckStatics">
+          <StaticsTable></StaticsTable>
+          <div class="app-statics-pagination">
+            <TopoTablePagination></TopoTablePagination>
           </div>
-        </div>
-        <StaticsTable v-if="isCheckStatics"></StaticsTable>
-        <div class="app-topo-pagination">
-          <TopoTablePagination></TopoTablePagination>
         </div>
       </div>
     </el-scrollbar>
@@ -87,14 +94,14 @@ export default class AppMain extends Vue {
       background-size: 30% auto;
       background-repeat: no-repeat;
     }
-    .app-topo-pagination {
+    .app-topo-pagination, .app-statics-pagination {
       display: none;
     }
   }
   .app-rca-body {
     position: relative;
     height: calc(100% - 100px);
-    padding: 0 20px;
+    padding: 0 25px;
     background: #f8f9ff;
     .app-topo-tree {
       position: relative;
@@ -107,7 +114,7 @@ export default class AppMain extends Vue {
       min-height: 500px;
       @extend .box-border;
     }
-    .app-topo-pagination {
+    .app-topo-pagination, .app-statics-pagination {
       margin-top: 20px;
       text-align: right;
     }

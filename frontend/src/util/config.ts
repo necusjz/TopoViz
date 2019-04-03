@@ -1,20 +1,20 @@
 import { Rules } from '../types/type';
 
 const ruleOptions = [{
-    label: `按${Rules.COMPANY}查询`,
-    value: 'company'
+    label: `按厂商查询`,
+    value: Rules.company
 },{
-    label: `按${Rules.ALARMNAME}查询`,
-    value: 'alarmName'
+    label: `按告警名称查询`,
+    value: Rules.alarmName
 },{
-    label: `按${Rules.RCAREG}查询`,
-    value: 'rcaReg'
+    label: `按RCA规则查询`,
+    value: Rules.rcaReg
 },{
-    label: `按${Rules.PALARM}查询`,
-    value: 'pAlarm'
+    label: `按P警告查询`,
+    value: Rules.pAlarm
 },{
-    label: `按${Rules.CALARM}查询`,
-    value: 'cAlarm'
+    label: `按C警告查询`,
+    value: Rules.cAlarm
 }];
 
 export {
