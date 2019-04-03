@@ -1,4 +1,4 @@
-import { AppState, AlarmData } from '../types/type';
+import { AppState, AlarmData, GroupData } from '../types/type';
 import { MutationTree, Module } from 'vuex'
 
 const state: AppState = {
@@ -12,6 +12,8 @@ const state: AppState = {
     alarmDatas: [], // 查询得到的数据
     tableData: [], // 当前table的总数据
     pageData: [], // 当前table页的数据
+    confirmData: [], // 已确认的group数据
+    unconfirmData: [], // 未确认的group数据
 };
 
 const mutations: MutationTree<AppState> = {
@@ -44,6 +46,12 @@ const mutations: MutationTree<AppState> = {
     },
     SET_PAGEDATA: (state: AppState, data: AlarmData[]) => {
         state.pageData = data;
+    },
+    SET_CONFIRMDATA: (state: AppState, data: GroupData[]) => {
+        state.confirmData = data;
+    },
+    SET_UNCONFIRMDATA: (state: AppState, data: GroupData[]) => {
+        state.unconfirmData = data;
     }
 };
 

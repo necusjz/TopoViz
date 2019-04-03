@@ -3,14 +3,17 @@
     <div class="app-query-title">查询条件</div>
     <div class="app-query-tool">
       <div class="app-query-tool-item">
-        <el-input
+        <el-autocomplete
           placeholder="请输入Group ID"
           suffix-icon="el-icon-search"
           v-model="groupId"
           size="small"
           class="app-query-tool-group"
-          :class="{'error-border-input': visibleErrorTip}">
-        </el-input>
+          :class="{'error-border-input': visibleErrorTip}"
+          :fetch-suggestions="suggestion"
+          @blur="inputBlur"
+          @keyup.enter.native="queryTopoData">
+        </el-autocomplete>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
       </div>
       <div class="app-query-tool-item app-query-tool-regulation">
@@ -58,12 +61,28 @@ export default class QueryTool extends Vue {
   @Provide() private visibleErrorTip: boolean = false;
   @Provide() private options: { label: string; value: string }[] = [];
   @State((state) => state.app.alarmDatas) private alarmDatas: any;
-  @Watch("groupId")
-  public watchGroupId(val: string) {
-    this.visibleErrorTip = !val;
-  }
+  @State((state) => state.app.tableData) private tableData!: AlarmData[];
   mounted() {
     this.options = ruleOptions;
+  }
+  public suggestion(val: string, cb: any) {
+    let suggestions = [];
+    if (val) {
+      suggestions = this.tableData.filter((alarmData: AlarmData) => alarmData.Group_ID.toLowerCase().includes(val.toLowerCase()))
+                        .map((alarmData: AlarmData) => {
+                          return {value: alarmData.Group_ID};
+                        });
+    } else {
+      suggestions = this.tableData.map((alarmData: AlarmData) => {
+        return {value: alarmData.Group_ID};
+      }); 
+    }
+    cb(suggestions);
+  }
+  public inputBlur() {
+    if (!this.groupId) {
+      this.visibleErrorTip = true;
+    }
   }
   public queryTopoData() {
     this.$store.commit("SET_GROUPID", this.groupId);
