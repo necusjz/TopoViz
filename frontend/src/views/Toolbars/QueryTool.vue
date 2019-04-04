@@ -49,7 +49,7 @@ import { Component, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
-import { VisibleType, AlarmData, Rules } from '@/types/type';
+import { VisibleType, AlarmData, Rules, AnalyzeRes } from '@/types/type';
 import TableData from "@/util/tableData.json";
 import { getAlarmDatas } from '@/api/request';
 
@@ -89,17 +89,36 @@ export default class QueryTool extends Vue {
     if (!this.groupId) {
       this.visibleErrorTip = true;
     }
-    getAlarmDatas({groupId: this.groupId, addCondition: inde, addValue: this.regulationValue}).then((data: any) => {
-      console.log(data);
+    getAlarmDatas({groupId: this.groupId, addCondition: inde, addValue: this.regulationValue}).then((data: AnalyzeRes) => {
+      const table = data.table;
+      if (table) {
+        const tableData: AlarmData[] = table.map((item: any) => {
+          return {
+            alarmName: item['Alarm Name'],
+            alarmSourceName: item['Alarm Source'],
+            company: item['Vendor'],
+            firstTime: item['First Occurrence'],
+            lastTime: item['Last Occurrence'],
+            level: item['Raw Severity'],
+            clearTime: item['Cleared On'],
+            domain: item['Domain'],
+            Group_ID: item['RCA Group ID'],
+            RCA_result: item['RCA Result'],
+            RCA_reg: item['RCA Rule Name'],
+            isConfirmed: false
+          };
+        })
+        this.$store.commit('SET_ALARMDATAS', tableData);
+      }
     });
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
-    const tabData: AlarmData[] = [];
-    const len: number = Math.floor(Math.random() * 500);
-    for (let i = 2; i < len; i++) {
-      tabData[i - 2] = { ...TableData[0], alarmName: `X0934_RTN950-0${i}`, Group_ID: `POS_32480${i}`, isConfirmed: Math.random() > 0.5};
-    }
-    this.$store.commit('SET_ALARMDATAS', tabData);
+    // const tabData: AlarmData[] = [];
+    // const len: number = Math.floor(Math.random() * 500);
+    // for (let i = 2; i < len; i++) {
+    //   tabData[i - 2] = { ...TableData[0], alarmName: `X0934_RTN950-0${i}`, Group_ID: `POS_32480${i}`, isConfirmed: Math.random() > 0.5};
+    // }
+    // this.$store.commit('SET_ALARMDATAS', tabData);
   }
 }
 </script>
