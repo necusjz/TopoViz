@@ -39,7 +39,7 @@
         <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="level" label="级别" width="50">
+    <el-table-column prop="level" label="级别">
       <template slot-scope="scope">
         <span :title="scope.row.level">{{scope.row.level}}</span>
       </template>
