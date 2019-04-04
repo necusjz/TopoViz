@@ -63,3 +63,8 @@ export interface StaticsRes {
     total_alarm: number;
     unconfirmed: number;
 }
+
+export interface AnalyzeRes {
+    table: any;
+    topo: any;
+}
