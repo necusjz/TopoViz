@@ -14,13 +14,37 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
 
-topo = pd.DataFrame(columns=['PathID', 'NEName'])
 alarm = pd.DataFrame(columns=['Alarm Name', 'Alarm Source'])
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in \
            app.config['ALLOWED_EXTENSIONS']
+
+
+def save_formatted(file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        if filename.endswith('.csv'):
+            df_ = pd.read_csv(file)
+            if df_.shape[1] < app.config['DISTINCT_NUM']:
+                df = df_[app.config['TOPO_COLUMNS']]
+                df.to_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                         'topo_format.xlsx'), index=False)
+            else:
+                df = df_[app.config['ALARM_COLUMNS']]
+                df.to_csv(os.path.join(app.config['UPLOAD_FOLDER'],
+                                       'alarm_format.xlsx'), index=False)
+        elif filename.endswith('.xlsx') or filename.endswith('xls'):
+            df_ = pd.read_excel(file)
+            if df_.shape[1] < app.config['DISTINCT_NUM']:
+                df = df_[app.config['TOPO_COLUMNS']]
+                df.to_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                         'topo_format.xlsx'), index=False)
+            else:
+                df = df_[app.config['ALARM_COLUMNS']]
+                df.to_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                         'alarm_format.xlsx'), index=False)
 
 
 @app.route('/', methods=['GET'])
@@ -30,33 +54,24 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    # get post request
     file1 = request.files['file1']
     file2 = request.files['file2']
     date = json.loads(request.form.get('date'))
-    if file1 and file2 and date and allowed_file(file1.filename) and \
-       allowed_file(file2.filename):
-        filename1 = secure_filename(file1.filename)
-        filename2 = secure_filename(file2.filename)
-        file1.save(os.path.join(app.config['UPLOAD_FOLDER'], filename1))
-        file2.save(os.path.join(app.config['UPLOAD_FOLDER'], filename2))
-
+    # save formatted files to disk
+    save_formatted(file1)
+    save_formatted(file2)
+    # get time filtered alarm dataframe
     global alarm
-    alarm_ = pd.DataFrame(columns=['Alarm Name', 'Alarm Source'])
-    if file2.filename.endswith('.csv'):
-        alarm_ = pd.read_csv(file2)
-    elif file2.filename.endswith('.xlsx') or file2.filename.endswith('xls'):
-        alarm_ = pd.read_excel(file2)
-    alarm = alarm_[['Alarm Name', 'Alarm Source', 'Vendor', 'First Occurrence',
-                    'Last Occurrence', 'Raw Severity', 'Cleared On', 'Domain',
-                    'RCA Group ID', 'RCA Result', 'RCA Rule Name']]
-
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                       'alarm_format.xlsx'))
     a_time = datetime.fromtimestamp(date[0]/1000)
     z_time = datetime.fromtimestamp(date[1]/1000)
     alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
     mask = (a_time <= alarm['First Occurrence']) & \
            (alarm['First Occurrence'] <= z_time)
-    # alarm = alarm.loc[mask]
-
+    alarm = alarm.loc[mask]
+    # construct json for frontend
     data = dict()
     data['total_alarm'] = int(alarm.shape[0])
     data['p_count'] = int(alarm[alarm['RCA Result'] == 1]['RCA Result'].count())
@@ -73,27 +88,23 @@ def analyze():
     global alarm
     group_id = request.args.get('groupId')
     add_condition = request.args.get('addCondition')
-    add_value = request.args.get('addValue')
-    if add_condition and add_value.strip():
-        if add_condition == '0':
-            alarm = alarm.loc[alarm['Vendor'] == add_value]
+    if add_condition:
+        add_value = request.args.get('addValue')
         if add_condition == '1':
-            alarm = alarm.loc[alarm['Alarm Name'] == add_value]
+            alarm = alarm.loc[alarm['Vendor'] == add_value]
         if add_condition == '2':
-            alarm = alarm.loc[alarm['RCA Rule Name'] == add_value]
+            alarm = alarm.loc[alarm['Alarm Name'] == add_value]
         if add_condition == '3':
-            alarm = alarm.loc[alarm['RCA Result'] == add_value]
+            alarm = alarm.loc[alarm['RCA Rule Name'] == add_value]
         if add_condition == '4':
             alarm = alarm.loc[alarm['RCA Result'] == add_value]
+        if add_condition == '5':
+            alarm = alarm.loc[alarm['RCA Result'] == add_value]
     alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
-    table_str = alarm.to_json(orient='index')
-    table_dict = json.loads(table_str)
+
     data = dict()
     data['topo'] = []
-    # data['table'] = alarm.to_json(orient='index')
-    data['table'] = []
-    for value in table_dict.values():
-        data['table'].append(value)
+    data['table'] = alarm.to_json(orient='records')
     return json.dumps(data)
 
 
