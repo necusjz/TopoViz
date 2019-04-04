@@ -46,7 +46,7 @@ import { VisibleType, StaticsRes } from '@/types/type';
 
 @Component
 export default class Importer extends Vue {
-  @Provide() private dateValue: string[] = [];
+  @Provide() private dateValue: number[] = [];
   @Provide() private targetName: string = '';
   @Provide() private formatName: string = '';
   @Provide() private targetFile: any;
@@ -66,7 +66,7 @@ export default class Importer extends Vue {
     } else {
       bus.$emit(VisibleType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
     }
-    if (this.targetFile && this.formatFile) {
+    if (this.targetFile && this.formatFile && this.dateValue) {
       this.unavailable = false;
     }
     return false;
@@ -76,12 +76,15 @@ export default class Importer extends Vue {
       bus.$emit(VisibleType.ERRORVISIBLE, {title: '提示', content: '<p>请刷新页面再重新上传数据</p>'});
       return;
     }
+    let date: number[] = [];
+    if (this.dateValue && this.dateValue.length > 0) {
+      date = this.dateValue.map((d: number) => d + 8 * 3600 * 1000);
+    }
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
-    form.append('date', JSON.stringify(this.dateValue));
+    form.append('date', JSON.stringify(date));
     postTopoData(form).then((res: StaticsRes) => {
-      console.log(res);
       this.hasUpload = true;
       this.unavailable = true;
       this.$store.commit('SET_ISIMPORTED', true);
