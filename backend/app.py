@@ -89,8 +89,28 @@ def analyze():
     group_id = request.args.get('groupId')
     alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
 
+    path = []
+    for i in set(alarm['Alarm Source']):
+        topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                          'topo_format.xlsx'))
+        topo = topo.loc[topo['NEName'] == i]
+        path.append(set(topo['PathID']))
+    res = path[0]
+    for i in range(1, len(path)):
+        res = res & path[i]
+
+    topo_res = []
+    for i in res:
+        topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                          'topo_format.xlsx'))
+        topo = topo.loc[topo['PathID'] == i]
+        topo_key = ['NEName', 'NEType']
+        topo_value = [topo['NEName'], topo['NEType']]
+        per_topo = dict(zip(topo_key, topo_value))
+        topo_res.append(per_topo)
+    # construct json for frontend
     data = dict()
-    data['topo'] = []
+    data['topo'] = topo_res
     data['table'] = alarm.to_json(orient='records')
     return json.dumps(data)
 
