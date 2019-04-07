@@ -87,19 +87,6 @@ def upload():
 def analyze():
     global alarm
     group_id = request.args.get('groupId')
-    add_condition = request.args.get('addCondition')
-    if add_condition:
-        add_value = request.args.get('addValue')
-        if add_condition == '1':
-            alarm = alarm.loc[alarm['Vendor'] == add_value]
-        if add_condition == '2':
-            alarm = alarm.loc[alarm['Alarm Name'] == add_value]
-        if add_condition == '3':
-            alarm = alarm.loc[alarm['RCA Rule Name'] == add_value]
-        if add_condition == '4':
-            alarm = alarm.loc[alarm['RCA Result'] == add_value]
-        if add_condition == '5':
-            alarm = alarm.loc[alarm['RCA Result'] == add_value]
     alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
 
     data = dict()
