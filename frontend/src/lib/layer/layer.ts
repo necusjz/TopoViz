@@ -48,6 +48,12 @@ export default abstract class Layer extends Evt {
     return this.options._stage;
   }
   /**
+   * 返回业务脏数据
+   */
+  public getDirtyData() {
+    return this.dirtyData;
+  }
+  /**
    * 设置图层属性
    * @param options Object
    */
