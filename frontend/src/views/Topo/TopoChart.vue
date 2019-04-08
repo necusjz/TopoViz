@@ -1,8 +1,8 @@
 <template>
   <div class="rca-topo-table">
     <div class="topo-table-tabs">
-      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">待处理  20</div>
-      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已处理  38</div>
+      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">待处理  {{this.tabData.length}}</div>
+      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已处理  0</div>
     </div>
     <TopoTable :editAble="activeType === 0" :tableData="tabData"></TopoTable>
   </div>
@@ -14,6 +14,7 @@ import { State } from "vuex-class";
 import TopoTable from "../Table/TopoTable.vue";
 import TableData from "./tableData.json";
 import { AlarmData } from '@/types/type';
+import { generateUUID } from '@/util/util';
 
 @Component({
   components: {
@@ -46,6 +47,7 @@ export default class StaticsBoard extends Vue {
   }
   public setLastRow() {
     const lastRow = {
+      uid: generateUUID(),
       type: "statics",
       ratio: "80%",
       alarmName: "当前组精准率: ",
