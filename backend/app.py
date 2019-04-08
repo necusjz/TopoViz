@@ -15,7 +15,7 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
 
-interval = ''
+interval = []
 
 
 def allowed_file(filename):
@@ -47,8 +47,8 @@ def save_formatted(file, path):
 def interval_filter(current_interval, client_id):
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        'alarm_format.xlsx'))
-    a_time = datetime.fromtimestamp(current_interval[0] / 1000)
-    z_time = datetime.fromtimestamp(current_interval[1] / 1000)
+    a_time = datetime.fromtimestamp(current_interval[0])
+    z_time = datetime.fromtimestamp(current_interval[1])
     alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
     mask = (a_time <= alarm['First Occurrence']) & \
            (alarm['First Occurrence'] <= z_time)
@@ -65,11 +65,13 @@ def upload():
     # save formatted files to disk
     file1 = request.files['file1']
     file2 = request.files['file2']
-    client_id = str(uuid.uuid1())
-    save_path1 = os.path.join(app.config['UPLOAD_FOLDER'] + client_id +
-                              'topo_format.xlsx')
-    save_path2 = os.path.join(app.config['UPLOAD_FOLDER'] + client_id +
-                              'alarm_format.xlsx')
+    client_id = dict(str(uuid.uuid1()))
+    os.makedirs(os.getcwd() + '/' + app.config['UPLOAD_FOLDER'] +
+                '/' + client_id)
+    save_path1 = os.path.join(app.config['UPLOAD_FOLDER'] + '/' + client_id +
+                              '/' + 'topo_format.xlsx')
+    save_path2 = os.path.join(app.config['UPLOAD_FOLDER'] + '/' + client_id +
+                              '/' + 'alarm_format.xlsx')
     save_formatted(file1, save_path1)
     save_formatted(file2, save_path2)
     # return unique uuid
@@ -80,7 +82,8 @@ def upload():
 def set_interval():
     # get interval filtered alarm dataframe
     global interval
-    interval = json.loads(request.args.get('interval'))
+    interval.append(request.args.get('start'))
+    interval.append(request.args.get('end'))
     client_id = request.headers.get('Client-Id')
     alarm = interval_filter(interval, client_id)
     # construct json for frontend
@@ -98,8 +101,8 @@ def set_interval():
 @app.route('/reset', methods=['POST'])
 def reset_interval():
     global interval
-    interval[0] -= 300000
-    interval[1] += 300000
+    interval[0] -= 300
+    interval[1] += 300
     return redirect(url_for('analyze'))
 
 
@@ -114,7 +117,7 @@ def analyze():
     path = []
     for i in set(alarm['Alarm Source']):
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                          'topo_format.xlsx'))
+                                          client_id, 'topo_format.xlsx'))
         topo = topo.loc[topo['NEName'] == i]
         path.append(set(topo['PathID']))
     res = path[0]
@@ -124,7 +127,7 @@ def analyze():
     topo_res = []
     for i in res:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                          'topo_format.xlsx'))
+                                          client_id ,'topo_format.xlsx'))
         topo = topo.loc[topo['PathID'] == i]
         per_topo = []
         for j, k in zip(topo['NEName'], topo['NEType']):
