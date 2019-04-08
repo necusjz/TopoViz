@@ -75,8 +75,12 @@ def upload():
     save_formatted(file1, save_path1)
     save_formatted(file2, save_path2)
     # construct json for frontend
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                       client_id, 'topo_format.xlsx'))
     data = dict()
     data['client_id'] = client_id
+    data['start'] = pd.to_datetime(alarm['First Occurrence'].min()).timestamp()
+    data['end'] = pd.to_datetime(alarm['First Occurrence'].max()).timestamp()
     return jsonify(data)
 
 
