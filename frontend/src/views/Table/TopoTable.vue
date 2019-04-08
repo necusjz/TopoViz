@@ -61,10 +61,10 @@
     </el-table-column>
     <el-table-column prop="RCA_result" label="RCA结果">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.alarmName}-result`">{{scope.row.RCA_result}}</span>
+        <span v-show="editCellId !== `${scope.row.uid}-result`">{{scope.row.RCA_result}}</span>
         <TopoInput
           class="topoTable-hidden-input"
-          v-if="editCellId === `${scope.row.alarmName}-result`"
+          v-if="editCellId === `${scope.row.uid}-result`"
           :row="scope.row"
           attr="RCA_result"
           @blur="inputBlur"
@@ -73,10 +73,10 @@
     </el-table-column>
     <el-table-column prop="RCA_reg" label="RCA 规则">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.alarmName}-reg`" :title="scope.row.RCA_reg">{{scope.row.RCA_reg}}</span>
+        <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.RCA_reg">{{scope.row.RCA_reg}}</span>
         <TopoInput
           class="topoTable-hidden-input"
-          v-if="editCellId === `${scope.row.alarmName}-reg`"
+          v-if="editCellId === `${scope.row.uid}-reg`"
           :row="scope.row"
           attr="RCA_reg"
           @blur="inputBlur"
@@ -110,16 +110,17 @@ export default class TopoTable extends Vue {
   @Prop() private editAble!: boolean;
   @Prop() private tableData!: any[];
   @State((state) => state.app.pageData) private pageData: any;
+  @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   public handleSelectionChange(val: any) {
     //console.log(val);
   }
   public handleCellDbclick(row: any, column: any) {
     if (column.property) {
       if (column.property.includes("RCA_reg")) {
-        this.editCellId = `${row.alarmName}-reg`;
+        this.editCellId = `${row.uid}-reg`;
         this.inputValue = row.RCA_reg;
       } else if (column.property.includes("RCA_result")) {
-        this.editCellId = `${row.alarmName}-result`;
+        this.editCellId = `${row.uid}-result`;
         this.inputValue = row.RCA_result;
       }
     }
@@ -153,9 +154,12 @@ export default class TopoTable extends Vue {
     }
     return cellClassName;
   }
-  public getRowClassName(item: { row: object; rowIndex: number }): string {
+  public getRowClassName(item: { row: any; rowIndex: number }): string {
     if (item.rowIndex === this.tableData.length - 1) {
       return "topo-table-static-row";
+    }
+    if (item.row.alarmName === this.selectAlarm) {
+      return 'active';
     }
     return "";
   }
@@ -179,6 +183,7 @@ export default class TopoTable extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 .topoTable {
+  cursor: pointer;
   .topoTable-header-row .cell {
     color: #55657e;
     text-align: center;
