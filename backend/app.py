@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import json
 import uuid
 import pandas as pd
 
@@ -15,7 +14,7 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
 
-interval = []
+interval = dict()
 
 
 def allowed_file(filename):
@@ -47,8 +46,8 @@ def save_formatted(file, path):
 def interval_filter(current_interval, client_id):
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        'alarm_format.xlsx'))
-    a_time = datetime.fromtimestamp(int(current_interval[0]))
-    z_time = datetime.fromtimestamp(int(current_interval[1]))
+    a_time = datetime.fromtimestamp(int(current_interval[client_id][0]))
+    z_time = datetime.fromtimestamp(int(current_interval[client_id][1]))
     alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
     mask = (a_time <= alarm['First Occurrence']) & \
            (alarm['First Occurrence'] <= z_time)
@@ -76,7 +75,7 @@ def upload():
     save_formatted(file2, save_path2)
     # construct json for frontend
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                       client_id, 'topo_format.xlsx'))
+                                       client_id, 'alarm_format.xlsx'))
     data = dict()
     data['client_id'] = client_id
     data['start'] = pd.to_datetime(alarm['First Occurrence'].min()).timestamp()
@@ -88,9 +87,11 @@ def upload():
 def set_interval():
     # get interval filtered alarm dataframe
     global interval
-    interval.append(request.args.get('start'))
-    interval.append(request.args.get('end'))
+    interval_ = list()
+    interval_.append(request.args.get('start'))
+    interval_.append(request.args.get('end'))
     client_id = request.headers.get('Client-Id')
+    interval[client_id] = interval_
     alarm = interval_filter(interval, client_id)
     # construct json for frontend
     data = dict()
@@ -107,8 +108,9 @@ def set_interval():
 @app.route('/reset', methods=['POST'])
 def reset_interval():
     global interval
-    interval[0] -= 300
-    interval[1] += 300
+    client_id = request.headers.get('Client-Id')
+    interval[client_id][0] -= 300
+    interval[client_id][1] += 300
     return redirect(url_for('analyze'))
 
 
