@@ -24,9 +24,11 @@ export interface AppState {
     pageData: AlarmData[];
     confirmData: GroupData[];
     unconfirmData: GroupData[];
+    selectAlarm: string;
 }
 
 export interface AlarmData {
+    uid: string;
     alarmName: string,
     alarmSourceName: string,
     company: string,

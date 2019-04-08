@@ -43,7 +43,7 @@ export default class TopoTree extends Vue {
   @State((state) => state.app.tableData) private tableData: any;
   @Watch('tableData')
   public watchTableData(val: any) {
-    this.initTopoTree2();
+    this.initTopoTree();
   }
   public initTopoTree() {
     if (!this.stage) {
@@ -55,10 +55,13 @@ export default class TopoTree extends Vue {
       // align: 'dl', // 'dl、dr、ul、ur'
       ranksep: 80,
     });
-    for (const node of dJson) {
-      g.setNode(node.id, node);
+    const mnodes = dJson.slice(0, this.tableData.length + 2).map((node: any, index: number) => {
+      return {...node, ...this.tableData[index % this.tableData.length]};
+    });
+    for (const node of mnodes) {
+      g.setNode(node.id, node)
     }
-    for (const node of dJson) {
+    for (const node of mnodes) {
       if (node.pId) {
         g.setEdge(node.pId, node.id, {source: g.node(node.pId), target: node});
       }
@@ -185,7 +188,9 @@ export default class TopoTree extends Vue {
     stage.on('click', (e: any) => {
       const layer = stage.getLayerByPosition(e.pos);
       if (layer && layer.getLayerType() === 'IMAGE') {
-        window.location.hash = '#X0934_RTN950-09';
+        const dirtyData = layer.getDirtyData();
+        window.location.hash = '#' + dirtyData.alarmName;
+        this.$store.commit('SET_SELECTALARM', dirtyData.alarmName);
         setTimeout(() => {
           window.location.hash = '';
         });
@@ -217,9 +222,10 @@ export default class TopoTree extends Vue {
     });
     let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
     nodes.forEach((node: any) => {
-      // const url = require(`../../assets/${node.type}.png`);
-      const url = node.icon;
+      const url = require(`../../assets/${node.type}.png`);
+      // const url = node.icon;
       const childLayer = new xCanvas.ImageLayer(url, node.x, node.y, size, size).addTo(stage);
+      childLayer.setDirtyData(node);
       bound = bound ? bound.expand(childLayer.getBound()) : childLayer.getBound();
     });
     this.center = bound.getCenter();
