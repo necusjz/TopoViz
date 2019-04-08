@@ -65,7 +65,7 @@ def upload():
     # save formatted files to disk
     file1 = request.files['file1']
     file2 = request.files['file2']
-    client_id = dict(str(uuid.uuid1()))
+    client_id = str(uuid.uuid1())
     os.makedirs(os.getcwd() + '/' + app.config['UPLOAD_FOLDER'] +
                 '/' + client_id)
     save_path1 = os.path.join(app.config['UPLOAD_FOLDER'] + '/' + client_id +
@@ -74,8 +74,10 @@ def upload():
                               '/' + 'alarm_format.xlsx')
     save_formatted(file1, save_path1)
     save_formatted(file2, save_path2)
-    # return unique uuid
-    return jsonify(client_id)
+    # construct json for frontend
+    data = dict()
+    data['client_id'] = client_id
+    return jsonify(data)
 
 
 @app.route('/interval', methods=['POST'])
