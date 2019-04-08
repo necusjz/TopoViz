@@ -14,18 +14,14 @@
             </div>
             <div class="app-topo-chart">
               <TopoChart v-show="!isNoneData"></TopoChart>
+              <p class="app-topo-chart-none-label">暂无表格数据哦</p>
             </div>
-            <div class="app-topo-pagination">
+            <div class="app-topo-pagination" v-if="!isNoneData">
               <TopoTablePagination></TopoTablePagination>
             </div>
           </div>
         </transition>
-        <div v-if="isCheckStatics">
-          <StaticsTable></StaticsTable>
-          <div class="app-statics-pagination">
-            <TopoTablePagination></TopoTablePagination>
-          </div>
-        </div>
+        <StaticsTable v-if="isCheckStatics"></StaticsTable>
       </div>
     </el-scrollbar>
     <ErrorDialog></ErrorDialog>
@@ -61,6 +57,7 @@ import StaticsTable from './Table/StaticsTable.vue';
   }
 })
 export default class AppMain extends Vue {
+  @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneData) private isNoneData: any;
   @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
 }
@@ -87,16 +84,30 @@ export default class AppMain extends Vue {
     height: calc(100% - 30px);
     overflow-x: hidden;
   }
+  .app-topo-chart-none-label {
+    display: none;
+  }
   &.none {
     .app-topo-chart {
+      position: relative;
       background-image: url('../assets/none-topoChart.png');
-      background-position: center;
+      background-position: center 40%;
       background-size: 30% auto;
       background-repeat: no-repeat;
+      .app-topo-chart-none-label {
+        display: block;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin-top: 12%;
+        transform: translateX(-50%);
+        font-family: PingFang-SC;
+        font-size: 24px;
+      }
     }
-    .app-topo-pagination, .app-statics-pagination {
-      display: none;
-    }
+    // .app-topo-pagination, .app-statics-pagination {
+    //   display: none;
+    // }
   }
   .app-rca-body {
     position: relative;
