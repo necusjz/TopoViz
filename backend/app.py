@@ -26,7 +26,9 @@ def save_format(dataframe, path):
         df = dataframe[app.config['TOPO_COLUMNS']]
     else:
         df = dataframe[app.config['ALARM_COLUMNS']]
-    df.to_excel(path)
+        df_index = range(1, df.shape[0] + 1)
+        df.insert(0, 'Index', df_index)
+    df.to_excel(path, index=False)
 
 
 def check_file(file, path):
@@ -58,10 +60,10 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    # get upload files
+    # get upload file
     file1 = request.files['file1']
     file2 = request.files['file2']
-    # generate save paths
+    # create save directory
     client_id = str(uuid.uuid1())
     os.makedirs(os.getcwd() + '/' + app.config['UPLOAD_FOLDER'] +
                 '/' + client_id)
@@ -110,8 +112,8 @@ def reset_interval():
     # reset current client interval
     global interval
     client_id = request.headers.get('Client-Id')
-    interval[client_id][0] -= 300
-    interval[client_id][1] += 300
+    interval[client_id][0] -= 5 * 60
+    interval[client_id][1] += 5 * 60
     return redirect(url_for('analyze'))
 
 
@@ -120,8 +122,8 @@ def reset_interval():
     # revert current client interval
     global interval
     client_id = request.headers.get('Client-Id')
-    interval[client_id][0] += 300
-    interval[client_id][1] -= 300
+    interval[client_id][0] += 5 * 60
+    interval[client_id][1] -= 5 * 60
     return redirect(url_for('analyze'))
 
 
