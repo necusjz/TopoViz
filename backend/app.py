@@ -104,9 +104,9 @@ def analyze():
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
                                           'topo_format.xlsx'))
         topo = topo.loc[topo['PathID'] == i]
-        topo_key = ['NEName', 'NEType']
-        topo_value = [topo['NEName'], topo['NEType']]
-        per_topo = dict(zip(topo_key, topo_value))
+        per_topo = []
+        for j, k in zip(topo['NEName'], topo['NEType']):
+            per_topo.append({'NEName': j, 'NEType': k})
         topo_res.append(per_topo)
     # construct json for frontend
     data = dict()
