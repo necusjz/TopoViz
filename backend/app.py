@@ -5,7 +5,7 @@ import os
 import json
 import pandas as pd
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
@@ -80,7 +80,7 @@ def upload():
     data['confirmed'] = 0
     data['unconfirmed'] = data['group_count']
     data['group_id'] = alarm['RCA Group ID'].drop_duplicates().tolist()
-    return json.dumps(data)
+    return jsonify(data)
 
 
 @app.route('/analyze')
@@ -112,7 +112,7 @@ def analyze():
     data = dict()
     data['topo'] = topo_res
     data['table'] = alarm.to_json(orient='records')
-    return json.dumps(data)
+    return jsonify(data)
 
 
 if __name__ == '__main__':
