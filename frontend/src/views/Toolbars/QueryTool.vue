@@ -37,7 +37,7 @@
         </el-input>
       </div>
       <div class="app-query-tool-item">
-        <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !groupId && !regulationValue}"
+        <el-button size="small" type="primary" class=" confirm-btn" :class="{'none-status': !isImported || (!groupId && !regulationValue)}"
           @click="queryTopoData">查看</el-button>
       </div>
     </div>
@@ -52,6 +52,7 @@ import bus from '@/util/bus';
 import { VisibleType, AlarmData, Rules, AnalyzeRes } from '@/types/type';
 import TableData from "@/util/tableData.json";
 import { getAlarmDatas } from '@/api/request';
+import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
 @Component
 export default class QueryTool extends Vue {
@@ -60,9 +61,8 @@ export default class QueryTool extends Vue {
   @Provide() private regulationValue: string = "";
   @Provide() private visibleErrorTip: boolean = false;
   @Provide() private options: { label: string; value: number }[] = [];
-  @State((state) => state.app.alarmDatas) private alarmDatas: any;
-  @State((state) => state.app.tableData) private tableData!: AlarmData[];
   @State((state) => state.project.groupIds) private groupIds!: string[];
+  @State((state) => state.app.isImported) private isImported!:boolean;
   @Watch('groupId')
   public watchGroupId(val: string) {
     if (val && !this.visibleErrorTip) {
@@ -80,6 +80,10 @@ export default class QueryTool extends Vue {
     cb(suggestions);
   }
   public queryTopoData() {
+    if (!this.isImported) {
+      bus.$emit(VisibleType.ERRORVISIBLE, '<p>请上传数据后再查询!</p>');
+      return;
+    }
     this.$store.commit("SET_GROUPID", this.groupId);
     this.$store.commit("SET_REGVALUE", this.regulationValue);
     const inde: any = this.regulationType;
@@ -92,33 +96,31 @@ export default class QueryTool extends Vue {
     getAlarmDatas({groupId: this.groupId, addCondition: inde, addValue: this.regulationValue}).then((data: AnalyzeRes) => {
       const table = data.table;
       if (table) {
-        const tableData: AlarmData[] = table.map((item: any) => {
-          return {
-            alarmName: item['Alarm Name'],
-            alarmSourceName: item['Alarm Source'],
-            company: item['Vendor'],
-            firstTime: item['First Occurrence'],
-            lastTime: item['Last Occurrence'],
-            level: item['Raw Severity'],
-            clearTime: item['Cleared On'],
-            domain: item['Domain'],
-            Group_ID: item['RCA Group ID'],
-            RCA_result: item['RCA Result'],
-            RCA_reg: item['RCA Rule Name'],
-            isConfirmed: false
-          };
+        const alarmdatas: AlarmData[] = table.map((item: any) => {
+          return this.formatData(item);
         })
-        this.$store.commit('SET_ALARMDATAS', tableData);
+        this.$store.commit('SET_ALARMDATAS', alarmdatas);
       }
     });
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
-    // const tabData: AlarmData[] = [];
-    // const len: number = Math.floor(Math.random() * 500);
-    // for (let i = 2; i < len; i++) {
-    //   tabData[i - 2] = { ...TableData[0], alarmName: `X0934_RTN950-0${i}`, Group_ID: `POS_32480${i}`, isConfirmed: Math.random() > 0.5};
-    // }
-    // this.$store.commit('SET_ALARMDATAS', tabData);
+  }
+  public formatData(item: any): AlarmData {
+    return {
+      uid: generateUUID(),
+      alarmName: item['Alarm Name'],
+      alarmSourceName: item['Alarm Source'],
+      company: item['Vendor'],
+      firstTime: generateDateByTimestamp(item['First Occurrence']),
+      lastTime: item['Last Occurrence'],
+      level: item['Raw Severity'],
+      clearTime: item['Cleared On'],
+      domain: item['Domain'],
+      Group_ID: item['RCA Group ID'],
+      RCA_result: item['RCA Result'].toString(),
+      RCA_reg: item['RCA Rule Name'],
+      isConfirmed: false
+    };
   }
 }
 </script>

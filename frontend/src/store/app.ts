@@ -10,9 +10,10 @@ const state: AppState = {
     isCheckStatics: false, // 是否查看已确认未确认数据
     alarmDatas: [], // 查询得到的数据
     tableData: [], // 当前table的总数据
-    pageData: [], // 当前table页的数据
+    pageData: [], // 当前page页的数据
     confirmData: [], // 已确认的group数据
     unconfirmData: [], // 未确认的group数据
+    selectAlarm: '',
 };
 
 const mutations: MutationTree<AppState> = {
@@ -48,6 +49,9 @@ const mutations: MutationTree<AppState> = {
     },
     SET_UNCONFIRMDATA: (state: AppState, data: GroupData[]) => {
         state.unconfirmData = data;
+    },
+    SET_SELECTALARM: (state: AppState, id: string) => {
+        state.selectAlarm = id;
     }
 };
 
