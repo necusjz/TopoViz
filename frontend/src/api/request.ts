@@ -8,6 +8,14 @@ export function postTopoData(data: FormData) {
     })
 }
 
+export function getStaticsDataByInterval(params: {start: string, end: string}) {
+    return service({
+        url: 'interval',
+        method: 'get',
+        params
+    })
+}
+
 export function getAlarmDatas(params: {groupId?: string, addCondition?: number, addValue?: string}) {
     return service({
         url: 'analyze',

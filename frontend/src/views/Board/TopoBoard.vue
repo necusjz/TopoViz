@@ -6,24 +6,24 @@
     </div>
     <div class="topo-board-left" v-else>
       <div class="topo-board-item" v-show="groupId">
-        <span class="tag-square tag-blue"></span>
+        <span class="tag-square tag-orange"></span>
         <span class="tag-label">Group ID: {{groupId}}</span>
         <i class="el-icon-arrow-right" v-show="regValue"></i>
       </div>
       <div class="topo-board-item" v-show="regValue">
-        <span class="tag-square tag-green"></span>
-        <span class="tag-label">{{regType}}: {{regValue}}</span>
+        <span class="tag-square tag-red"></span>
+        <span class="tag-label">{{conditionLabel}}: {{regValue}}</span>
       </div>
     </div>
     <div class="topo-board-right">
       <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4"></el-switch>
-      <span class="timer-hint" :class="{active: status}">当前状态下{{status ? '已' : '未'}}显示P警告前后5min告警数据</span>
+      <span class="timer-hint" :class="{active: status}">当前状态下{{status ? '已' : '未'}}显示P告警前后5min告警数据</span>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Provide } from "vue-property-decorator";
+import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { Rules } from '@/types/type';
 @Component
@@ -33,6 +33,17 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.app.regType) private regType: any;
   @State((state) => state.app.isNoneData) private isNoneData: any;
   @Provide() private status: boolean = false;
+  @Provide() private conditionLabel: string = '';
+  @Watch('regType')
+  public watchRegType(val: string) {
+    if (val) {
+      const temp: {[k: string]: string} = {
+        company: '厂商',
+        rcaReg: 'RCA规则'
+      };
+      this.conditionLabel = temp[val] || '告警名称';
+    }
+  }
 }
 </script>
 
@@ -59,6 +70,12 @@ export default class StaticsBoard extends Vue {
   }
   .tag-blue {
     background: #0276F7;
+  }
+  .tag-orange {
+    background-image: linear-gradient(133deg, #ffc77f, #fea954);
+  }
+  .tag-red {
+    background-image: linear-gradient(133deg, #ec7d85, #f54d4d);
   }
   .tag-green {
     background: #32CD98;
