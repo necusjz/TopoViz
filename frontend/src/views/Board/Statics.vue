@@ -6,8 +6,8 @@
     </div>
     <div class="rca-dec" v-else>
       <span>RCA结果汇总: </span>
-      <div class="rca-statics" v-if="isImported">
-        <span>共{{total_count}}个警告; 其中包含{{p_count}}个P警告, {{c_count}}个C警告;</span>
+      <div class="rca-statics" v-if="!isNonImported">
+        <span>共{{total_count}}个告警; 其中包含{{p_count}}个P告警, {{c_count}}个C告警;</span>
         <span class="dec-group" @click="checkStatics">共{{group_count}}个组，其中{{confirmed_count}}组已确认，{{unconfirmed_count}}组未确认</span>
       </div>
       <span v-else>无</span>
@@ -21,7 +21,7 @@ import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
 @Component
 export default class StaticsBoard extends Vue {
-  @State((state) => state.app.isImported) private isImported: any;
+  @State((state) => state.app.isNonImported) private isNonImported: any;
   @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
   @State((state) => state.project.total_count) private total_count!: number;
   @State((state) => state.project.p_count) private p_count!: number;

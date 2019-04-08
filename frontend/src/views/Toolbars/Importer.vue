@@ -6,12 +6,12 @@
       <span class="app-back">返回</span>
     </div>
     <div class="app-importer-item app-importer-excel">
-      <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false" :disabled="hasUpload">
+      <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false">
         <el-button size="small" class="upload-btn">{{targetName || '导入Topo数据'}}
           <i class="upload-icon"></i>
         </el-button>
       </el-upload>
-      <el-upload class="upload-format" action :before-upload="beforeUpload.bind(null, 'format')" :show-file-list="false" :disabled="hasUpload">
+      <el-upload class="upload-format" action :before-upload="beforeUpload.bind(null, 'format')" :show-file-list="false">
         <el-button size="small" class="upload-btn">{{formatName || '导入历史告警数据'}}
           <i class="upload-icon"></i>
         </el-button>
@@ -27,7 +27,6 @@
         :default-time="['12:00:00']"
         value-format="timestamp"
         :clearable="false"
-        :disabled="hasUpload"
         size="small"
       ></el-date-picker>
     </div>
@@ -40,7 +39,7 @@
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { postTopoData } from '@/api/request';
+import { postTopoData, getStaticsDataByInterval} from '@/api/request';
 import bus from '@/util/bus';
 import { VisibleType, StaticsRes } from '@/types/type';
 
@@ -51,9 +50,8 @@ export default class Importer extends Vue {
   @Provide() private formatName: string = '';
   @Provide() private targetFile: any;
   @Provide() private formatFile: any;
-  @Provide() private hasUpload: boolean = false;
   @Provide() private unavailable: boolean = true;
-  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
+  @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
       if (type === 'target') {
@@ -65,29 +63,34 @@ export default class Importer extends Vue {
       }
     } else {
       bus.$emit(VisibleType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
+      return;
     }
-    if (this.targetFile && this.formatFile && this.dateValue) {
+    if (this.targetFile && this.formatFile) {
       this.unavailable = false;
+      this.autoUpload();
     }
     return false;
   }
-  public submitData() {
-    if (this.hasUpload) {
-      bus.$emit(VisibleType.ERRORVISIBLE, {title: '提示', content: '<p>请刷新页面再重新上传数据</p>'});
-      return;
-    }
-    let date: number[] = [];
-    if (this.dateValue && this.dateValue.length > 0) {
-      date = this.dateValue.map((d: number) => d + 8 * 3600 * 1000);
-    }
+  public autoUpload() {
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
-    form.append('date', JSON.stringify(date));
-    postTopoData(form).then((res: StaticsRes) => {
-      this.hasUpload = true;
-      this.unavailable = true;
-      this.$store.commit('SET_ISIMPORTED', true);
+    postTopoData(form).then((res: any) => {
+      localStorage.setItem('client-id', res.client_id);
+      this.$store.commit('SET_ISNOEIMPORTED', false);
+    });
+  }
+  public submitData() {
+    if (this.isCheckStatics) {
+      this.$store.commit('SET_ISCHECKSTATICS', false);
+    }
+    let date: number[] = [];
+    if (this.dateValue && this.dateValue.length > 0) {
+      date = this.dateValue.map((d: number) => d / 1000 + 8 * 3600);
+    }
+    const start = date[0].toString();
+    const end  = date[1].toString();
+    getStaticsDataByInterval({start, end}).then((res: StaticsRes) => {
       this.$store.commit('SET_STATICS', res);
     });
   }

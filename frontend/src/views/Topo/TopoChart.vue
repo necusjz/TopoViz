@@ -59,8 +59,8 @@ export default class StaticsBoard extends Vue {
       clearTime: "",
       domain: "",
       Group_ID: "",
-      RCA_result: "",
-      RCA_reg: "",
+      rcaResult: "",
+      rcaReg: "",
       isConfirmed: false
     }
     if (!this.activeType) {
