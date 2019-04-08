@@ -2,7 +2,7 @@ import { MutationTree, Module } from 'vuex';
 import { StaticsRes } from '@/types/type';
 
 interface ProjectState {
-    total_alarm: number;
+    total_count: number;
     p_count: number;
     c_count: number;
     group_count: number;
@@ -11,7 +11,7 @@ interface ProjectState {
     groupIds: string[];
 }
 const state = {
-    total_alarm: 0,
+    total_count: 0,
     p_count: 0,
     c_count: 0,
     group_count: 0,
@@ -22,7 +22,7 @@ const state = {
 
 const mutations: MutationTree<ProjectState> = {
     SET_STATICS: (state: ProjectState, data: StaticsRes) => {
-        state.total_alarm = data.total_alarm;
+        state.total_count = data.total_alarm;
         state.c_count = data.c_count;
         state.p_count = data.p_count;
         state.group_count = data.group_count;
@@ -31,7 +31,7 @@ const mutations: MutationTree<ProjectState> = {
         state.groupIds = data.group_id;
     },
     SET_TOTALALARM: (state: ProjectState, count: number) => {
-        state.total_alarm = count;
+        state.total_count = count;
     },
     SET_P_COUNT: (state: ProjectState, count: number) => {
         state.p_count = count;

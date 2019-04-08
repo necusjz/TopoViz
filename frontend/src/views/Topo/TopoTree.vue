@@ -1,7 +1,10 @@
 <template>
   <div class="app-stage" @mouseleave="leaveContainer">
     <div class="stage-wrap" id="stage">
-      <div class="none-topoTree" v-if="isNoneData"></div>
+      <div class="none-topoTree" v-if="isNoneData">
+        <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据哦</p>
+        <p class="none-topoTree-label" v-else>暂无topo数据图哦，输入一个Group ID试一试</p>
+      </div>
     </div>
     <div class="stage-toolbar">
       <div class="stage-toolbar-item" @click="zoom(1)">
@@ -39,6 +42,7 @@ export default class TopoTree extends Vue {
   @Provide() private stage: any
   @Provide() private center: Vertex = [0, 0];
   @Provide() private cy: any;
+  @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneData) isNoneData: any;
   @State((state) => state.app.tableData) private tableData: any;
   @Watch('tableData')
@@ -255,12 +259,22 @@ export default class TopoTree extends Vue {
     }
   }
   .none-topoTree {
+    position: relative;
     width: 100%;
     height: 100%;
     background-image: url('../../assets/none-topoTree.png');
-    background-position: center;
+    background-position: center 40%;
     background-size: 30% auto;
     background-repeat: no-repeat;
+    .none-topoTree-label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-top: 12%;
+      transform: translateX(-50%);
+      font-family: PingFang-SC;
+      font-size: 24px;
+    }
   }
   .stage-toolbar {
     position: absolute;

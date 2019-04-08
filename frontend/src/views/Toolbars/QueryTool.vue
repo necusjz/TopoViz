@@ -11,6 +11,7 @@
           class="app-query-tool-group"
           :class="{'error-border-input': visibleErrorTip}"
           :fetch-suggestions="suggestion"
+          @focus="clearErrorTip"
           @keyup.enter.native="queryTopoData">
         </el-autocomplete>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
@@ -33,11 +34,19 @@
           v-model="regulationValue"
           size="small"
           class="app-query-tool-reg"
-          v-show="regulationType !== ''">
+          v-if="!this.groupId && regulationType !== ''">
         </el-input>
+        <el-autocomplete
+          placeholder="请输入"
+          v-model="regulationValue"
+          size="small"
+          class="app-query-tool-reg"
+          :fetch-suggestions="suggestion1"
+          v-else-if="regulationType !== ''">
+        </el-autocomplete>
       </div>
       <div class="app-query-tool-item">
-        <el-button size="small" type="primary" class=" confirm-btn" :class="{'none-status': !isImported || (!groupId && !regulationValue)}"
+        <el-button size="small" type="primary" class=" confirm-btn" :class="{'none-status': isNonImported || (!groupId && !regulationValue)}"
           @click="queryTopoData">查看</el-button>
       </div>
     </div>
@@ -61,8 +70,12 @@ export default class QueryTool extends Vue {
   @Provide() private regulationValue: string = "";
   @Provide() private visibleErrorTip: boolean = false;
   @Provide() private options: { label: string; value: number }[] = [];
+  @Provide() private temp_alarmDatas: AlarmData[] = [];
   @State((state) => state.project.groupIds) private groupIds!: string[];
-  @State((state) => state.app.isImported) private isImported!:boolean;
+  @State((state) => state.app.isNonImported) private isNonImported!:boolean;
+  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
+  @State((state) => state.app.groupId) private store_groupId!: string;
+  @State((state) => state.app.regValue) private store_regValue!: string;
   @Watch('groupId')
   public watchGroupId(val: string) {
     if (val && !this.visibleErrorTip) {
@@ -79,31 +92,83 @@ export default class QueryTool extends Vue {
       });
     cb(suggestions);
   }
+  public suggestion1(val: string, cb: any) {
+    if (this.groupId && this.groupId === this.store_groupId && this.regulationType !== '') {
+      const index: any = this.regulationType;
+      let res: string[] = [];
+      for (const alarmData of this.temp_alarmDatas) {
+        if (index === Rules.pAlarm && alarmData.rcaResult === '1') {
+          res.push(alarmData.alarmName);
+        } else if (index === Rules.cAlarm && alarmData.rcaResult === '2') {
+          res.push(alarmData.alarmName);
+        } else {
+          res.push(alarmData[Rules[index]]);
+        }
+      }
+      const result: {value: string}[] = Array.from(new Set(res)).map((str: string) => {
+        return {value: str};
+      })
+      cb(result);
+    } else {
+      cb([]);
+    }
+  }
   public queryTopoData() {
-    if (!this.isImported) {
+    if (this.isNonImported) {
       bus.$emit(VisibleType.ERRORVISIBLE, '<p>请上传数据后再查询!</p>');
       return;
     }
+    if (!this.groupId && !this.regulationValue) {
+      return;
+    }
+    const index: any = this.regulationType;
+    // 前后两次查询groupId一致时，拦截请求
+    if (this.groupId === this.store_groupId) {
+      const alarmDatas = this.filterAlarmData();
+      this.$store.commit('SET_ALARMDATAS', alarmDatas);
+    } else {
+      getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
+        const table = JSON.parse(data.table);
+        if (table) {
+          const alarmDatas: AlarmData[] = table.map((item: any) => {
+            return this.formatData(item);
+          })
+          this.temp_alarmDatas = [...alarmDatas];
+          if (this.regulationValue) {
+            this.$store.commit('SET_ALARMDATAS', this.filterAlarmData());
+          } else {
+            this.$store.commit('SET_ALARMDATAS', alarmDatas);
+          }
+        }
+      });
+    }
     this.$store.commit("SET_GROUPID", this.groupId);
     this.$store.commit("SET_REGVALUE", this.regulationValue);
-    const inde: any = this.regulationType;
-    this.$store.commit("SET_REGTYPE", Rules[inde]);
+    this.$store.commit("SET_REGTYPE", Rules[index]);
     this.visibleErrorTip = !this.groupId;
     this.$store.commit('SET_ISNONEDATA', !this.groupId);
     if (!this.groupId) {
       this.visibleErrorTip = true;
     }
-    getAlarmDatas({groupId: this.groupId, addCondition: inde, addValue: this.regulationValue}).then((data: AnalyzeRes) => {
-      const table = data.table;
-      if (table) {
-        const alarmdatas: AlarmData[] = table.map((item: any) => {
-          return this.formatData(item);
-        })
-        this.$store.commit('SET_ALARMDATAS', alarmdatas);
-      }
-    });
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+  }
+  public filterAlarmData(): AlarmData[] {
+    const index: any = this.regulationType;
+    const queryValue: string = this.regulationValue;
+    return this.temp_alarmDatas.filter((alarmData: AlarmData) => {
+      if (index === Rules.company) {
+        return alarmData.company === queryValue;
+      } else if (index === Rules.rcaReg) {
+        return alarmData.rcaReg === queryValue;
+      } else if (index === Rules.alarmName) {
+        return alarmData.alarmName === queryValue;
+      } else if (index === Rules.pAlarm) {
+        return alarmData.alarmName === queryValue && alarmData.rcaResult === '1';
+      } else if (index === Rules.cAlarm) {
+        return alarmData.alarmName === queryValue && alarmData.rcaResult === '2';
+      }
+    });
   }
   public formatData(item: any): AlarmData {
     return {
@@ -117,10 +182,13 @@ export default class QueryTool extends Vue {
       clearTime: item['Cleared On'],
       domain: item['Domain'],
       Group_ID: item['RCA Group ID'],
-      RCA_result: item['RCA Result'].toString(),
-      RCA_reg: item['RCA Rule Name'],
+      rcaResult: item['RCA Result'].toString(),
+      rcaReg: item['RCA Rule Name'],
       isConfirmed: false
     };
+  }
+  public clearErrorTip() {
+    this.visibleErrorTip = false;
   }
 }
 </script>
