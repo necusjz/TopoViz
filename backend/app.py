@@ -47,8 +47,8 @@ def save_formatted(file, path):
 def interval_filter(current_interval, client_id):
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        'alarm_format.xlsx'))
-    a_time = datetime.fromtimestamp(current_interval[0])
-    z_time = datetime.fromtimestamp(current_interval[1])
+    a_time = datetime.fromtimestamp(int(current_interval[0]))
+    z_time = datetime.fromtimestamp(int(current_interval[1]))
     alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
     mask = (a_time <= alarm['First Occurrence']) & \
            (alarm['First Occurrence'] <= z_time)
@@ -80,7 +80,7 @@ def upload():
     return jsonify(data)
 
 
-@app.route('/interval', methods=['POST'])
+@app.route('/interval', methods=['GET'])
 def set_interval():
     # get interval filtered alarm dataframe
     global interval
@@ -115,7 +115,7 @@ def analyze():
     alarm = interval_filter(interval, client_id)
     group_id = request.args.get('groupId')
     alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
-
+    print(interval)
     path = []
     for i in set(alarm['Alarm Source']):
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],

@@ -10,10 +10,10 @@ const ruleOptions = [{
     label: `按RCA规则查询`,
     value: Rules.rcaReg
 },{
-    label: `按P警告查询`,
+    label: `按P告警查询`,
     value: Rules.pAlarm
 },{
-    label: `按C警告查询`,
+    label: `按C告警查询`,
     value: Rules.cAlarm
 }];
 

@@ -8,7 +8,10 @@ const service: AxiosInstance = axios.create({
 
 service.interceptors.request.use((config: any) => {
   // 添加cookie验证信息
-  config.headers.Authorization = '';
+  const clientId = localStorage.getItem('client-id');
+  if (clientId) {
+    config.headers['Client-Id'] = clientId;
+  }
   return config;
 }, (error: Error) => {
   Promise.reject(error);
