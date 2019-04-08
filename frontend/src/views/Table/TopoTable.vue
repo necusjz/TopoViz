@@ -59,26 +59,26 @@
         <span :title="scope.row.Group_ID">{{scope.row.Group_ID}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="RCA_result" label="RCA结果">
+    <el-table-column prop="rcaResult" label="RCA结果">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.uid}-result`">{{scope.row.RCA_result}}</span>
+        <span v-show="editCellId !== `${scope.row.uid}-result`">{{scope.row.rcaResult}}</span>
         <TopoInput
           class="topoTable-hidden-input"
           v-if="editCellId === `${scope.row.uid}-result`"
           :row="scope.row"
-          attr="RCA_result"
+          attr="rcaResult"
           @blur="inputBlur"
         ></TopoInput>
       </template>
     </el-table-column>
-    <el-table-column prop="RCA_reg" label="RCA 规则">
+    <el-table-column prop="rcaReg" label="RCA 规则">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.RCA_reg">{{scope.row.RCA_reg}}</span>
+        <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.rcaReg">{{scope.row.rcaReg}}</span>
         <TopoInput
           class="topoTable-hidden-input"
           v-if="editCellId === `${scope.row.uid}-reg`"
           :row="scope.row"
-          attr="RCA_reg"
+          attr="rcaReg"
           @blur="inputBlur"
         ></TopoInput>
       </template>
@@ -116,12 +116,12 @@ export default class TopoTable extends Vue {
   }
   public handleCellDbclick(row: any, column: any) {
     if (column.property) {
-      if (column.property.includes("RCA_reg")) {
+      if (column.property.includes("rcaReg")) {
         this.editCellId = `${row.uid}-reg`;
-        this.inputValue = row.RCA_reg;
-      } else if (column.property.includes("RCA_result")) {
+        this.inputValue = row.rcaReg;
+      } else if (column.property.includes("rcaResult")) {
         this.editCellId = `${row.uid}-result`;
-        this.inputValue = row.RCA_result;
+        this.inputValue = row.rcaResult;
       }
     }
   }
@@ -140,8 +140,8 @@ export default class TopoTable extends Vue {
     let cellClassName: string = "topoTable-cell ";
     if (
       item.column.property &&
-      (item.column.property.includes("RCA_result") ||
-        item.column.property.includes("RCA_reg"))
+      (item.column.property.includes("rcaResult") ||
+        item.column.property.includes("rcaReg"))
     ) {
       cellClassName += "bg-gray";
     } else if (item.rowIndex === this.tableData.length - 1) {

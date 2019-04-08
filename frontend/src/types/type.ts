@@ -16,7 +16,7 @@ export interface AppState {
     groupId: string;
     regValue: string;
     regType: string;
-    isImported: boolean;
+    isNonImported: boolean;
     isNoneData: boolean;
     isCheckStatics: boolean;
     alarmDatas: AlarmData[];
@@ -38,8 +38,8 @@ export interface AlarmData {
     clearTime: string,
     domain: string,
     Group_ID: string,
-    RCA_result: string,
-    RCA_reg: string,
+    rcaResult: string,
+    rcaReg: string,
     isConfirmed: boolean,
     [k: string]: any,
 }
@@ -67,6 +67,6 @@ export interface StaticsRes {
 }
 
 export interface AnalyzeRes {
-    table: any;
+    table: string;
     topo: any;
 }
