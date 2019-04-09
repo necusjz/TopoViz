@@ -4,10 +4,10 @@
       <Title></Title>
       <Importer></Importer>
       <div class="app-rca-body">
-        <StaticsBoard></StaticsBoard>
+        <StaticsBoard class="app-item"></StaticsBoard>
         <transition name="fade">
           <div v-show="!isCheckStatics">
-            <QueryTool></QueryTool>
+            <QueryTool class="app-item"></QueryTool>
             <div class="app-topo-tree">
               <TopoBoard></TopoBoard>
               <TopoTree></TopoTree>
@@ -68,6 +68,9 @@ export default class AppMain extends Vue {
   background: #ffffff;
   box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
   border-radius: 8px;
+}
+.app-item {
+  margin-top: 20px;
 }
 .app-container {
   position: relative;
