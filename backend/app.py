@@ -4,6 +4,7 @@
 import os
 import uuid
 import pandas as pd
+import time
 
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -14,6 +15,7 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
 interval = dict()
+
 
 
 def allowed_file(filename):
@@ -118,7 +120,7 @@ def reset_interval():
 
 
 @app.route('/revert')
-def reset_interval():
+def revert_interval():
     # revert current client interval
     global interval
     client_id = request.headers.get('Client-Id')
