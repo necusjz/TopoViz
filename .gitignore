@@ -1,6 +1,6 @@
 frontend/node_modules
-*.pyc
+backend/__pycache__
 .DS_Store
 .idea
 backend/venv
-backend/topo_alarm
+backend/temp
