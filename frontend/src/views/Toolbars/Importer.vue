@@ -78,7 +78,6 @@ export default class Importer extends Vue {
     postTopoData(form).then((res: any) => {
       localStorage.setItem('client-id', res.client_id);
       this.dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
-      this.$store.commit('SET_ISNOEIMPORTED', false);
       this.unavailable = false;
     });
   }
@@ -97,6 +96,7 @@ export default class Importer extends Vue {
     const end  = date[1].toString();
     getStaticsDataByInterval({start, end}).then((res: StaticsRes) => {
       this.$store.commit('SET_STATICS', res);
+      this.$store.commit('SET_ISNOEIMPORTED', false);
     });
   }
   public goBack() {
