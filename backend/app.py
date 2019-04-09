@@ -4,7 +4,6 @@
 import os
 import uuid
 import pandas as pd
-import time
 
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -17,7 +16,6 @@ CORS(app, resources=r'/*')
 interval = dict()
 
 
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in \
            app.config['ALLOWED_EXTENSIONS']
@@ -28,6 +26,7 @@ def save_format(dataframe, path):
         df = dataframe[app.config['TOPO_COLUMNS']]
     else:
         df = dataframe[app.config['ALARM_COLUMNS']]
+        df = df.sort_values('First Occurrence')
         df_index = range(1, df.shape[0] + 1)
         df.insert(0, 'Index', df_index)
     df.to_excel(path, index=False)
@@ -73,7 +72,7 @@ def upload():
                               '/' + 'topo_format.xlsx')
     save_path2 = os.path.join(app.config['UPLOAD_FOLDER'] + '/' + client_id +
                               '/' + 'alarm_format.xlsx')
-    # check filename and save file
+    # check filename and format file
     check_file(file1, save_path1)
     check_file(file2, save_path2)
     # construct json for frontend
@@ -153,7 +152,7 @@ def analyze():
     topo_tree = []
     for i in topo_path:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                          client_id,'topo_format.xlsx'))
+                                          client_id, 'topo_format.xlsx'))
         topo = topo.loc[topo['PathID'] == i]
         per_path = []
         for j, k in zip(topo['NEName'], topo['NEType']):
