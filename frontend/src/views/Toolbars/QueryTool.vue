@@ -129,6 +129,15 @@ export default class QueryTool extends Vue {
     } else {
       getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
         const table = JSON.parse(data.table);
+        const topoTreeData = data.topo.map((path: any) => {
+          return path.reverse().map((node: any) => {
+            return {
+              name: node.NEName,
+              type: node.NEType
+            };
+          });
+        });
+        this.$store.commit('SET_TOPODATA', topoTreeData);
         if (table) {
           const alarmDatas: AlarmData[] = table.map((item: any) => {
             return this.formatData(item);
