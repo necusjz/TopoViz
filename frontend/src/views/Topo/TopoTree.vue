@@ -273,7 +273,7 @@ export default class TopoTree extends Vue {
       margin-top: 12%;
       transform: translateX(-50%);
       font-family: PingFang-SC;
-      font-size: 24px;
+      font-size: 20px;
     }
   }
   .stage-toolbar {

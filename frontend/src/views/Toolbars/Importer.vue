@@ -27,6 +27,7 @@
         :default-time="['12:00:00']"
         value-format="timestamp"
         :clearable="false"
+        @change="dateChange"
         size="small"
       ></el-date-picker>
     </div>
@@ -66,7 +67,6 @@ export default class Importer extends Vue {
       return;
     }
     if (this.targetFile && this.formatFile) {
-      this.unavailable = false;
       this.autoUpload();
     }
     return false;
@@ -77,8 +77,13 @@ export default class Importer extends Vue {
     form.append('file2', this.formatFile);
     postTopoData(form).then((res: any) => {
       localStorage.setItem('client-id', res.client_id);
+      this.dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
       this.$store.commit('SET_ISNOEIMPORTED', false);
+      this.unavailable = false;
     });
+  }
+  public dateChange(value: number[]) {
+    this.unavailable = !value || !this.targetFile || !this.formatFile;
   }
   public submitData() {
     if (this.isCheckStatics) {
@@ -86,7 +91,7 @@ export default class Importer extends Vue {
     }
     let date: number[] = [];
     if (this.dateValue && this.dateValue.length > 0) {
-      date = this.dateValue.map((d: number) => d / 1000 + 8 * 3600);
+      date = this.dateValue.map((d: number) => d / 1000);
     }
     const start = date[0].toString();
     const end  = date[1].toString();
