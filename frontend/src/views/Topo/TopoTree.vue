@@ -24,13 +24,13 @@ import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
 import { Vertex } from '@/lib/typeof/typeof';
 import dJson from './data.json';
-import { Node, VisibleType } from '../../types/type';
+import { Node, VisibleType, NodeData, AlarmData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
-import cytoscape from 'cytoscape';
 const { graphlib, dagre } = require('dagre-d3');
 import ForceDirect from '@/util/force-direct';
+import TopoTreeHelper from '@/util/topoTree';
 
 @Component({
   components: {
@@ -44,10 +44,11 @@ export default class TopoTree extends Vue {
   @Provide() private cy: any;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneData) isNoneData: any;
-  @State((state) => state.app.tableData) private tableData: any;
-  @Watch('tableData')
-  public watchTableData(val: any) {
-    this.initTopoTree();
+  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
+  @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
+  @Watch('topoDatas')
+  public watchTopoDatas(val: NodeData[][]) {
+    this.init();
   }
   public initTopoTree() {
     if (!this.stage) {
@@ -55,12 +56,12 @@ export default class TopoTree extends Vue {
     }
     const g = new graphlib.Graph()
     g.setGraph({
-      rankdir: 'BT',
+      rankdir: 'LR',
       // align: 'dl', // 'dl、dr、ul、ur'
       ranksep: 80,
     });
-    const mnodes = dJson.slice(0, this.tableData.length + 2).map((node: any, index: number) => {
-      return {...node, ...this.tableData[index % this.tableData.length]};
+    const mnodes = dJson.map((node: any, index: number) => {
+      return {...node, ...this.alarmDatas[index % this.alarmDatas.length]};
     });
     for (const node of mnodes) {
       g.setNode(node.id, node)
@@ -78,50 +79,6 @@ export default class TopoTree extends Vue {
     window.addEventListener('resize', () => {
       const stage: xCanvas.Stage = this.stage;
       stage.setView(this.center);
-    });
-  }
-  public initTopoTree1() {
-    const images = [];
-    images.push(require(`../../assets/pc.png`));
-    images.push(require(`../../assets/router.png`));
-    images.push(require(`../../assets/server.png`));
-    images.push(require(`../../assets/switch.png`));
-    this.cy = cytoscape({
-      container: document.getElementById('stage'), 
-      style: [
-        { selector: 'node[label = "Person"]', 
-          css: {'background-color': '#6FB1FC', 'content': 'data(name)'}
-        },
-        {
-          selector: 'node',
-          css: {'background-color': '#F5A45D', 'background-image': 'data(icon)', 'content': 'data(label)', 'background-fit': 'cover'}
-        },
-        { selector: 'edge', 
-          css: {'target-arrow-shape': 'triangle'}
-        }        
-      ],
-      elements: {
-        nodes: [
-          {data: {id: '172', name: 'Tom Cruise', label: '172', icon: images[0]}},
-          {data: {id: '183', title: 'Top Gun', label: '183', icon: images[1]}},
-          {data: {id: '184', title: 'Gun', label: '184', icon: images[2]}},
-          {data: {id: '185', title: 'Gun183', label: '185', icon: images[3]}}
-        ],
-        edges: [
-          {data: {source: '172', target: '183', relationship: 'Acted_In'}},
-          {data: {source: '184', target: '185', relationship: 'Acted_In'}},
-          {data: {source: '183', target: '185', relationship: 'Acted_In'}},
-        ]
-      },
-      zoom: 1,
-      minZoom: 0.1,
-      maxZoom: 20,
-      wheelSensitivity: 0.5,
-      layout: { name: 'breadthfirst', rows: 1 }
-    });
-    console.log(this.cy);
-    this.cy.on('click', (evt: any) => {
-      console.log(evt.position);
     });
   }
   public initTopoTree2() {
@@ -238,6 +195,46 @@ export default class TopoTree extends Vue {
   }
   public leaveContainer() {
     bus.$emit(VisibleType.TIPVISIBLE, false);
+  }
+  public init() {
+    if (!this.stage) {
+      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+    }
+    const size: number = 40;
+    const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size});
+    helper.run();
+    const stage: xCanvas.Stage = this.stage;
+    stage.startBatch();
+    this.stage.clearAllLayers();
+    for (const edge of helper.edges) {
+      const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
+      const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
+      const dir = target.clone().substract(source.clone()).normalize();
+      const p1 = source.clone().add(dir.clone().scale(size / 2));
+      const p2 = target.clone().substract(dir.clone().scale(size / 2));
+      const pts: Vertex[] = [];
+      pts.push([p1.x, p1.y], [p2.x, p2.y]);
+      const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
+      const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
+      const group = new xCanvas.LayerGroup([leader, arrow]).addTo(stage);
+    }
+    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
+    for (const node of helper.nodes.values()) {
+      const ex = Math.random() > 0.5 ? '-Warning' : '';
+      const url = require(`../../assets/${node.type}${ex}.png`);
+      const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
+      childLayer.setDirtyData(node);
+      bound = bound ? bound.expand(childLayer.getBound()) : childLayer.getBound();
+    }
+    this.center = bound.getCenter();
+    stage.setView(this.center);
+    stage.endBatch();
+    this.clearEvent();
+  }
+  public isAlarmNetWork(name: string) {
+    return this.alarmDatas.find((alarmData: AlarmData) => {
+      return alarmData.alarmName === name;
+    });
   }
 }
 </script>

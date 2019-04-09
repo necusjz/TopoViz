@@ -22,6 +22,7 @@ export interface AppState {
     alarmDatas: AlarmData[];
     tableData: AlarmData[];
     pageData: AlarmData[];
+    topoDatas: NodeData[][];
     confirmData: GroupData[];
     unconfirmData: GroupData[];
     selectAlarm: string;
@@ -56,6 +57,10 @@ export enum Rules {
     cAlarm,
 }
 
+export interface NodeData {
+    name: string;
+    type: string;
+}
 export interface StaticsRes {
     c_count: number;
     confirmed: number;
