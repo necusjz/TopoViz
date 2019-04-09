@@ -1,18 +1,49 @@
 <template>
-  <div class="rca-statics-board">
+  <div class="rca-statics-board" :class="{'rca-statics-valid': !isNonImported}">
     <div class="rca-dec blue-text" v-if="isCheckStatics">
       <i class="el-icon-warning"></i>
       <span class="rca-waring-dec">提示：只有当前数据的所有Group ID都确认过时才可得出RCA精准率哦</span>
     </div>
-    <div class="rca-dec" v-else>
-      <span>RCA结果汇总: </span>
-      <div class="rca-statics" v-if="!isNonImported">
-        <span>共{{total_count}}个告警; 其中包含{{p_count}}个P告警, {{c_count}}个C告警;</span>
-        <span class="dec-group" @click="checkStatics">共{{group_count}}个组，其中{{confirmed_count}}组已确认，{{unconfirmed_count}}组未确认</span>
-      </div>
-      <span v-else>无</span>
+    <div class="rca-dec" v-else-if="isNonImported">
+      <span>RCA结果汇总: 无</span>
     </div>
-    <span class="statics-precision" v-show="!isCheckStatics">RCA精准率: --</span>
+    <div class="statics-board" v-else>
+      <p class="statics-title">RCA结果汇总</p>
+      <el-row class="statics-board-row">
+        <el-col :span="11" class="board-col board-left">
+          <div class="board-col-item">
+            <span class="board-count orange-text">{{total_count}}</span>
+            <span>总告警</span>
+          </div>
+          <div class="board-col-item">
+            <span class="board-count">{{p_count}}</span>
+            <span>P告警</span>
+          </div>
+          <div class="board-col-item">
+            <span class="board-count">{{c_count}}</span>
+            <span>C告警</span>
+          </div>         
+        </el-col>
+        <el-col :span="13" class="board-col">
+          <div class="board-col-item">
+            <span class="board-count">{{group_count}}</span>
+            <span>组数量</span>
+          </div>
+          <div class="board-col-item">
+            <span class="board-count blue-text">{{confirmed_count}}</span>
+            <span>已确认组</span>
+          </div>
+          <div class="board-col-item">
+            <span class="board-count" style="color: #ff686f">{{unconfirmed_count}}</span>
+            <span>未确认组</span>
+          </div>
+          <div class="board-col-item">
+            <span class="board-count">{{precision}}</span>
+            <span>RCA精准率</span>
+          </div> 
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
@@ -29,6 +60,7 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.project.group_count) private group_count!: number;
   @State((state) => state.project.confirmed_count) private confirmed_count!: number;
   @State((state) => state.project.unconfirmed_count) private unconfirmed_count!: number;
+  @Provide() private precision: string = '--';
   public checkStatics() {
     this.$store.commit('SET_ISCHECKSTATICS', true);
   }
@@ -37,14 +69,48 @@ export default class StaticsBoard extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
+.rca-statics-valid {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
+  background-color: #ffffff;
+}
 .rca-statics-board {
   font-size: 16px;
-  color: #55657e;
+  color: #000000;
   line-height: 20px;
-  padding: 20px 0;
   text-align: left;
   display: flex;
   justify-content: space-between;
+  .statics-board {
+    width: 100%;
+    .statics-title {
+      padding-left: 20px;
+      line-height: 40px;
+      border-bottom: 1px solid #dfdfdf;
+    }
+    .statics-board-row {
+      padding: 25px 20px 20px;
+      max-width: 1440px;
+      margin: 0 auto;
+      .board-left {
+        border-right: 1px solid #dfdfdf;
+      }
+      .board-col {
+        display: flex;
+        justify-content: space-around;
+        .board-col-item{
+          display: flex;
+          flex-direction: column;
+          text-align: center;
+        }
+        .board-count {
+          font-size: 26px;
+          font-weight: 500;
+          padding-bottom: 10px;
+        }
+      }
+    }
+  }
 }
 .rca-waring-dec {
   padding-left: 15px;

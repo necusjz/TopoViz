@@ -9,7 +9,7 @@
     {
         "id": 2,
         "content": "Node2",
-        "pId": 1,
+        "pId": null,
         "childs": [],
         "type": "switch"
     },
