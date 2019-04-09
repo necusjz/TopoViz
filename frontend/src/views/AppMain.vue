@@ -102,7 +102,7 @@ export default class AppMain extends Vue {
         margin-top: 12%;
         transform: translateX(-50%);
         font-family: PingFang-SC;
-        font-size: 24px;
+        font-size: 20px;
       }
     }
     // .app-topo-pagination, .app-statics-pagination {
