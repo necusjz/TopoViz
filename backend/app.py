@@ -13,7 +13,6 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
-interval = dict()
 
 
 def allowed_file(filename):
@@ -132,6 +131,30 @@ def analyze():
     data['topo'] = topo_tree
     data['table'] = alarm.to_json(orient='records')
     return jsonify(data)
+
+
+@app.route('/expand')
+def expand():
+    client_id = request.headers.get('Client-Id')
+    group_id = request.args.get('groupId')
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                       'alarm_format.xlsx'))
+    alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
+    origin_path = find_path(set(alarm['Alarm Source']), client_id)
+
+    a_time = pd.to_datetime(alarm['First Occurrence'].min()).timestamp()
+    z_time = pd.to_datetime(alarm['First Occurrence'].max()).timestamp()
+    a_time -= 5 * 60
+    z_time += 5 * 60
+
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                       'alarm_format.xlsx'))
+    alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
+    mask = (alarm['First Occurrence'] >= a_time) & \
+           (alarm['First Occurrence'] <= z_time)
+    alarm = alarm.loc[mask]
+
+    extra_path = find_path(set(alarm['Alarm Source']), client_id)
 
 
 if __name__ == '__main__':
