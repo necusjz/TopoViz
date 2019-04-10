@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import uuid
 import pandas as pd
+import uuid
+import os
 
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -66,12 +66,11 @@ def upload():
     file2 = request.files['file2']
     # create save directory
     client_id = str(uuid.uuid1())
-    os.makedirs(os.getcwd() + '/' + app.config['UPLOAD_FOLDER'] +
-                '/' + client_id)
-    save_path1 = os.path.join(app.config['UPLOAD_FOLDER'] + '/' + client_id +
-                              '/' + 'topo_format.xlsx')
-    save_path2 = os.path.join(app.config['UPLOAD_FOLDER'] + '/' + client_id +
-                              '/' + 'alarm_format.xlsx')
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
+    save_path1 = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                              'topo_format.xlsx')
+    save_path2 = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                              'alarm_format.xlsx')
     # check filename and format file
     check_file(file1, save_path1)
     check_file(file2, save_path2)
