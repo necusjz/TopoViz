@@ -42,17 +42,51 @@ def check_file(file, path):
             save_format(df_, path)
 
 
-def find_path(alarms, client_id):
+def group_filter(group_id):
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                       'alarm_format.xlsx'))
+    alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
+    return alarm
+
+
+def interval_filter(start, end):
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                       'alarm_format.xlsx'))
+    alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
+    mask = (alarm['First Occurrence'] >= start) & \
+           (alarm['First Occurrence'] <= end)
+    alarm = alarm.loc[mask]
+    return alarm
+    
+
+def find_path(alarms):
+    client_id = request.headers.get('Client-Id')
     ne_path = []
-    for i in alarms:
+    for alarm in alarms:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
                                           client_id, 'topo_format.xlsx'))
-        topo = topo.loc[topo['NEName'] == i]
+        topo = topo.loc[topo['NEName'] == alarm]
         ne_path.append(set(topo['PathID']))
     topo_path = set()
     for i in range(0, len(ne_path)):
         topo_path = topo_path | ne_path[i]
     return topo_path
+
+
+def build_tree(paths):
+    client_id = request.headers.get('Client-Id')
+    topo_tree = []
+    for path in paths:
+        topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
+                                          client_id, 'topo_format.xlsx'))
+        topo = topo.loc[topo['PathID'] == path]
+        per_path = []
+        for i, j in zip(topo['NEName'], topo['NEType']):
+            per_path.append({'NEName': i, 'NEType': j})
+        topo_tree.append(per_path)
+    return topo_tree
 
 
 @app.route('/', methods=['GET'])
@@ -93,16 +127,11 @@ def upload():
 
 @app.route('/interval')
 def interval():
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       'alarm_format.xlsx'))
+    # get interval filtered dataframe
     a_time = datetime.fromtimestamp(int(request.args.get('start')))
     z_time = datetime.fromtimestamp(int(request.args.get('end')))
-    alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
-    mask = (alarm['First Occurrence'] >= a_time) & \
-           (alarm['First Occurrence'] <= z_time)
-    alarm = alarm.loc[mask]
-
+    alarm = interval_filter(a_time, z_time)
+    # construct json for frontend
     data = dict()
     data['group_id'] = list(set(alarm['RCA Group ID']))
     return jsonify(data)
@@ -110,22 +139,11 @@ def interval():
 
 @app.route('/analyze')
 def analyze():
-    client_id = request.headers.get('Client-Id')
+    # generate topo tree
     group_id = request.args.get('groupId')
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       'alarm_format.xlsx'))
-    alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
-    topo_path = find_path(set(alarm['Alarm Source']), client_id)
-    # construct topo tree
-    topo_tree = []
-    for i in topo_path:
-        topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                          client_id, 'topo_format.xlsx'))
-        topo = topo.loc[topo['PathID'] == i]
-        per_path = []
-        for j, k in zip(topo['NEName'], topo['NEType']):
-            per_path.append({'NEName': j, 'NEType': k})
-        topo_tree.append(per_path)
+    alarm = group_filter(group_id)
+    topo_path = find_path(set(alarm['Alarm Source']))
+    topo_tree = build_tree(topo_path)
     # construct json for frontend
     data = dict()
     data['topo'] = topo_tree
@@ -135,26 +153,25 @@ def analyze():
 
 @app.route('/expand')
 def expand():
-    client_id = request.headers.get('Client-Id')
+    # generate topo path
     group_id = request.args.get('groupId')
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       'alarm_format.xlsx'))
-    alarm = alarm.loc[alarm['RCA Group ID'] == group_id]
-    origin_path = find_path(set(alarm['Alarm Source']), client_id)
-
+    alarm = group_filter(group_id)
+    topo_path = find_path(set(alarm['Alarm Source']))
+    # get interval filtered dataframe
     a_time = pd.to_datetime(alarm['First Occurrence'].min()).timestamp()
     z_time = pd.to_datetime(alarm['First Occurrence'].max()).timestamp()
     a_time -= 5 * 60
     z_time += 5 * 60
-
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       'alarm_format.xlsx'))
-    alarm['First Occurrence'] = pd.to_datetime(alarm['First Occurrence'])
-    mask = (alarm['First Occurrence'] >= a_time) & \
-           (alarm['First Occurrence'] <= z_time)
-    alarm = alarm.loc[mask]
-
-    extra_path = find_path(set(alarm['Alarm Source']), client_id)
+    alarm = interval_filter(a_time, z_time)
+    # generate topo tree
+    extra_path = find_path(set(alarm['Alarm Source']))
+    topo_path = topo_path | extra_path
+    topo_tree = build_tree(topo_path)
+    # construct json for frontend
+    data = dict()
+    data['topo'] = topo_tree
+    data['table'] = alarm.to_json(orient='records')
+    return jsonify(data)
 
 
 if __name__ == '__main__':
