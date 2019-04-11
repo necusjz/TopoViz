@@ -2,9 +2,10 @@ SERVER_HOST = 'localhost'
 SERVER_PORT = '8080'
 
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
+UPLOAD_FOLDER = 'temp'
+
 ALARM_FILE = 'alarm_format.xlsx'
 TOPO_FILE = 'topo_format.xlsx'
-UPLOAD_FOLDER = 'temp'
 
 ALARM_COLUMNS = ['Alarm Name', 'Alarm Source', 'Vendor', 'First Occurrence',
                  'Last Occurrence', 'Raw Severity', 'Cleared On', 'Domain',
