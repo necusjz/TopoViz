@@ -1,8 +1,8 @@
 <template>
   <div class="rca-topo-table">
     <div class="topo-table-tabs">
-      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">待处理  {{this.tabData.length}}</div>
-      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已处理  0</div>
+      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认  {{this.tabData.length}}</div>
+      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认  0</div>
     </div>
     <TopoTable :editAble="activeType === 0" :tableData="tabData"></TopoTable>
   </div>
@@ -48,6 +48,7 @@ export default class StaticsBoard extends Vue {
   public setLastRow() {
     const lastRow = {
       uid: generateUUID(),
+      index: -9999,
       type: "statics",
       ratio: "80%",
       alarmName: "当前组精准率: ",
@@ -65,7 +66,7 @@ export default class StaticsBoard extends Vue {
     }
     if (!this.activeType) {
       lastRow.ratio = '';
-      lastRow.alarmName = '当前组精准率: --';
+      lastRow.alarmName = '温馨提示： 一键确认”过的数据别忘了去”已确认“里保存哦';
       lastRow.alarmSourceName = '一键确认';
     }
     this.tabData.push(lastRow);
@@ -76,7 +77,7 @@ export default class StaticsBoard extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 .rca-topo-table {
-  padding-left: 30px;
+  padding: 0 30px 0 30px;
   .topo-table-tab {
     color: #282828;
     cursor: pointer;
