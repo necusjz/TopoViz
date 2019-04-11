@@ -197,7 +197,7 @@ export default class Stage extends Evt {
    * @param layer Layer
    */
   public removeLayer(layer: Layer) {
-    if (!this.layers.has(layer.id)) {
+    if (layer && !this.layers.has(layer.id)) {
       return this;
     }
     this.layers.delete(layer.id);
