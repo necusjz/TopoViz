@@ -190,7 +190,7 @@ export default abstract class Layer extends Evt {
       for (const geo of geometry) {
         const line = new math.Polyline(geo);
         if (bound) {
-          bound = line.getBound().expand(bound);
+          bound = line.getBound().union(bound);
         } else {
           bound = line.getBound();
         }

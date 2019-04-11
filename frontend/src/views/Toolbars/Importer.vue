@@ -17,7 +17,7 @@
         </el-button>
       </el-upload>
     </div>
-    <div class="app-importer-item app-importor-date">
+    <!-- <div class="app-importer-item app-importor-date">
       <el-date-picker
         v-model="dateValue"
         type="datetimerange"
@@ -30,7 +30,7 @@
         @change="dateChange"
         size="small"
       ></el-date-picker>
-    </div>
+    </div> -->
     <div class="app-importer-item">
       <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': unavailable}" @click="submitData">确定</el-button>
     </div>
@@ -40,9 +40,9 @@
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { postTopoData, getStaticsDataByInterval} from '@/api/request';
+import { postTopoData } from '@/api/request';
 import bus from '@/util/bus';
-import { VisibleType, StaticsRes } from '@/types/type';
+import { EventType, StaticsRes } from '@/types/type';
 
 @Component
 export default class Importer extends Vue {
@@ -63,11 +63,11 @@ export default class Importer extends Vue {
         this.formatName = this.formatFile.name;
       }
     } else {
-      bus.$emit(VisibleType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
+      bus.$emit(EventType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
       return;
     }
     if (this.targetFile && this.formatFile) {
-      this.autoUpload();
+      this.unavailable = false;
     }
     return false;
   }
@@ -75,29 +75,30 @@ export default class Importer extends Vue {
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
-    postTopoData(form).then((res: any) => {
+    postTopoData(form).then((res: StaticsRes) => {
       localStorage.setItem('client-id', res.client_id);
-      this.dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
-      this.unavailable = false;
+      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
+      this.$store.commit('SET_DEFAULTDATE', dateValue);
+      this.$store.commit('SET_STATICS', res);
+      this.$store.commit('SET_ISNOEIMPORTED', false);
+      // this.unavailable = false;
     });
-  }
-  public dateChange(value: number[]) {
-    this.unavailable = !value || !this.targetFile || !this.formatFile;
   }
   public submitData() {
     if (this.isCheckStatics) {
       this.$store.commit('SET_ISCHECKSTATICS', false);
     }
-    let date: number[] = [];
-    if (this.dateValue && this.dateValue.length > 0) {
-      date = this.dateValue.map((d: number) => d / 1000);
-    }
-    const start = date[0].toString();
-    const end  = date[1].toString();
-    getStaticsDataByInterval({start, end}).then((res: StaticsRes) => {
-      this.$store.commit('SET_STATICS', res);
-      this.$store.commit('SET_ISNOEIMPORTED', false);
-    });
+    this.autoUpload();
+    // let date: number[] = [];
+    // if (this.dateValue && this.dateValue.length > 0) {
+    //   date = this.dateValue.map((d: number) => d / 1000);
+    // }
+    // const start = date[0].toString();
+    // const end  = date[1].toString();
+    // getStaticsDataByInterval({start, end}).then((res: StaticsRes) => {
+    //   this.$store.commit('SET_STATICS', res);
+    //   this.$store.commit('SET_ISNOEIMPORTED', false);
+    // });
   }
   public goBack() {
     this.$store.commit('SET_ISCHECKSTATICS', false);

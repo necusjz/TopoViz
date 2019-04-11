@@ -37,9 +37,24 @@
             <span class="board-count" style="color: #ff686f">{{unconfirmed_count}}</span>
             <span>未确认组</span>
           </div>
-          <div class="board-col-item">
+          <el-popover
+            placement="top"
+            width="120"
+            trigger="hover"
+            v-if="unconfirmed_count > 0">
+            <span class="blue-text">提示：</span>
+            <span>只有当前数据的所有Group ID都处理过时才可得出RCA精准率哦</span>
+            <div class="board-col-item board-precision" slot="reference">
+              <span class="board-count">{{precision}}</span>
+              <span>RCA精准率</span>
+            </div>
+          </el-popover>
+          <div class="board-col-item" v-else>
             <span class="board-count">{{precision}}</span>
             <span>RCA精准率</span>
+          </div>
+          <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count !== group_count">
+            <i class="el-icon-arrow-right board-viewer-icon"></i>
           </div> 
         </el-col>
       </el-row>
@@ -103,10 +118,18 @@ export default class StaticsBoard extends Vue {
           flex-direction: column;
           text-align: center;
         }
+        .board-precision {
+          cursor: pointer;
+        }
         .board-count {
           font-size: 26px;
           font-weight: 500;
           padding-bottom: 10px;
+        }
+        .board-viewer-icon {
+          line-height: 50px;
+          font-size: 36px;
+          color: #979797;
         }
       }
     }
