@@ -38,40 +38,39 @@ def check_file(file, path):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         if filename.endswith('.xlsx') or filename.endswith('xls'):
-            df_ = pd.read_csv(file)
+            df_ = pd.read_excel(file)
             save_format(df_, path)
         elif filename.endswith('.csv'):
-            df_ = pd.read_excel(file)
+            df_ = pd.read_csv(file)
             save_format(df_, path)
 
 
 def interval_filter(start, end):
-    client_id = request.headers.get('Client-ID')
+    client_id = request.headers.get('Client-Id')
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        app.config['ALARM_FILE']))
     alarm['First'] = pd.to_datetime(alarm['First'])
-    mask = (alarm['First'] >= start) & \
-           (alarm['First'] <= end)
+    mask = (alarm['First'] >= start) & (alarm['First'] <= end)
     alarm = alarm.loc[mask]
     return alarm
 
 
 def group_filter(group_id):
-    client_id = request.headers.get('Client-ID')
+    client_id = request.headers.get('Client-Id')
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        app.config['ALARM_FILE']))
-    alarm = alarm.loc[alarm['GroupID'] == group_id]
+    alarm = alarm.loc[alarm['GroupId'] == group_id]
     return alarm
 
 
 def find_path(alarms):
-    client_id = request.headers.get('Client-ID')
+    client_id = request.headers.get('Client-Id')
     ne_path = []
     for alarm in alarms:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
                                           client_id, app.config['TOPO_FILE']))
         topo = topo.loc[topo['NEName'] == alarm]
-        ne_path.append(set(topo['PathID']))
+        ne_path.append(set(topo['PathId']))
     topo_path = set()
     for i in range(0, len(ne_path)):
         topo_path = topo_path | ne_path[i]
@@ -79,12 +78,12 @@ def find_path(alarms):
 
 
 def build_tree(paths):
-    client_id = request.headers.get('Client-ID')
+    client_id = request.headers.get('Client-Id')
     topo_tree = []
     for path in paths:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
                                           client_id, app.config['TOPO_FILE']))
-        topo = topo.loc[topo['PathID'] == path]
+        topo = topo.loc[topo['PathId'] == path]
         per_path = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             per_path.append({'NEName': ne_name, 'NEType': ne_type})
@@ -113,16 +112,16 @@ def upload():
     check_file(file1, save_path1)
     check_file(file2, save_path2)
     # construct json for frontend
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       app.config['ALARM_FILE']))
     data = dict()
     data['client_id'] = client_id
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                       app.config['ALARM_FILE']))
     data['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     data['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     data['total_alarm'] = alarm.shape[0]
-    data['p_count'] = alarm.loc[alarm['RCAResult'] == 1].shape[0]
-    data['c_count'] = alarm.loc[alarm['RCAResult'] == 2].shape[0]
-    data['group_count'] = len(set(alarm['GroupID']))
+    data['p_count'] = alarm.loc[alarm['RcaResult'] == 1].shape[0]
+    data['c_count'] = alarm.loc[alarm['RcaResult'] == 2].shape[0]
+    data['group_count'] = len(set(alarm['GroupId']))
     data['confirmed'] = 0
     data['unconfirmed'] = data['group_count']
     return jsonify(data)
@@ -136,14 +135,14 @@ def interval():
     alarm = interval_filter(a_time, z_time)
     # construct json for frontend
     data = dict()
-    data['group_id'] = list(set(alarm['GroupID']))
+    data['group_id'] = list(set(alarm['GroupId']))
     return jsonify(data)
 
 
 @app.route('/analyze')
 def analyze():
     # generate topo tree
-    group_id = request.args.get('groupID')
+    group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
@@ -151,38 +150,33 @@ def analyze():
     data = dict()
     data['topo'] = topo_tree
     data['table'] = json.loads(alarm.to_json(orient='records'))
+    data['orange'] = list(set(alarm['AlarmSource']))
     return jsonify(data)
 
 
 @app.route('/locate')
 def locate():
-    group_id = request.args.get('groupID')
+    # locate red network element
+    group_id = request.args.get('groupId')
     locator = request.args.get('locator')
     locator_value = request.args.get('locatorValue')
     alarm = group_filter(group_id)
-    if locator == '1':
-        alarm = alarm.loc[alarm['Vendor'] == locator_value]
-    if locator == '2':
-        alarm = alarm.loc[alarm['AlarmName'] == locator_value]
-    if locator == '3':
-        alarm = alarm.loc[alarm['RuleName'] == locator_value]
-    if locator == '4':
-        alarm = alarm.loc[alarm['RCAResult'] == locator_value]
-    if locator == '5':
-        alarm = alarm.loc[alarm['RCAResult'] == locator_value]
+    alarm = alarm.loc[alarm[locator] == locator_value]
+    # construct json for frontend
+    data = dict()
+    data['red'] = list(set(alarm['AlarmSource']))
+    return jsonify(data)
 
 
 @app.route('/expand')
 def expand():
     # generate topo path
-    group_id = request.args.get('groupID')
+    group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     # get interval filtered dataframe
-    a_time = pd.to_datetime(alarm['First'].min()).timestamp()
-    z_time = pd.to_datetime(alarm['First'].max()).timestamp()
-    a_time -= 5 * 60
-    z_time += 5 * 60
+    a_time = pd.to_datetime(alarm['First'].min()).timestamp() - 5 * 60
+    z_time = pd.to_datetime(alarm['First'].max()).timestamp() + 5 * 60
     alarm = interval_filter(a_time, z_time)
     # generate topo tree
     extra_path = find_path(set(alarm['AlarmSource']))
@@ -192,6 +186,8 @@ def expand():
     data = dict()
     data['topo'] = topo_tree
     data['table'] = json.loads(alarm.to_json(orient='records'))
+    alarm = alarm.loc[alarm['GroupId'] != group_id]
+    data['yellow'] = list(set(alarm['AlarmSource']))
     return jsonify(data)
 
 
