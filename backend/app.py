@@ -45,16 +45,8 @@ def check_file(file, path):
             save_format(df_, path)
 
 
-def group_filter(group_id):
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       app.config['ALARM_FILE']))
-    alarm = alarm.loc[alarm['GroupID'] == group_id]
-    return alarm
-
-
 def interval_filter(start, end):
-    client_id = request.headers.get('Client-Id')
+    client_id = request.headers.get('Client-ID')
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        app.config['ALARM_FILE']))
     alarm['First'] = pd.to_datetime(alarm['First'])
@@ -62,10 +54,18 @@ def interval_filter(start, end):
            (alarm['First'] <= end)
     alarm = alarm.loc[mask]
     return alarm
-    
+
+
+def group_filter(group_id):
+    client_id = request.headers.get('Client-ID')
+    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                       app.config['ALARM_FILE']))
+    alarm = alarm.loc[alarm['GroupID'] == group_id]
+    return alarm
+
 
 def find_path(alarms):
-    client_id = request.headers.get('Client-Id')
+    client_id = request.headers.get('Client-ID')
     ne_path = []
     for alarm in alarms:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
@@ -79,7 +79,7 @@ def find_path(alarms):
 
 
 def build_tree(paths):
-    client_id = request.headers.get('Client-Id')
+    client_id = request.headers.get('Client-ID')
     topo_tree = []
     for path in paths:
         topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
@@ -143,7 +143,7 @@ def interval():
 @app.route('/analyze')
 def analyze():
     # generate topo tree
-    group_id = request.args.get('groupId')
+    group_id = request.args.get('groupID')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
@@ -154,10 +154,28 @@ def analyze():
     return jsonify(data)
 
 
+@app.route('/locate')
+def locate():
+    group_id = request.args.get('groupID')
+    locator = request.args.get('locator')
+    locator_value = request.args.get('locatorValue')
+    alarm = group_filter(group_id)
+    if locator == '1':
+        alarm = alarm.loc[alarm['Vendor'] == locator_value]
+    if locator == '2':
+        alarm = alarm.loc[alarm['AlarmName'] == locator_value]
+    if locator == '3':
+        alarm = alarm.loc[alarm['RuleName'] == locator_value]
+    if locator == '4':
+        alarm = alarm.loc[alarm['RCAResult'] == locator_value]
+    if locator == '5':
+        alarm = alarm.loc[alarm['RCAResult'] == locator_value]
+
+
 @app.route('/expand')
 def expand():
     # generate topo path
-    group_id = request.args.get('groupId')
+    group_id = request.args.get('groupID')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     # get interval filtered dataframe
