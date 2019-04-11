@@ -14,14 +14,14 @@
       </div>
       <el-scrollbar>
         <div class="tip-table-body">
-          <div
+          <el-row
             class="tip-table-body-row tip-table-row"
             v-for="(item, index) in tableData"
             :key="index"
           >
-            <div class="body-cell tip-table-cell">{{item.name}}</div>
-            <div class="body-cell tip-table-cell">{{item.date}}</div>
-          </div>
+            <el-col :span="12" class="body-cell tip-table-body-cell">{{item.name}}</el-col>
+            <el-col :span="12" class="body-cell tip-table-body-cell">{{item.date}}</el-col>
+          </el-row>
         </div>
       </el-scrollbar>
     </div>
@@ -32,7 +32,8 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
-import { VisibleType } from "../../types/type";
+import { State } from 'vuex-class';
+import { EventType, AlarmData } from "../../types/type";
 import bus from "../../util/bus";
 @Component
 export default class TipDialog extends Vue {
@@ -42,58 +43,16 @@ export default class TipDialog extends Vue {
   @Provide() private left: number = 0;
   @Provide() private tableData: { name: string; date: string }[] = [];
   @Provide() private sortClass: string = "";
+  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   mounted() {
-    this.tableData = [
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:45"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:45"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-17 19:47"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:45"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:43"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:49"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:45"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-16 19:50"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-13 19:45"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-13 19:45"
-      },
-      {
-        name: "X0934-RTN950-01",
-        date: "2019-03-13 19:45"
-      }
-    ];
-    bus.$on(VisibleType.TIPVISIBLE, (visible: boolean, loc?: { top: number; left: number }) => {
+    bus.$on(EventType.TIPVISIBLE, (visible: boolean, name?: string, loc?: { top: number; left: number }) => {
       this.tipVisible = visible;
+      this.tableData = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.alarmSourceName === name).map((alarmData: AlarmData) => {
+        return { name: alarmData.alarmName, date: alarmData.firstTime}
+      });
       this.sortClass = '';
       if (this.tipVisible && loc) {
-        this.top = loc.top - 50;
+        this.top = loc.top - 60;
         this.left = loc.left + 15;
       }
     });
@@ -107,6 +66,9 @@ export default class TipDialog extends Vue {
     });
     this.tableData = [...this.tableData];
   }
+  public formatDate(date: string) {
+    
+  }
 }
 </script>
 
@@ -115,13 +77,12 @@ export default class TipDialog extends Vue {
 .tip-container {
   position: absolute;
   width: 220px;
-  height: 300px;
   z-index: 5;
   background-color: #fff;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid #ebeef5;
   border-radius: 4px;
-  padding: 0 8px;
+  padding: 0 8px 10px;
   .tip-arrow {
     position: absolute;
     top: 50px;
@@ -151,11 +112,12 @@ export default class TipDialog extends Vue {
   }
   .tip-table-body {
     max-height: 240px;
+    padding-left: 8px;
   }
   .tip-table-row {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     text-align: center;
     .tip-table-cell {
       display: inline-flex;
@@ -163,6 +125,12 @@ export default class TipDialog extends Vue {
       align-items: center;
       flex: 1;
       text-align: center;
+    }
+    .tip-table-body-cell {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      text-align: left;
     }
   }
   .caret-wrapper {
