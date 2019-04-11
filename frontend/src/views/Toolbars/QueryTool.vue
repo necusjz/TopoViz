@@ -98,6 +98,13 @@ export default class QueryTool extends Vue {
     }
     this.regulationType = '';
   }
+  @Watch('groupIds')
+  public watchGroupIds(val: string[]) {
+    if (!this.groupId) {
+      this.groupId = val[0];
+      this.queryTopoData();
+    }
+  }
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
     this.dateValue = this.defaultDate;
@@ -140,11 +147,7 @@ export default class QueryTool extends Vue {
     })
   }
   public queryTopoData() {
-    if (this.isNonImported) {
-      bus.$emit(EventType.ERRORVISIBLE, '<p>请上传数据后再查询!</p>');
-      return;
-    }
-    if (!this.groupId && !this.regulationValue) {
+    if (!this.groupId) {
       return;
     }
     const index: any = this.regulationType;
@@ -269,10 +272,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
         height: 30px;
         background-image: $Btn_Background;
         color: #778296;
-        cursor: pointer;
         padding-right: 5px;
         .el-range-input {
           background-image: $Btn_Background;
+          cursor: pointer;
         }
         .el-range__close-icon {
           display: none;
