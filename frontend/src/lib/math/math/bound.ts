@@ -94,10 +94,10 @@ export default class Bound {
     return a[0] > this.x && a[1] > this.y && a[0] < (this.x + this.width) && a[1] < (this.y + this.height);
   }
   /**
-   * 扩展Bound
+   * 扩展union
    * @param bound Bound
    */
-  public expand(bound: Bound): Bound {
+  public union(bound: Bound): Bound {
     const minX = Math.min(this.x, bound.x);
     const minY = Math.min(this.y, bound.y);
     const maxX = Math.max(this.x + this.width, bound.x + bound.width);
@@ -106,6 +106,23 @@ export default class Bound {
     this.y = minY;
     this.width = maxX - minX;
     this.height = maxY - minY;
+    return this;
+  }
+  /**
+   * 缩放bound
+   * @param dx number
+   * @param dy number
+   */
+  public expand(dx: number, dy?: number): Bound {
+    this.width += dx * 2;
+    this.x -= dx;
+    if (dy !== undefined) {
+      this.y -= dy;
+      this.height += dy * 2;
+    } else {
+      this.y -= dx;
+      this.height += dx * 2;
+    }
     return this;
   }
   /**
