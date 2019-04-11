@@ -23,13 +23,12 @@ import { Component, Prop, Vue, Provide, Watch } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
 import { Vertex } from '@/lib/typeof/typeof';
-import dJson from './data.json';
-import { Node, VisibleType, NodeData, AlarmData } from '../../types/type';
+import { Node, EventType, NodeData, AlarmData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
-const { graphlib, dagre } = require('dagre-d3');
-import ForceDirect from '@/util/force-direct';
+// const { graphlib, dagre } = require('dagre-d3');
+// import ForceDirect from '@/util/force-direct';
 import TopoTreeHelper from '@/util/topoTree';
 
 @Component({
@@ -38,82 +37,40 @@ import TopoTreeHelper from '@/util/topoTree';
   },
 })
 export default class TopoTree extends Vue {
-  @Prop() private msg!: string;
-  @Provide() private stage: any
+  @Provide() private stage!: xCanvas.Stage;
   @Provide() private center: Vertex = [0, 0];
-  @Provide() private cy: any;
+  @Provide() private borderLayer!: xCanvas.Layer;
+  @Provide() private size: number = 40;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneData) isNoneData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
+  @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
   public watchTopoDatas(val: NodeData[][]) {
     this.init();
   }
-  public initTopoTree() {
-    if (!this.stage) {
-      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
-    }
-    const g = new graphlib.Graph()
-    g.setGraph({
-      rankdir: 'LR',
-      // align: 'dl', // 'dl、dr、ul、ur'
-      ranksep: 80,
-    });
-    const mnodes = dJson.map((node: any, index: number) => {
-      return {...node, ...this.alarmDatas[index % this.alarmDatas.length]};
-    });
-    for (const node of mnodes) {
-      g.setNode(node.id, node)
-    }
-    for (const node of mnodes) {
-      if (node.pId) {
-        g.setEdge(node.pId, node.id, {source: g.node(node.pId), target: node});
-      }
-    }
-    dagre.layout(g);
-    const edges = g.edges().map((e: any) => g.edge(e));
-    const nodes = g.nodes().map((n: any) => g.node(n));
-    this.createNetWork(nodes, edges);
-    this.clearEvent();
-    window.addEventListener('resize', () => {
-      const stage: xCanvas.Stage = this.stage;
-      stage.setView(this.center);
-    });
+  @Watch('selectAlarm')
+  public watchSlectAlarm(val: string) {
+    this.selectNetwork();
   }
-  public initTopoTree2() {
-    if (!this.stage) {
-      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
-    }
-    const images = [];
-    images.push(require(`../../assets/pc.png`));
-    images.push(require(`../../assets/router.png`));
-    images.push(require(`../../assets/server.png`));
-    images.push(require(`../../assets/switch.png`));
-    const nodes = [];
-    for (let i = 0; i < 20; i++) {
-      nodes.push({id: i, icon: images[i % 4]});
-    }
-    const edges = [];
-    for (let i = 0; i < 10; i++) {
-      edges.push({source: Math.floor(Math.random() * 20), target: Math.floor(Math.random() * 20)});
-    }
-    const force = new ForceDirect();
-    for (const node of nodes) {
-      force.setNode(node);
-    }
-    for (const edge of edges) {
-      const source = force.getNode(edge.source);
-      const target = force.getNode(edge.target);
-      if (source && target) {
-        force.setEdge({source, target});
-      }
-    }
-    const data = force.run((nodes: any, edges: any) => {
-      this.createNetWork(nodes, edges);
+  mounted() {
+    bus.$on('NETWORKFILTER', (neNames: string[]) => {
+      this.stage.startBatch();
+      this.stage.eachLayer((layer: xCanvas.Layer) => {
+        if (layer.getLayerType() === 'IMAGE') {
+          const dirtyData = layer.getDirtyData();
+          if (dirtyData && neNames.includes(dirtyData.alarmSourceName)) {
+            const url = require(`../../assets/${dirtyData.type}-Error.png`);
+            (layer as xCanvas.ImageLayer).setImage(url);
+          } else if(dirtyData) {
+            const url = require(`../../assets/${dirtyData.type}-Warning.png`);
+            (layer as xCanvas.ImageLayer).setImage(url);
+          }
+        }
+      });
+      this.stage.endBatch();
     });
-    // this.createNetWork(data.nodes, data.edges);
-    this.clearEvent();
   }
   public zoom(step: number) {
     if (this.isNoneData) {
@@ -130,33 +87,47 @@ export default class TopoTree extends Vue {
     const stage: xCanvas.Stage = this.stage;
     stage.clearAllEvents();
     stage.on('mousemove', util.throttle((e: any) => {
-      const layer = stage.getLayerByPosition(e.pos);
+      const layers = stage.getLayersByPosition(e.pos);
+      const layer = layers.find((layer: xCanvas.Layer) => layer.getLayerType() === 'IMAGE');
       if (layer) {
         stage.clearHighLightLayer();
         stage.addHighLightLayer(layer);
         stage.hilightLayers();
-        if (layer.getLayerType() === 'IMAGE') {
-          const v = stage.transferWorldCoordinateToScreen(layer.getBound().getCenter());
-          bus.$emit(VisibleType.TIPVISIBLE, true, {left: v[0], top: v[1]});
-        } else {
-          bus.$emit(VisibleType.TIPVISIBLE, false);
+        const v = stage.transferWorldCoordinateToScreen(layer.getBound().getCenter());
+        if (layer.dirtyData) {
+          bus.$emit(EventType.TIPVISIBLE, true, layer.dirtyData.alarmSourceName, {left: v[0], top: v[1]});
         }
       } else {
-        bus.$emit(VisibleType.TIPVISIBLE, false);
+        bus.$emit(EventType.TIPVISIBLE, false);
         stage.clearHighLightLayer();
       }
     }, 100));
     stage.on('click', (e: any) => {
-      const layer = stage.getLayerByPosition(e.pos);
-      if (layer && layer.getLayerType() === 'IMAGE') {
+      const layers = stage.getLayersByPosition(e.pos);
+      const layer = layers.find((layer: xCanvas.Layer) => layer.getLayerType() === 'IMAGE');
+      if (layer) {
         const dirtyData = layer.getDirtyData();
-        window.location.hash = '#' + dirtyData.alarmName;
-        this.$store.commit('SET_SELECTALARM', dirtyData.alarmName);
-        setTimeout(() => {
-          window.location.hash = '';
-        });
+        if (dirtyData) {
+          window.location.hash = '#' + dirtyData.alarmSourceName;
+          this.$store.commit('SET_SELECTALARM', dirtyData.alarmSourceName);
+          setTimeout(() => {
+            window.location.hash = '';
+          });
+        }
       }
     });
+  }
+  public selectNetwork() {
+    const layer = this.stage.getLayer((glayer: xCanvas.Layer) => { 
+      return glayer.getLayerType() === 'IMAGE' && glayer.dirtyData && glayer.dirtyData.alarmSourceName === this.selectAlarm;
+    });
+    if (layer) {
+      const bound = layer.getBound().expand(4);
+      if (this.borderLayer) {
+        this.stage.removeLayer(this.borderLayer);
+      }
+      this.borderLayer = new xCanvas.Rectangle(bound.getSouthWest(), bound.getNorthEast(), {fill: false, color: '#4a96ff'}).addTo(this.stage);
+    }
   }
   public getArrowData(v1: Vertex, v2: Vertex): Vertex[] {
     const p = new xCanvas.Math.Vector2(v1);
@@ -187,14 +158,14 @@ export default class TopoTree extends Vue {
       // const url = node.icon;
       const childLayer = new xCanvas.ImageLayer(url, node.x, node.y, size, size).addTo(stage);
       childLayer.setDirtyData(node);
-      bound = bound ? bound.expand(childLayer.getBound()) : childLayer.getBound();
+      bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
     });
     this.center = bound.getCenter();
     stage.setView(this.center);
     stage.endBatch();
   }
   public leaveContainer() {
-    bus.$emit(VisibleType.TIPVISIBLE, false);
+    bus.$emit(EventType.TIPVISIBLE, false);
   }
   public init() {
     if (!this.stage) {
@@ -210,8 +181,8 @@ export default class TopoTree extends Vue {
       const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
       const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
       const dir = target.clone().substract(source.clone()).normalize();
-      const p1 = source.clone().add(dir.clone().scale(size / 2));
-      const p2 = target.clone().substract(dir.clone().scale(size / 2));
+      const p1 = source.clone().add(dir.clone().scale(size / 1.5));
+      const p2 = target.clone().substract(dir.clone().scale(size / 1.5));
       const pts: Vertex[] = [];
       pts.push([p1.x, p1.y], [p2.x, p2.y]);
       const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
@@ -220,16 +191,34 @@ export default class TopoTree extends Vue {
     }
     let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
     for (const node of helper.nodes.values()) {
-      const ex = Math.random() > 0.5 ? '-Warning' : '';
+      const dirtyData = this.getDataByAlarmSourceName(node.name);
+      let ex: string = '';
+      if (dirtyData) {
+        ex = '-Warning';
+      }
       const url = require(`../../assets/${node.type}${ex}.png`);
       const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
-      childLayer.setDirtyData(node);
-      bound = bound ? bound.expand(childLayer.getBound()) : childLayer.getBound();
+      if (dirtyData) {
+        childLayer.setDirtyData({...dirtyData, type: node.type});
+      }
+      bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
     }
     this.center = bound.getCenter();
     stage.setView(this.center);
     stage.endBatch();
     this.clearEvent();
+  }
+  public resize() {
+    const stage: xCanvas.Stage = this.stage;
+  }
+  /**
+   * 根据网元名称获得告警信息
+   */
+  public getDataByAlarmSourceName(name: string) {
+    const alarmItem = this.alarmDatas.find((alarm: AlarmData) => {
+      return alarm.alarmSourceName === name;
+    });
+    return alarmItem;
   }
   public isAlarmNetWork(name: string) {
     return this.alarmDatas.find((alarmData: AlarmData) => {
