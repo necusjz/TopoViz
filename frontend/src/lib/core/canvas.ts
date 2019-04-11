@@ -277,7 +277,7 @@ export default class CanvasHelper {
   public drawRectangle(layer: Rectangle) {
     this.context.beginPath();
     const pt = this.worldCoordinateToLocal(layer.getNorthWest());
-    this.context.rect(pt[0], pt[1], layer.width, layer.height);
+    this.context.rect(pt[0], pt[1], layer.width * this.retina, layer.height * this.retina);
     this._fillstroke(layer);
   }
   /**

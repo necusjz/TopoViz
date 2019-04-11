@@ -28,7 +28,6 @@ const mutations: MutationTree<ProjectState> = {
         state.group_count = data.group_count;
         state.confirmed_count = data.confirmed;
         state.unconfirmed_count = data.unconfirmed;
-        state.groupIds = data.group_id;
     },
     SET_TOTALALARM: (state: ProjectState, count: number) => {
         state.total_count = count;

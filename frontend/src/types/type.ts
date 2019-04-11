@@ -7,9 +7,10 @@ export interface Node {
     type: string;
 }
 
-export enum VisibleType {
+export enum EventType {
     TIPVISIBLE = 'TIPVISIBLE',
     ERRORVISIBLE = 'ERRORVISIBLE',
+    NETWORKFILTER = 'NETWORKFILTER',
 }
 
 export interface AppState {
@@ -26,10 +27,12 @@ export interface AppState {
     confirmData: GroupData[];
     unconfirmData: GroupData[];
     selectAlarm: string;
+    defaultDate: number[];
 }
 
 export interface AlarmData {
     uid: string;
+    index: number;
     alarmName: string,
     alarmSourceName: string,
     company: string,
@@ -69,6 +72,9 @@ export interface StaticsRes {
     p_count: number;
     total_alarm: number;
     unconfirmed: number;
+    start: number;
+    end: number;
+    client_id: string;
 }
 
 export interface AnalyzeRes {

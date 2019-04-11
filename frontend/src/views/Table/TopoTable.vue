@@ -10,18 +10,19 @@
     header-row-class-name="topoTable-header-row"
     @selection-change="handleSelectionChange"
     @cell-dblclick="handleCellDbclick"
+    @row-click="handleRowClick"
     :span-method="objectSpanMethod"
   >
     <el-table-column type="selection" width="55" v-if="editAble"></el-table-column>
     <el-table-column prop="alarmName" label="告警名称">
       <template slot-scope="scope">
-        <span :id="scope.row.alarmName" :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
+        <span :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
         <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="alarmSourceName" label="告警源名称">
       <template slot-scope="scope">
-        <span :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
+        <span :id="scope.row.alarmSourceName" :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="company" label="厂商" min-width="60">
@@ -111,6 +112,18 @@ export default class TopoTable extends Vue {
   @Prop() private tableData!: any[];
   @State((state) => state.app.pageData) private pageData: any;
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
+  @Watch('pageData')
+  public watchPageData(val: AlarmData[]) {
+    this.$nextTick(() => {
+      this.updateStyleOfPrev();
+    });
+  }
+  @Watch('selectAlarm')
+  public watxhSelectAlarm(val: string) {
+    this.$nextTick(() => {
+      this.updateStyleOfPrev();
+    });
+  }
   public handleSelectionChange(val: any) {
     //console.log(val);
   }
@@ -124,6 +137,13 @@ export default class TopoTable extends Vue {
         this.inputValue = row.rcaResult;
       }
     }
+  }
+  public handleRowClick(row: any) {
+    window.location.hash = '#stage';
+    this.$store.commit('SET_SELECTALARM', row.alarmSourceName);
+    setTimeout(() => {
+      window.location.hash = '';
+    });
   }
   public inputBlur(newRow: AlarmData) {
     console.log(newRow);
@@ -158,8 +178,8 @@ export default class TopoTable extends Vue {
     if (item.rowIndex === this.tableData.length - 1) {
       return "topo-table-static-row";
     }
-    if (item.row.alarmName === this.selectAlarm) {
-      return 'active';
+    if (item.row.alarmSourceName === this.selectAlarm) {
+      return 'topo-table-row-active';
     }
     return "";
   }
@@ -177,6 +197,16 @@ export default class TopoTable extends Vue {
       }
     }
   }
+  public updateStyleOfPrev() {
+    const eles = document.querySelectorAll('.topo-table-row-active');
+    for (let i = 0; i < eles.length; i++) {
+      const selfDom = eles[i];
+      const pre = (selfDom.previousElementSibling || selfDom.previousSibling) as HTMLElement;
+      if (pre && pre.classList.contains('topo-table-row-active')) {
+        pre.style.borderBottom = 'none';
+      }
+    }
+  }
 }
 </script>
 
@@ -184,6 +214,17 @@ export default class TopoTable extends Vue {
 <style lang="scss">
 .topoTable {
   cursor: pointer;
+  table {
+    border-collapse: collapse;
+  }
+  .topo-table-row-active {
+    border: 2px solid #4a96ff;
+    border-left: 1px solid #4a96ff;
+    & + .topo-table-row-active {
+      border-top: none;
+    }
+
+  }
   .topoTable-header-row .cell {
     color: #55657e;
     text-align: center;

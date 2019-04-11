@@ -2,7 +2,21 @@
   <div class="app-query-wrap">
     <div class="app-query-title">查询条件</div>
     <div class="app-query-tool">
-      <div class="app-query-tool-item">
+      <div class="app-query-tool-item app-query-date-wrap">
+        <el-date-picker
+          v-model="dateValue"
+          type="datetimerange"
+          class="app-query-date"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+          :default-time="['12:00:00']"
+          value-format="timestamp"
+          :clearable="false"
+          @change="dateChange"
+          size="small"
+        ></el-date-picker>
+      </div>
+      <div class="app-query-tool-item app-query-tool-group-wrap">
         <el-autocomplete
           placeholder="请输入Group ID"
           suffix-icon="el-icon-search"
@@ -58,9 +72,9 @@ import { Component, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
-import { VisibleType, AlarmData, Rules, AnalyzeRes } from '@/types/type';
+import { EventType, AlarmData, Rules, AnalyzeRes } from '@/types/type';
 import TableData from "@/util/tableData.json";
-import { getAlarmDatas } from '@/api/request';
+import { getAlarmDatas, getGroupIdsDataByInterval } from '@/api/request';
 import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
 @Component
@@ -70,17 +84,31 @@ export default class QueryTool extends Vue {
   @Provide() private regulationValue: string = "";
   @Provide() private visibleErrorTip: boolean = false;
   @Provide() private options: { label: string; value: number }[] = [];
-  @Provide() private temp_alarmDatas: AlarmData[] = [];
+  @Provide() private dateValue: number[] = [];
   @State((state) => state.project.groupIds) private groupIds!: string[];
   @State((state) => state.app.isNonImported) private isNonImported!:boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.groupId) private store_groupId!: string;
   @State((state) => state.app.regValue) private store_regValue!: string;
+  @State((state) => state.app.defaultDate) private defaultDate!: number[];
   @Watch('groupId')
   public watchGroupId(val: string) {
     if (val && !this.visibleErrorTip) {
       this.visibleErrorTip = false;
     }
+    this.regulationType = '';
+  }
+  @Watch('groupIds')
+  public watchGroupIds(val: string[]) {
+    if (!this.groupId) {
+      this.groupId = val[0];
+      this.queryTopoData();
+    }
+  }
+  @Watch('defaultDate')
+  public watchDefaultDate(val: number[]) {
+    this.dateValue = this.defaultDate;
+    this.dateChange(val);
   }
   mounted() {
     this.options = ruleOptions;
@@ -96,7 +124,7 @@ export default class QueryTool extends Vue {
     if (this.groupId && this.groupId === this.store_groupId && this.regulationType !== '') {
       const index: any = this.regulationType;
       let res: string[] = [];
-      for (const alarmData of this.temp_alarmDatas) {
+      for (const alarmData of this.alarmDatas) {
         if (index === Rules.pAlarm && alarmData.rcaResult === '1') {
           res.push(alarmData.alarmName);
         } else if (index === Rules.cAlarm && alarmData.rcaResult === '2') {
@@ -113,28 +141,27 @@ export default class QueryTool extends Vue {
       cb([]);
     }
   }
+  public dateChange(value: number[]) {
+    getGroupIdsDataByInterval({start: (value[0] / 1000).toString(), end: (value[1] / 1000).toString()}).then((res) => {
+      this.$store.commit('SET_GROUPIDS', res['group_id']);
+    })
+  }
   public queryTopoData() {
-    if (this.isNonImported) {
-      bus.$emit(VisibleType.ERRORVISIBLE, '<p>请上传数据后再查询!</p>');
-      return;
-    }
-    if (!this.groupId && !this.regulationValue) {
+    if (!this.groupId) {
       return;
     }
     const index: any = this.regulationType;
     // 前后两次查询groupId一致时，拦截请求
     if (this.groupId === this.store_groupId) {
       const alarmDatas = this.filterAlarmData();
-      this.$store.commit('SET_ALARMDATAS', alarmDatas);
+      bus.$emit('NETWORKFILTER', alarmDatas.map((alarmData) => alarmData.alarmSourceName));
     } else {
       getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
         const table = JSON.parse(data.table);
+        // data.topo.push([{NEName: "DJLKE 3E - GJKLEW GJLEW", NEType: "MicroWave"}, {NEName: "DJLKE 3E - GJKLEW GJLEW1", NEType: "nodeB"}])
         const topoTreeData = data.topo.map((path: any) => {
           return path.reverse().map((node: any) => {
-            return {
-              name: node.NEName,
-              type: node.NEType
-            };
+            return { name: node.NEName, type: node.NEType };
           });
         });
         this.$store.commit('SET_TOPODATA', topoTreeData);
@@ -142,12 +169,7 @@ export default class QueryTool extends Vue {
           const alarmDatas: AlarmData[] = table.map((item: any) => {
             return this.formatData(item);
           })
-          this.temp_alarmDatas = [...alarmDatas];
-          if (this.regulationValue) {
-            this.$store.commit('SET_ALARMDATAS', this.filterAlarmData());
-          } else {
-            this.$store.commit('SET_ALARMDATAS', alarmDatas);
-          }
+          this.$store.commit('SET_ALARMDATAS', alarmDatas);
         }
       });
     }
@@ -159,13 +181,13 @@ export default class QueryTool extends Vue {
     if (!this.groupId) {
       this.visibleErrorTip = true;
     }
-    // bus.$emit(VisibleType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
-    // bus.$emit(VisibleType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+    // bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
+    // bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
   }
   public filterAlarmData(): AlarmData[] {
     const index: any = this.regulationType;
     const queryValue: string = this.regulationValue;
-    return this.temp_alarmDatas.filter((alarmData: AlarmData) => {
+    return this.alarmDatas.filter((alarmData: AlarmData) => {
       if (index === Rules.company) {
         return alarmData.company === queryValue;
       } else if (index === Rules.rcaReg) {
@@ -182,6 +204,7 @@ export default class QueryTool extends Vue {
   public formatData(item: any): AlarmData {
     return {
       uid: generateUUID(),
+      index: item['Index'],
       alarmName: item['Alarm Name'],
       alarmSourceName: item['Alarm Source'],
       company: item['Vendor'],
@@ -202,6 +225,7 @@ export default class QueryTool extends Vue {
 }
 </script>
 <style lang="scss">
+$Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
 .query-item {
   padding-left: 20px;
 }
@@ -221,6 +245,9 @@ export default class QueryTool extends Vue {
     display: flex;
     padding: 20px;
     padding-right: 0;
+    .app-query-tool-group-wrap {
+      padding-left: 20px;
+    }
     .app-query-tool-group {
       width: 220px;
     }
@@ -236,6 +263,23 @@ export default class QueryTool extends Vue {
         top: 28px;
         font-size: 12px;
         color: #bf0000;
+      }
+    }
+    .app-query-date-wrap {
+      border-right: 1px solid #dfdfdf;
+      .app-query-date {
+        width: 300px;
+        height: 30px;
+        background-image: $Btn_Background;
+        color: #778296;
+        padding-right: 5px;
+        .el-range-input {
+          background-image: $Btn_Background;
+          cursor: pointer;
+        }
+        .el-range__close-icon {
+          display: none;
+        }
       }
     }
     .app-query-tool-regulation {
