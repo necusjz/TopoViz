@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
-import { VisibleType } from "../../types/type";
+import { EventType } from "../../types/type";
 import bus from "../../util/bus";
 @Component
 export default class ErrorDialog extends Vue {
@@ -26,7 +26,7 @@ export default class ErrorDialog extends Vue {
   @Provide() private errorHtml: string = "";
   @Provide() private errorTitle: string = "错误提示";
   mounted() {
-    bus.$on(VisibleType.ERRORVISIBLE, (obj: string | {title: string, content: string}) => {
+    bus.$on(EventType.ERRORVISIBLE, (obj: string | {title: string, content: string}) => {
       this.dialogVisible = true;
       if (typeof obj === 'string') {
         this.errorHtml = obj;

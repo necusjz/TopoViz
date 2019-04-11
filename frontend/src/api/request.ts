@@ -8,7 +8,7 @@ export function postTopoData(data: FormData) {
     })
 }
 
-export function getStaticsDataByInterval(params: {start: string, end: string}) {
+export function getGroupIdsDataByInterval(params: {start: string, end: string}) {
     return service({
         url: 'interval',
         method: 'get',

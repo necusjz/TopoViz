@@ -105,7 +105,7 @@ export default class Render {
     const bounds: math.Bound[] = [];
     this.stage.eachLayer((layer: Layer) => {
       const bbound: math.Bound = layer.getBound();
-      bounds[0] = bounds.length === 1 ? bounds[0].expand(bbound) : bbound;
+      bounds[0] = bounds.length === 1 ? bounds[0].union(bbound) : bbound;
     });
     if (bounds.length === 0) {
       return Promise.resolve(this.getCanvasDom());
