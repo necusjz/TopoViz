@@ -32,10 +32,10 @@ export default class StaticsTable extends Vue {
     @State((state) => state.app.alarmDatas) private alarmDatas: any;
     mounted() {
         this.data1 = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed).map((alarmData: AlarmData) => {
-            return {groupId: alarmData.Group_ID, precision: '80%'};
+            return {groupId: alarmData.groupId, precision: '80%'};
         });
         this.data2 = this.alarmDatas.filter((alarmData: AlarmData) => !alarmData.isConfirmed).map((alarmData: AlarmData) => {
-            return {groupId: alarmData.Group_ID, precision: '--'};
+            return {groupId: alarmData.groupId, precision: '--'};
         });
     }
 }
