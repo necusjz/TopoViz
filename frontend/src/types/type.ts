@@ -18,7 +18,8 @@ export interface AppState {
     regValue: string;
     regType: string;
     isNonImported: boolean;
-    isNoneData: boolean;
+    isNoneTopoData: boolean;
+    isNoneTableData: boolean;
     isCheckStatics: boolean;
     alarmDatas: AlarmData[];
     tableData: AlarmData[];
@@ -41,7 +42,7 @@ export interface AlarmData {
     level: string,
     clearTime: string,
     domain: string,
-    Group_ID: string,
+    groupId: string,
     rcaResult: string,
     rcaReg: string,
     isConfirmed: boolean,
@@ -53,11 +54,11 @@ export interface GroupData {
     precision: string;
 }
 export enum Rules {
-    company,
-    alarmName,
-    rcaReg ,
-    pAlarm,
-    cAlarm,
+    company = 1,
+    alarmName = 2,
+    rcaReg = 3,
+    pAlarm = 4,
+    cAlarm = 5,
 }
 
 export interface NodeData {
@@ -78,6 +79,15 @@ export interface StaticsRes {
 }
 
 export interface AnalyzeRes {
-    table: string;
+    table: any;
     topo: any;
+}
+export interface SelectOption {
+    label: string;
+    value: string | number;
+    children?: SelectOption[];
+}
+export enum RCAResult {
+    P = '1',
+    C = '2',
 }
