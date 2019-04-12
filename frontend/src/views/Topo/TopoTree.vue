@@ -1,8 +1,8 @@
 <template>
   <div class="app-stage" @mouseleave="leaveContainer">
     <div class="stage-wrap" id="stage">
-      <div class="none-topoTree" v-if="isNoneData">
-        <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据哦</p>
+      <div class="none-topoTree" v-if="isNoneTopoData">
+        <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据展示哦，导入一组表格数据试试</p>
         <p class="none-topoTree-label" v-else>暂无topo数据图哦，输入一个Group ID试一试</p>
       </div>
     </div>
@@ -42,7 +42,7 @@ export default class TopoTree extends Vue {
   @Provide() private borderLayer!: xCanvas.Layer;
   @Provide() private size: number = 40;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
-  @State((state) => state.app.isNoneData) isNoneData: any;
+  @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
@@ -73,7 +73,7 @@ export default class TopoTree extends Vue {
     });
   }
   public zoom(step: number) {
-    if (this.isNoneData) {
+    if (this.isNoneTopoData) {
       return;
     }
     const stage: xCanvas.Stage = this.stage;

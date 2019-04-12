@@ -4,10 +4,7 @@
       <i class="el-icon-warning"></i>
       <span class="rca-waring-dec">提示：只有当前数据的所有Group ID都确认过时才可得出RCA精准率哦</span>
     </div>
-    <div class="rca-dec" v-else-if="isNonImported">
-      <span>RCA结果汇总: 无</span>
-    </div>
-    <div class="statics-board" v-else>
+    <div class="statics-board">
       <p class="statics-title">RCA结果汇总</p>
       <el-row class="statics-board-row">
         <el-col :span="11" class="board-col board-left">
