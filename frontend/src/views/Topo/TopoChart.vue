@@ -1,10 +1,10 @@
 <template>
   <div class="rca-topo-table">
     <div class="topo-table-tabs">
-      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认  {{this.tabData.length}}</div>
-      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认  0</div>
+      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认  {{unconfirm_count}}</div>
+      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认  {{confirm_count}}</div>
     </div>
-    <TopoTable :editAble="activeType === 0" :tableData="tabData"></TopoTable>
+    <TopoTable :editAble="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCOunt"></TopoTable>
   </div>
 </template>
 
@@ -24,16 +24,20 @@ import { generateUUID } from '@/util/util';
 export default class StaticsBoard extends Vue {
   @Provide() private activeType: number = 0;
   @Provide() private tabData: AlarmData[] = [];
-  @State((state) => state.app.isNoneData) private isNoneData: any;
-  @State((state) => state.app.alarmDatas) private alarmDatas: any;
-  @State((state) => state.app.pageData) private pageData: any;
+  @Provide() private confirm_count: number = 0;
+  @Provide() private unconfirm_count: number = 0;
+  @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
+  @State((state) => state.app.isNoneTableData) private isNoneTableData!: boolean;
+  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
+  @State((state) => state.app.pageData) private pageData!: AlarmData[];
   @Watch('alarmDatas')
   public watchAlarmDatas(val: AlarmData[]) {
     this.changeTableData()
+    this.updateConfirmCOunt();
   }
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
-    this.tabData = val.slice(0);
+    this.tabData = [...val];
     this.setLastRow();
   }
   @Watch('activeType')
@@ -46,6 +50,9 @@ export default class StaticsBoard extends Vue {
     this.$store.commit('SET_TABLEDATA', tableData);
   }
   public setLastRow() {
+    if (this.tabData.length === 0) {
+      return;
+    }
     const lastRow = {
       uid: generateUUID(),
       index: -9999,
@@ -59,7 +66,7 @@ export default class StaticsBoard extends Vue {
       level: "",
       clearTime: "",
       domain: "",
-      Group_ID: "",
+      groupId: "",
       rcaResult: "",
       rcaReg: "",
       isConfirmed: false
@@ -70,6 +77,11 @@ export default class StaticsBoard extends Vue {
       lastRow.alarmSourceName = '一键确认';
     }
     this.tabData.push(lastRow);
+  }
+  public updateConfirmCOunt() {
+    this.confirm_count = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed).length;
+    this.unconfirm_count = this.alarmDatas.length - this.confirm_count;
+    this.changeTableData();
   }
 }
 </script>

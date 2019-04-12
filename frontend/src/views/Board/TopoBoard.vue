@@ -1,6 +1,6 @@
 <template>
   <div class="rca-topo-board">
-    <div class="topo-board-item" v-if="isNoneData">
+    <div class="topo-board-item" v-if="isNoneTopoData">
       <i class="el-icon-warning"></i>
       无数据
     </div>
@@ -31,7 +31,7 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.app.groupId) private groupId: any;
   @State((state) => state.app.regValue) private regValue: any;
   @State((state) => state.app.regType) private regType: any;
-  @State((state) => state.app.isNoneData) private isNoneData: any;
+  @State((state) => state.app.isNoneTopoData) private isNoneTopoData: any;
   @Provide() private status: boolean = false;
   @Provide() private conditionLabel: string = '';
   @Watch('regType')
@@ -41,6 +41,7 @@ export default class StaticsBoard extends Vue {
         company: '厂商',
         rcaReg: 'RCA规则'
       };
+      console.log(val)
       this.conditionLabel = temp[val] || '告警名称';
     }
   }

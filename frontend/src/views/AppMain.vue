@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container" :class="{none: isNoneData}">
+  <div class="app-container">
     <el-scrollbar :native="false" wrapClass="app-scroll-wrap" viewClass="" :noresize="false" class="app-scroll">
       <Title></Title>
       <Importer></Importer>
@@ -12,11 +12,11 @@
               <TopoBoard></TopoBoard>
               <TopoTree></TopoTree>
             </div>
-            <div class="app-topo-chart">
-              <TopoChart v-show="!isNoneData"></TopoChart>
-              <p class="app-topo-chart-none-label">暂无表格数据哦</p>
+            <div class="app-topo-chart" :class="{none: isNoneTableData}">
+              <TopoChart v-show="!isNoneTableData"></TopoChart>
+              <p class="app-topo-chart-none-label">暂无任何数据展示哦，导入一组表格数据试试</p>
             </div>
-            <div class="app-topo-pagination" v-if="!isNoneData">
+            <div class="app-topo-pagination" v-if="!isNoneTableData">
               <TopoTablePagination></TopoTablePagination>
             </div>
           </div>
@@ -58,8 +58,9 @@ import StaticsTable from './Table/StaticsTable.vue';
 })
 export default class AppMain extends Vue {
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
-  @State((state) => state.app.isNoneData) private isNoneData: any;
-  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
+  @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
+  @State((state) => state.app.isNoneTableData) private isNoneTableData!: boolean;
+  @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
 }
 </script>
 
@@ -90,32 +91,27 @@ export default class AppMain extends Vue {
   .app-topo-chart-none-label {
     display: none;
   }
-  &.none {
-    .app-topo-chart {
-      position: relative;
-      background-image: url('../assets/none-topoChart.png');
-      background-position: center 40%;
-      background-size: 30% auto;
-      background-repeat: no-repeat;
-      .app-topo-chart-none-label {
-        display: block;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        margin-top: 12%;
-        transform: translateX(-50%);
-        font-family: PingFang-SC;
-        font-size: 20px;
-      }
+  .app-topo-chart.none {
+    position: relative;
+    background-image: url('../assets/none-topoChart.png');
+    background-position: center 40%;
+    background-size: 30% auto;
+    background-repeat: no-repeat;
+    .app-topo-chart-none-label {
+      display: block;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-top: 12%;
+      transform: translateX(-50%);
+      font-family: PingFang-SC;
+      font-size: 20px;
     }
-    // .app-topo-pagination, .app-statics-pagination {
-    //   display: none;
-    // }
   }
   .app-rca-body {
     position: relative;
     height: calc(100% - 100px);
-    padding: 0 25px;
+    padding: 0 20px;
     background: #f8f9ff;
     .app-topo-tree {
       position: relative;

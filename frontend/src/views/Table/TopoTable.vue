@@ -10,6 +10,7 @@
     header-row-class-name="topoTable-header-row"
     @selection-change="handleSelectionChange"
     @cell-dblclick="handleCellDbclick"
+    @cell-click="confirm"
     @row-click="handleRowClick"
     :span-method="objectSpanMethod"
   >
@@ -55,9 +56,9 @@
         <span :title="scope.row.domain">{{scope.row.domain}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="Group_ID" label="Group ID">
+    <el-table-column prop="groupId" label="Group ID">
       <template slot-scope="scope">
-        <span :title="scope.row.Group_ID">{{scope.row.Group_ID}}</span>
+        <span :title="scope.row.groupId">{{scope.row.groupId}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="rcaResult" label="RCA结果">
@@ -84,6 +85,9 @@
         ></TopoInput>
       </template>
     </el-table-column>
+    <div slot="empty" class="none-tableData-wrap">
+      <span class="none-table-label"><i class="el-icon-warning"></i>您还没有确认过的数据哦，去未确认里看看吧</span>
+    </div>
   </el-table>
 </template>
 
@@ -108,6 +112,8 @@ interface CellData {
 export default class TopoTable extends Vue {
   @Provide() private editCellId: string = "";
   @Provide() private inputValue: string = "";
+  @Provide() private editRows: AlarmData[] = [];
+  @Provide() private needSave: boolean = false;
   @Prop() private editAble!: boolean;
   @Prop() private tableData!: any[];
   @State((state) => state.app.pageData) private pageData: any;
@@ -124,8 +130,9 @@ export default class TopoTable extends Vue {
       this.updateStyleOfPrev();
     });
   }
-  public handleSelectionChange(val: any) {
-    //console.log(val);
+  public handleSelectionChange(rows: AlarmData[]) {
+    this.editRows = Array.from(new Set(rows));
+    this.needSave = this.editRows.length > 0;
   }
   public handleCellDbclick(row: any, column: any) {
     if (column.property) {
@@ -138,7 +145,10 @@ export default class TopoTable extends Vue {
       }
     }
   }
-  public handleRowClick(row: any) {
+  public handleRowClick(row: any, column: any) {
+    if (row.type === 'statics' || column.property && /(rcaReg)|(groupId)|(rcaResult)/.test(column.property)) {
+      return;
+    }
     window.location.hash = '#stage';
     this.$store.commit('SET_SELECTALARM', row.alarmSourceName);
     setTimeout(() => {
@@ -158,18 +168,15 @@ export default class TopoTable extends Vue {
   }
   public getCellClassName(item: CellData): string {
     let cellClassName: string = "topoTable-cell ";
-    if (
-      item.column.property &&
-      (item.column.property.includes("rcaResult") ||
-        item.column.property.includes("rcaReg"))
-    ) {
-      cellClassName += "bg-gray";
-    } else if (item.rowIndex === this.tableData.length - 1) {
+    if (item.rowIndex === this.tableData.length - 1) {
       const index: number = this.editAble ? 1 : 0;
       if (item.columnIndex === index) {
         cellClassName += "static-cell";
       } else if (item.columnIndex === index + 1) {
         cellClassName += "submit-cell";
+        if (this.needSave) {
+          cellClassName += " active";
+        }
       }
     }
     return cellClassName;
@@ -197,6 +204,7 @@ export default class TopoTable extends Vue {
       }
     }
   }
+  // 更新相邻行选中的样式
   public updateStyleOfPrev() {
     const eles = document.querySelectorAll('.topo-table-row-active');
     for (let i = 0; i < eles.length; i++) {
@@ -206,6 +214,13 @@ export default class TopoTable extends Vue {
         pre.style.borderBottom = 'none';
       }
     }
+  }
+  // 提交确认的数据
+  public confirm() {
+    this.editRows.forEach((row) => {
+      row.isConfirmed = true;
+    });
+    this.$emit('updateCount');
   }
 }
 </script>
@@ -269,6 +284,12 @@ export default class TopoTable extends Vue {
       cursor: pointer;
       background: #e6e6e6;
       border-radius: 2px;
+      &.active {
+        background-image: linear-gradient(99deg, #4d97ff, #3189ff);
+        .cell {
+          color: #ffffff;
+        }
+      }
       .cell {
         color: #999999;
       }
@@ -276,6 +297,27 @@ export default class TopoTable extends Vue {
   }
   .topoTable-hidden-input {
     position: relative;
+  }
+  .none-tableData-wrap {
+    min-height: 600px;
+    .none-table-label {
+      display: inline-block;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-top: 12%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      i {
+        padding-right: 10px;
+      }
+    }
+  }
+  .el-table__empty-block {
+    background-image: url('../../assets/none-topoChart.png');
+    background-position: center 40%;
+    background-size: 30% auto;
+    background-repeat: no-repeat;
   }
 }
 </style>
