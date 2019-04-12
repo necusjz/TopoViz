@@ -9,9 +9,11 @@
           class="app-query-date"
           start-placeholder="开始时间"
           end-placeholder="结束时间"
-          :default-time="['12:00:00']"
+          :default-time="['00:00:00']"
           value-format="timestamp"
+          range-separator="--"
           :clearable="false"
+          :disabled="isNonImported"
           @change="dateChange"
           size="small"
         ></el-date-picker>
@@ -26,38 +28,20 @@
           :class="{'error-border-input': visibleErrorTip}"
           :fetch-suggestions="suggestion"
           @focus="clearErrorTip"
+          @select="updateCurGroupId"
           @keyup.enter.native="queryTopoData">
         </el-autocomplete>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
       </div>
       <div class="app-query-tool-item app-query-tool-regulation">
-        <el-select
-          v-model="regulationType"
-          class="query-tool-reg-select"
-          placeholder="请选择相关查询信息"
-          size="small">
-          <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          ></el-option>
-        </el-select>
-        <el-input
-          placeholder="请输入"
+        <el-cascader
+          :options="options"
           v-model="regulationValue"
+          change-on-select
+          expand-trigger="hover"
+          popper-class="select-popper"
           size="small"
-          class="app-query-tool-reg"
-          v-if="!this.groupId && regulationType !== ''">
-        </el-input>
-        <el-autocomplete
-          placeholder="请输入"
-          v-model="regulationValue"
-          size="small"
-          class="app-query-tool-reg"
-          :fetch-suggestions="suggestion1"
-          v-else-if="regulationType !== ''">
-        </el-autocomplete>
+        ></el-cascader>
       </div>
       <div class="app-query-tool-item">
         <el-button size="small" type="primary" class=" confirm-btn" :class="{'none-status': isNonImported || (!groupId && !regulationValue)}"
@@ -72,7 +56,7 @@ import { Component, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
-import { EventType, AlarmData, Rules, AnalyzeRes } from '@/types/type';
+import { EventType, AlarmData, Rules, AnalyzeRes, SelectOption, RCAResult} from '@/types/type';
 import TableData from "@/util/tableData.json";
 import { getAlarmDatas, getGroupIdsDataByInterval } from '@/api/request';
 import { generateUUID, generateDateByTimestamp } from '@/util/util';
@@ -80,10 +64,9 @@ import { generateUUID, generateDateByTimestamp } from '@/util/util';
 @Component
 export default class QueryTool extends Vue {
   @Provide() private groupId: string = "";
-  @Provide() private regulationType: string = "";
-  @Provide() private regulationValue: string = "";
+  @Provide() private regulationValue: (string | number)[] = [];
   @Provide() private visibleErrorTip: boolean = false;
-  @Provide() private options: { label: string; value: number }[] = [];
+  @Provide() private options: SelectOption[] = [];
   @Provide() private dateValue: number[] = [];
   @State((state) => state.project.groupIds) private groupIds!: string[];
   @State((state) => state.app.isNonImported) private isNonImported!:boolean;
@@ -96,19 +79,18 @@ export default class QueryTool extends Vue {
     if (val && !this.visibleErrorTip) {
       this.visibleErrorTip = false;
     }
-    this.regulationType = '';
-  }
-  @Watch('groupIds')
-  public watchGroupIds(val: string[]) {
-    if (!this.groupId) {
-      this.groupId = val[0];
-      this.queryTopoData();
-    }
   }
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
     this.dateValue = this.defaultDate;
     this.dateChange(val);
+  }
+  @Watch('store_groupId')
+  public watchStoreGroupId(val: string) {
+    if (val && this.groupId !== val) {
+      this.groupId = val;
+      this.queryTopoData();
+    }
   }
   mounted() {
     this.options = ruleOptions;
@@ -120,104 +102,119 @@ export default class QueryTool extends Vue {
       });
     cb(suggestions);
   }
-  public suggestion1(val: string, cb: any) {
-    if (this.groupId && this.groupId === this.store_groupId && this.regulationType !== '') {
-      const index: any = this.regulationType;
-      let res: string[] = [];
-      for (const alarmData of this.alarmDatas) {
-        if (index === Rules.pAlarm && alarmData.rcaResult === '1') {
-          res.push(alarmData.alarmName);
-        } else if (index === Rules.cAlarm && alarmData.rcaResult === '2') {
-          res.push(alarmData.alarmName);
-        } else {
-          res.push(alarmData[Rules[index]]);
-        }
+  public updateCurGroupId() {
+    getAlarmDatas({groupId: this.groupId}).then((res: any) => {
+      if (res.table) {
+        const alarmDatas: AlarmData[] = res.table.map((item: any) => this.formatData(item));
+        this.formatSelectOption(alarmDatas);
       }
-      const result: {value: string}[] = Array.from(new Set(res)).map((str: string) => {
-        return {value: str};
-      })
-      cb(result);
-    } else {
-      cb([]);
-    }
+    });
   }
   public dateChange(value: number[]) {
     getGroupIdsDataByInterval({start: (value[0] / 1000).toString(), end: (value[1] / 1000).toString()}).then((res) => {
-      this.$store.commit('SET_GROUPIDS', res['group_id']);
+      if (res && res['group_id'].length > 0) {
+        this.$store.commit('SET_GROUPIDS', res['group_id']);
+        if (!this.store_groupId) {
+          // 初始化groupId
+          this.$store.commit('SET_GROUPID', res['group_id'][0]);
+        }
+      }
     })
   }
   public queryTopoData() {
-    if (!this.groupId) {
+    if (!this.groupId || !this.groupIds.includes(this.groupId)) {
+      this.groupId = this.store_groupId;
       return;
     }
-    const index: any = this.regulationType;
-    // 前后两次查询groupId一致时，拦截请求
-    if (this.groupId === this.store_groupId) {
-      const alarmDatas = this.filterAlarmData();
-      bus.$emit('NETWORKFILTER', alarmDatas.map((alarmData) => alarmData.alarmSourceName));
-    } else {
-      getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
-        const table = JSON.parse(data.table);
-        // data.topo.push([{NEName: "DJLKE 3E - GJKLEW GJLEW", NEType: "MicroWave"}, {NEName: "DJLKE 3E - GJKLEW GJLEW1", NEType: "nodeB"}])
+    getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
+      const table = data.table;
+      // data.topo.push([{NEName: "DJLKE 3E - GJKLEW GJLEW", NEType: "MicroWave"}, {NEName: "DJLKE 3E - GJKLEW GJLEW1", NEType: "nodeB"}])
+      const topoData = data.topo;
+      if (topoData && topoData.length > 0) {
+        this.$store.commit('SET_ISNONETOPODATA', false);
         const topoTreeData = data.topo.map((path: any) => {
           return path.reverse().map((node: any) => {
             return { name: node.NEName, type: node.NEType };
           });
         });
         this.$store.commit('SET_TOPODATA', topoTreeData);
-        if (table) {
-          const alarmDatas: AlarmData[] = table.map((item: any) => {
-            return this.formatData(item);
-          })
-          this.$store.commit('SET_ALARMDATAS', alarmDatas);
-        }
-      });
-    }
+      }
+      if (table && table.length > 0) {
+        this.$store.commit('SET_ISNONETABLEDATA', false);
+        const alarmDatas: AlarmData[] = table.map((item: any) => {
+          return this.formatData(item);
+        })
+        this.$store.commit('SET_ALARMDATAS', alarmDatas);
+        this.formatSelectOption(alarmDatas);
+        setTimeout(() => {
+          bus.$emit('NETWORKFILTER', this.filterAlarmData(alarmDatas));
+        });
+      }
+    });
     this.$store.commit("SET_GROUPID", this.groupId);
-    this.$store.commit("SET_REGVALUE", this.regulationValue);
-    this.$store.commit("SET_REGTYPE", Rules[index]);
+    this.$store.commit("SET_REGVALUE", this.regulationValue[1]);
+    this.$store.commit("SET_REGTYPE", Rules[this.regulationValue[0] as number]);
     this.visibleErrorTip = !this.groupId;
-    this.$store.commit('SET_ISNONEDATA', !this.groupId);
-    if (!this.groupId) {
-      this.visibleErrorTip = true;
-    }
     // bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
   }
-  public filterAlarmData(): AlarmData[] {
-    const index: any = this.regulationType;
-    const queryValue: string = this.regulationValue;
-    return this.alarmDatas.filter((alarmData: AlarmData) => {
-      if (index === Rules.company) {
-        return alarmData.company === queryValue;
-      } else if (index === Rules.rcaReg) {
-        return alarmData.rcaReg === queryValue;
-      } else if (index === Rules.alarmName) {
-        return alarmData.alarmName === queryValue;
-      } else if (index === Rules.pAlarm) {
-        return alarmData.alarmName === queryValue && alarmData.rcaResult === '1';
-      } else if (index === Rules.cAlarm) {
-        return alarmData.alarmName === queryValue && alarmData.rcaResult === '2';
+  public filterAlarmData(alarmDatas: AlarmData[]): string[] {
+    if (this.regulationValue.length < 2) return [];
+    const rule: number = this.regulationValue[0] as number;
+    const value: string = this.regulationValue[1] as string;
+    return alarmDatas.filter((alarmData: AlarmData) => {
+      if (rule === Rules.company) {
+        return alarmData.company === value;
+      } else if (rule === Rules.rcaReg) {
+        return alarmData.rcaReg === value;
+      } else if (rule === Rules.alarmName) {
+        return alarmData.alarmName === value;
+      } else if (rule === Rules.pAlarm) {
+        return alarmData.alarmName === value && alarmData.rcaResult === RCAResult.P;
+      } else if (rule === Rules.cAlarm) {
+        return alarmData.alarmName === value && alarmData.rcaResult === RCAResult.C;
       }
-    });
+    }).map((alarmData) => alarmData.alarmSourceName);
   }
   public formatData(item: any): AlarmData {
     return {
       uid: generateUUID(),
       index: item['Index'],
-      alarmName: item['Alarm Name'],
-      alarmSourceName: item['Alarm Source'],
+      alarmName: item['AlarmName'],
+      alarmSourceName: item['AlarmSource'],
       company: item['Vendor'],
-      firstTime: generateDateByTimestamp(item['First Occurrence']),
-      lastTime: item['Last Occurrence'],
-      level: item['Raw Severity'],
-      clearTime: item['Cleared On'],
+      firstTime: generateDateByTimestamp(item['First']),
+      lastTime: item['Last'],
+      level: item['Level'],
+      clearTime: item['Clear'],
       domain: item['Domain'],
-      Group_ID: item['RCA Group ID'],
-      rcaResult: item['RCA Result'].toString(),
-      rcaReg: item['RCA Rule Name'],
+      groupId: item['GroupId'],
+      rcaResult: item['RcaResult'].toString(),
+      rcaReg: item['RuleName'],
       isConfirmed: false
     };
+  }
+  public formatSelectOption(alarmDatas: AlarmData[]) {
+    this.options = [...ruleOptions];
+    for (const parent of this.options) {
+      let temp: string[] = []
+      if (parent.value === Rules.company) {
+        temp = alarmDatas.map((alarmData) => alarmData.company);
+      } else if (parent.value === Rules.alarmName) {
+        temp = alarmDatas.map((alarmData) => alarmData.alarmName);
+      } else if (parent.value === Rules.rcaReg) {
+        temp = alarmDatas.map((alarmData) => alarmData.rcaReg);
+      } else if (parent.value === Rules.pAlarm) {
+        temp = alarmDatas.filter((alarmData) => alarmData.rcaResult === RCAResult.P).map((alarmData) => alarmData.alarmName);
+      } else if (parent.value === Rules.cAlarm) {
+        temp = alarmDatas.filter((alarmData) => alarmData.rcaResult === RCAResult.C).map((alarmData) => alarmData.alarmName);
+      }
+      temp = [...new Set(temp)];
+      const children = temp.map((name) => {
+        return {label: name, value: name}
+      })
+      parent.children = children;
+    }
   }
   public clearErrorTip() {
     this.visibleErrorTip = false;
@@ -296,5 +293,8 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       }
     }
   }
+}
+.select-popper .el-cascader-menu {
+  max-width: 160px;
 }
 </style>

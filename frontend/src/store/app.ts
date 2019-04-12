@@ -6,7 +6,8 @@ const state: AppState = {
     regValue: '',
     regType: '',
     isNonImported: true, // 是否导入数据
-    isNoneData: true, // 查询数据是否为空
+    isNoneTopoData: true, // 查询数据是否为空
+    isNoneTableData: true, // 告警数据是否为空
     isCheckStatics: false, // 是否查看已确认未确认数据
     alarmDatas: [], // 查询得到的数据
     tableData: [], // 当前table(待确认|已处理)的总数据
@@ -31,8 +32,11 @@ const mutations: MutationTree<AppState> = {
     SET_ISNOEIMPORTED: (state: AppState, imported: boolean) => {
         state.isNonImported = imported;
     },
-    SET_ISNONEDATA: (state: AppState, status: boolean) => {
-        state.isNoneData = status;
+    SET_ISNONETOPODATA: (state: AppState, status: boolean) => {
+        state.isNoneTopoData = status;
+    },
+    SET_ISNONETABLEDATA: (state: AppState, status: boolean) => {
+        state.isNoneTableData = status;
     },
     SET_ISCHECKSTATICS: (state: AppState, check: boolean) => {
         state.isCheckStatics = check;

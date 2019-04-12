@@ -1,6 +1,6 @@
 <template>
   <div class="app-importer-wrap">
-     <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics">
+    <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics">
     <div class="app-importer-item app-back-wrap" v-if="isCheckStatics" @click="goBack">
       <i class="el-icon-back"></i>
       <span class="app-back">返回</span>
@@ -17,22 +17,11 @@
         </el-button>
       </el-upload>
     </div>
-    <!-- <div class="app-importer-item app-importor-date">
-      <el-date-picker
-        v-model="dateValue"
-        type="datetimerange"
-        class="app-importer-date"
-        start-placeholder="开始时间"
-        end-placeholder="结束时间"
-        :default-time="['12:00:00']"
-        value-format="timestamp"
-        :clearable="false"
-        @change="dateChange"
-        size="small"
-      ></el-date-picker>
-    </div> -->
     <div class="app-importer-item">
-      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': unavailable}" @click="submitData">确定</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !available}" @click="submitData">确定</el-button>
+    </div>
+    <div class="app-export-item">
+      <el-button size="small" plain class="export-btn">导出数据</el-button>
     </div>
   </div>
 </template>
@@ -46,12 +35,11 @@ import { EventType, StaticsRes } from '@/types/type';
 
 @Component
 export default class Importer extends Vue {
-  @Provide() private dateValue: number[] = [];
   @Provide() private targetName: string = '';
   @Provide() private formatName: string = '';
   @Provide() private targetFile: any;
   @Provide() private formatFile: any;
-  @Provide() private unavailable: boolean = true;
+  @Provide() private available: boolean = false;
   @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
@@ -67,7 +55,7 @@ export default class Importer extends Vue {
       return;
     }
     if (this.targetFile && this.formatFile) {
-      this.unavailable = false;
+      this.available = true;
     }
     return false;
   }
@@ -81,24 +69,16 @@ export default class Importer extends Vue {
       this.$store.commit('SET_DEFAULTDATE', dateValue);
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
-      // this.unavailable = false;
+      this.available = false;
     });
   }
   public submitData() {
-    if (this.isCheckStatics) {
-      this.$store.commit('SET_ISCHECKSTATICS', false);
+    if (this.available) {
+      if (this.isCheckStatics) {
+        this.$store.commit('SET_ISCHECKSTATICS', false);
+      }
+      this.autoUpload();
     }
-    this.autoUpload();
-    // let date: number[] = [];
-    // if (this.dateValue && this.dateValue.length > 0) {
-    //   date = this.dateValue.map((d: number) => d / 1000);
-    // }
-    // const start = date[0].toString();
-    // const end  = date[1].toString();
-    // getStaticsDataByInterval({start, end}).then((res: StaticsRes) => {
-    //   this.$store.commit('SET_STATICS', res);
-    //   this.$store.commit('SET_ISNOEIMPORTED', false);
-    // });
   }
   public goBack() {
     this.$store.commit('SET_ISCHECKSTATICS', false);
@@ -167,16 +147,13 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       transform: translateY(-20%);
     }
   }
-  .app-importor-date {
-    cursor: pointer;
-    .app-importer-date {
-      width: 360px;
-      height: 30px;
-      background-image: $Btn_Background;
-      color: #778296;
-      .el-range-input {
-        background-image: $Btn_Background;
-      }
+  .app-export-item {
+    position: absolute;
+    right: 20px;
+    line-height: 30px;
+    .export-btn {
+      color: #338aff;
+      border: solid 1px #338aff;
     }
   }
 }
