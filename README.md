@@ -4,7 +4,7 @@ Flask + Vue.js to analyze Excel data based on pandas. Using `TopoViewer/synv.sh`
 ### Python
 [Python 3.6.8](https://www.python.org/downloads/release/python-368/) (with pip 19.0.3)
 Install Python and check the versions like this:
-[](https://raw.githubusercontent.com/ICHIGOI7E/mdpics/master/TopoViewer/1.jpeg)
+![](https://raw.githubusercontent.com/ICHIGOI7E/mdpics/master/TopoViewer/1.jpeg)
 ### Install packages
 Install some required dependencies for server deployment. (`TopoViewer/backend/requirements.txt`)
 ```
