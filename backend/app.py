@@ -27,6 +27,10 @@ def save_format(df, path):
         df.columns = app.config['ALARM_MAPPING']
         df_index = range(0, df.shape[0])
         df.insert(0, 'Index', df_index)
+        df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
+        df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
+        df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
+        df['Confirmed'] = 0
         df = df.sort_values('First')
     else:
         df = df[app.config['TOPO_COLUMNS']]
@@ -189,6 +193,24 @@ def expand():
     alarm = alarm.loc[alarm['GroupId'] != group_id]
     data['yellow'] = list(set(alarm['AlarmSource']))
     return jsonify(data)
+
+
+@app.route('/confirm', methods=['POST'])
+def confirm():
+    # get edited info
+    data = request.get_json()
+    group_id = request.args.get('groupId')
+    alarm = group_filter(group_id)
+    row_edited = data['index']
+    column_edited = data['column']
+    value_edited = data['value']
+    # return confirmed alarm table
+    for row, column, value in zip(row_edited, column_edited, value_edited):
+        edited = dict(alarm.iloc[row])
+        edited[column + '_Edited'] = value
+        edited['Confirmed'] = 1
+        alarm.iloc[row] = pd.Series[edited]
+    return alarm.to_json(orient='records')
 
 
 if __name__ == '__main__':
