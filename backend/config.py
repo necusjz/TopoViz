@@ -1,4 +1,4 @@
-SERVER_HOST = 'localhost'
+SERVER_HOST = '0.0.0.0'
 SERVER_PORT = '8080'
 
 UPLOAD_FOLDER = 'temp'
