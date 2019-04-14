@@ -203,7 +203,7 @@ def confirm():
     data = request.get_json()
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
-    row_edited = data['index']
+    row_edited = data['row']
     column_edited = data['column']
     value_edited = data['value']
     # return confirmed alarm table
