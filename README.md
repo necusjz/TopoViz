@@ -12,7 +12,7 @@ Install some required dependencies for server deployment. (`TopoViewer/backend/r
 $ pip install -r requirements.txt
 ```
 ## How to run
-Running Flask program:
+Run Flask application:
 ```
 $ ./app.py
 ```
