@@ -1,5 +1,5 @@
 # TopoViewer
-Flask + Vue.js to analyze Excel data based on pandas. Using `TopoViewer/synv.sh` you can synchronize dist package from frontend, and the fake Excel data is in `TopoViewer/topo_alarm`.
+Flask + Vue.js to analyze Excel data based on pandas. Using `TopoViewer/sync.sh` you can synchronize dist package from frontend, and the fake Excel data is in `TopoViewer/topo_alarm`.
 ## Dependencies
 ### Python
 [Python 3.6.8](https://www.python.org/downloads/release/python-368/) (with pip 19.0.3)
