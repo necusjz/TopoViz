@@ -21,7 +21,9 @@ def allowed_file(filename):
            app.config['ALLOWED_EXTENSIONS']
 
 
-def save_format(df, path):
+def save_format(df):
+    client_id = str(uuid.uuid1())
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     if df.shape[1] > app.config['DISTINCT_NUM']:
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
@@ -32,21 +34,29 @@ def save_format(df, path):
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
         df['Confirmed'] = 0
         df = df.sort_values('First')
+        path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                            app.config['ALARM_FILE'])
     else:
         df = df[app.config['TOPO_COLUMNS']]
         df.columns = app.config['TOPO_MAPPING']
+        path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                            app.config['TOPO_FILE'])
     df.to_excel(path, index=False)
+    return client_id
 
 
-def check_file(file, path):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        if filename.endswith('.xlsx') or filename.endswith('xls'):
-            df_ = pd.read_excel(file)
-            save_format(df_, path)
-        elif filename.endswith('.csv'):
-            df_ = pd.read_csv(file)
-            save_format(df_, path)
+def check_file(files):
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            if filename.endswith('.xlsx') or filename.endswith('xls'):
+                df = pd.read_excel(file)
+                client_id = save_format(df)
+            else:
+                df = pd.read_csv(file)
+                client_id = save_format(df)
+            return client_id
+        # TODO(ICHIGOI7E): exception handling
 
 
 def interval_filter(start, end):
@@ -105,16 +115,8 @@ def upload():
     # get upload file
     file1 = request.files['file1']
     file2 = request.files['file2']
-    # create save directory
-    client_id = str(uuid.uuid1())
-    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
-    save_path1 = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                              app.config['TOPO_FILE'])
-    save_path2 = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                              app.config['ALARM_FILE'])
-    # check filename and format file
-    check_file(file1, save_path1)
-    check_file(file2, save_path2)
+    # check filename and save file
+    client_id = check_file([file1, file2])
     # construct json for frontend
     data = dict()
     data['client_id'] = client_id
