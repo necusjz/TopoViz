@@ -54,8 +54,8 @@ def check_file(files):
             else:
                 df = pd.read_csv(file)
                 save_format(df, client_id)
-            return client_id
         # TODO(ICHIGOI7E): exception handling
+    return client_id
 
 
 def interval_filter(start, end):
