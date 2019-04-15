@@ -8,7 +8,7 @@ Install Python and check the versions like this:
 
 ![](https://raw.githubusercontent.com/ICHIGOI7E/mdpics/master/TopoViewer/1.jpeg)
 ### Install packages
-Install some required dependencies for server deployment. (`TopoViewer/backend/requirements.txt`)
+Install some required dependencies for server deployment (`TopoViewer/backend/requirements.txt`).
 ```
 $ pip install -r requirements.txt
 ```
