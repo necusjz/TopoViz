@@ -24,3 +24,11 @@ export function getAlarmDatas(params: {groupId?: string, addCondition?: number, 
     })
 }
 
+export function getExpandAlarmDatas(params: {groupId: string}) {
+    return service({
+        url: 'expand',
+        method: 'get',
+        params
+    })
+}
+

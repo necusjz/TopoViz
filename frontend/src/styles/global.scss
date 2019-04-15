@@ -34,6 +34,10 @@ ul, li, p {
 .orange-text {
     color: #ffb46a;
 }
+#nprogress .bar {
+    background: #ffb46a!important;
+    height: 3px!important;
+}
 .fade-enter-active, .fade-leave-active {
     transition: opacity .5s;
 }

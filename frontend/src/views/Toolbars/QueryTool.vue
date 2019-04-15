@@ -21,7 +21,6 @@
       <div class="app-query-tool-item app-query-tool-group-wrap">
         <el-autocomplete
           placeholder="请输入Group ID"
-          suffix-icon="el-icon-search"
           v-model="groupId"
           size="small"
           class="app-query-tool-group"
@@ -30,6 +29,7 @@
           @focus="clearErrorTip"
           @select="updateCurGroupId"
           @keyup.enter.native="queryTopoData">
+          <el-button slot="append" class="query-btn" icon="el-icon-search" size="small" @click="queryTopoData"></el-button>
         </el-autocomplete>
         <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
       </div>
@@ -40,13 +40,14 @@
           change-on-select
           expand-trigger="hover"
           popper-class="select-popper"
+          @change="locateNetWork"
           size="small"
         ></el-cascader>
       </div>
-      <div class="app-query-tool-item">
+      <!-- <div class="app-query-tool-item">
         <el-button size="small" type="primary" class=" confirm-btn" :class="{'none-status': isNonImported || (!groupId && !regulationValue)}"
           @click="queryTopoData">查看</el-button>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -146,17 +147,22 @@ export default class QueryTool extends Vue {
         })
         this.$store.commit('SET_ALARMDATAS', alarmDatas);
         this.formatSelectOption(alarmDatas);
-        setTimeout(() => {
-          bus.$emit('NETWORKFILTER', this.filterAlarmData(alarmDatas));
-        });
       }
     });
     this.$store.commit("SET_GROUPID", this.groupId);
-    this.$store.commit("SET_REGVALUE", this.regulationValue[1]);
-    this.$store.commit("SET_REGTYPE", Rules[this.regulationValue[0] as number]);
     this.visibleErrorTip = !this.groupId;
     // bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+  }
+  public locateNetWork() {
+    if (this.groupId !== this.store_groupId) {
+      this.groupId = this.store_groupId;
+    }
+    this.$store.commit("SET_REGVALUE", this.regulationValue[1]);
+    this.$store.commit("SET_REGTYPE", Rules[this.regulationValue[0] as number]);
+    if (this.regulationValue.length === 2) {
+      bus.$emit('NETWORKFILTER', this.filterAlarmData(this.alarmDatas));
+    }
   }
   public filterAlarmData(alarmDatas: AlarmData[]): string[] {
     if (this.regulationValue.length < 2) return [];
@@ -247,6 +253,9 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
     padding-right: 0;
     .app-query-tool-group-wrap {
       padding-left: 20px;
+      .query-btn:active {
+        color: #b3d8ff;
+      }
     }
     .app-query-tool-group {
       width: 220px;
