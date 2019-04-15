@@ -4,7 +4,7 @@
       <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认  {{unconfirm_count}}</div>
       <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认  {{confirm_count}}</div>
     </div>
-    <TopoTable :editAble="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCOunt"></TopoTable>
+    <TopoTable :isunConfirmed="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCOunt"></TopoTable>
   </div>
 </template>
 
@@ -67,8 +67,11 @@ export default class StaticsBoard extends Vue {
       clearTime: "",
       domain: "",
       groupId: "",
+      groupId_edit: "",
       rcaResult: "",
+      rcaResult_edit: "",
       rcaReg: "",
+      rcaReg_edit: "",
       isConfirmed: false
     }
     if (!this.activeType) {
@@ -76,7 +79,7 @@ export default class StaticsBoard extends Vue {
       lastRow.alarmName = '温馨提示： 一键确认”过的数据别忘了去”已确认“里保存哦';
       lastRow.alarmSourceName = '一键确认';
     }
-    this.tabData.push(lastRow);
+    this.tabData.splice(this.tabData.length, 0, lastRow);
   }
   public updateConfirmCOunt() {
     this.confirm_count = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed).length;
