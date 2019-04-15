@@ -209,7 +209,9 @@ export default class TopoTree extends Vue {
     this.clearEvent();
   }
   public resize() {
-    const stage: xCanvas.Stage = this.stage;
+    if (this.stage) {
+      this.stage.setView(this.center);
+    }
   }
   /**
    * 根据网元名称获得告警信息
