@@ -61,8 +61,8 @@ def check_file(files):
 
 def interval_filter(start, end):
     client_id = request.headers.get('Client-Id')
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       app.config['ALARM_FILE']))
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
     alarm['First'] = pd.to_datetime(alarm['First'])
     mask = (alarm['First'] >= start) & (alarm['First'] <= end)
     alarm = alarm.loc[mask]
@@ -71,8 +71,8 @@ def interval_filter(start, end):
 
 def group_filter(group_id):
     client_id = request.headers.get('Client-Id')
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       app.config['ALARM_FILE']))
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
     alarm = alarm.loc[alarm['GroupId'] == group_id]
     return alarm
 
@@ -81,8 +81,8 @@ def find_path(alarms):
     client_id = request.headers.get('Client-Id')
     ne_path = []
     for alarm in alarms:
-        topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                          client_id, app.config['TOPO_FILE']))
+        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                        app.config['TOPO_FILE']))
         topo = topo.loc[topo['NEName'] == alarm]
         ne_path.append(set(topo['PathId']))
     topo_path = set()
@@ -95,8 +95,8 @@ def build_tree(paths):
     client_id = request.headers.get('Client-Id')
     topo_tree = []
     for path in paths:
-        topo = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'],
-                                          client_id, app.config['TOPO_FILE']))
+        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                        app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
         per_path = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
@@ -120,8 +120,8 @@ def upload():
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
-    alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                       app.config['ALARM_FILE']))
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     res['total_alarm'] = alarm.shape[0]
@@ -180,7 +180,7 @@ def expand():
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
-    # get interval filtered resframe
+    # get interval filtered dataframe
     a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
                                     .timestamp() - 5 * 60 - 8 * 60 * 60)
     z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
