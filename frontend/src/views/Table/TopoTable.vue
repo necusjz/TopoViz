@@ -57,31 +57,35 @@
         <span :title="scope.row.domain">{{scope.row.domain}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="groupId" label="Group ID">
+    <el-table-column prop="groupId_edit" label="Group ID" width="180">
       <template slot-scope="scope">
-        <span :title="scope.row.groupId">{{scope.row.groupId}}</span>
+        <el-popover placement="bottom" popper-class="drop-select" trigger="click">
+          <div class="drop-label">{{dropLabel}}</div>
+          <span :title="scope.row.groupId_edit" slot="reference">{{scope.row.groupId_edit}}
+            <i class="el-icon-arrow-down"></i>
+          </span>
+        </el-popover>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaResult" label="RCA结果">
+    <el-table-column prop="rcaResult_edit" label="RCA结果">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.uid}-result`">{{scope.row.rcaResult}}</span>
-        <TopoInput
-          class="topoTable-hidden-input"
-          v-if="editCellId === `${scope.row.uid}-result`"
-          :row="scope.row"
-          attr="rcaResult"
-          @blur="inputBlur"
-        ></TopoInput>
+        <span v-show="editCellId !== `${scope.row.uid}-result`">{{scope.row.rcaResult_edit}}</span>
+        <el-popover placement="bottom" popper-class="drop-select" trigger="click">
+          <div class="drop-label">{{dropLabel}}</div>
+          <span :title="scope.row.rcaResult_edit" slot="reference">{{scope.row.rcaResult_edit}}
+            <i class="el-icon-arrow-down"></i>
+          </span>
+        </el-popover>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaReg" label="RCA 规则">
+    <el-table-column prop="rcaReg_edit" label="RCA 规则">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.rcaReg">{{scope.row.rcaReg}}</span>
+        <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.rcaReg_edit">{{scope.row.rcaReg_edit}}</span>
         <TopoInput
           class="topoTable-hidden-input"
           v-if="editCellId === `${scope.row.uid}-reg`"
           :row="scope.row"
-          attr="rcaReg"
+          attr="rcaReg_edit"
           @blur="inputBlur"
         ></TopoInput>
       </template>
@@ -99,7 +103,7 @@
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import TopoInput from "../Edit/TopoInput.vue";
-import { AlarmData } from '@/types/type';
+import { AlarmData, RCAResult } from '@/types/type';
 
 interface CellData {
   row: any;
@@ -118,10 +122,14 @@ export default class TopoTable extends Vue {
   @Provide() private inputValue: string = "";
   @Provide() private editRows: AlarmData[] = [];
   @Provide() private needSave: boolean = false;
+  @Provide() private showTip: boolean = true;
+  @Provide() private activeItem!: AlarmData;
+  @Provide() private dropLabel: string = '空';
   @Prop() private isunConfirmed!: boolean;
-  @Prop() private tableData!: any[];
+  @Prop() private tableData!: AlarmData[];
   @State((state) => state.app.pageData) private pageData: any;
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
+  @State((state) => state.app.groupId) private groupId!: string;
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
     this.$nextTick(() => {
@@ -140,17 +148,24 @@ export default class TopoTable extends Vue {
   }
   public handleCellDbclick(row: any, column: any) {
     if (column.property) {
-      if (column.property.includes("rcaReg")) {
+      if (column.property.includes("rcaReg_edit")) {
         this.editCellId = `${row.uid}-reg`;
-        this.inputValue = row.rcaReg;
-      } else if (column.property.includes("rcaResult")) {
+        this.inputValue = row.rcaReg_edit;
+      } else if (column.property.includes("rcaResult_edit")) {
         this.editCellId = `${row.uid}-result`;
-        this.inputValue = row.rcaResult;
+        this.inputValue = row.rcaResult_edit;
       }
     }
   }
   public handleRowClick(row: any, column: any) {
-    if (row.type === 'statics' || column.property && /(rcaReg)|(groupId)|(rcaResult)/.test(column.property)) {
+    if (column.property) {
+      if (column.property === 'groupId_edit') {
+        this.dropLabel = row.groupId_edit === '空' ? this.groupId : row.groupId_edit === this.groupId ? row.groupId : '空';
+      } else if (column.property === 'rcaResult_edit') {
+        this.dropLabel = row.rcaResult_edit === RCAResult.P ? RCAResult.C : RCAResult.P;
+      }
+    }
+    if (row.type === 'statics' || column.property && /(rcaReg_edit)|(groupId_edit)|(rcaResult_edit)/.test(column.property)) {
       return;
     }
     window.location.hash = '#stage';
@@ -325,6 +340,15 @@ export default class TopoTable extends Vue {
     background-position: center 40%;
     background-size: 30% auto;
     background-repeat: no-repeat;
+  }
+}
+.drop-select {
+  min-width: 80px!important;
+  cursor: pointer;
+  .drop-label {
+    &:hover {
+      background: #3189ff;
+    }
   }
 }
 </style>
