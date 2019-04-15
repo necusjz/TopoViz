@@ -36,17 +36,20 @@ export interface AlarmData {
     index: number;
     alarmName: string,
     alarmSourceName: string,
-    company: string,
-    firstTime: string,
-    lastTime: string,
-    level: string,
-    clearTime: string,
-    domain: string,
-    groupId: string,
-    rcaResult: string,
-    rcaReg: string,
-    isConfirmed: boolean,
-    [k: string]: any,
+    company: string;
+    firstTime: string;
+    lastTime: string;
+    level: string;
+    clearTime: string;
+    domain: string;
+    groupId: string;
+    groupId_edit: string;
+    rcaResult: string;
+    rcaResult_edit: string;
+    rcaReg: string;
+    rcaReg_edit: string;
+    isConfirmed: boolean;
+    [k: string]: any;
 }
 
 export interface GroupData {
@@ -88,6 +91,6 @@ export interface SelectOption {
     children?: SelectOption[];
 }
 export enum RCAResult {
-    P = '1',
-    C = '2',
+    P = 'P',
+    C = 'C',
 }
