@@ -25,7 +25,7 @@ def save_format(df, client_id):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
-        df.replace({'RcaResult': {1: 'C', 2: 'P'}})
+        df = df.replace({'RcaResult': {1: 'C', 2: 'P'}})
         df_index = range(0, df.shape[0])
         df.insert(0, 'Index', df_index)
         df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
@@ -118,31 +118,31 @@ def upload():
     # check filename and save file
     client_id = check_file([file1, file2])
     # construct json for frontend
-    data = dict()
-    data['client_id'] = client_id
+    res = dict()
+    res['client_id'] = client_id
     alarm = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                        app.config['ALARM_FILE']))
-    data['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
-    data['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
-    data['total_alarm'] = alarm.shape[0]
-    data['p_count'] = alarm.loc[alarm['RcaResult'] == 1].shape[0]
-    data['c_count'] = alarm.loc[alarm['RcaResult'] == 2].shape[0]
-    data['group_count'] = len(set(alarm['GroupId']))
-    data['confirmed'] = 0
-    data['unconfirmed'] = data['group_count']
-    return jsonify(data)
+    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
+    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
+    res['total_alarm'] = alarm.shape[0]
+    res['p_count'] = alarm.loc[alarm['RcaResult'] == 1].shape[0]
+    res['c_count'] = alarm.loc[alarm['RcaResult'] == 2].shape[0]
+    res['group_count'] = len(set(alarm['GroupId']))
+    res['confirmed'] = 0
+    res['unconfirmed'] = res['group_count']
+    return jsonify(res)
 
 
 @app.route('/interval')
 def interval():
-    # get interval filtered dataframe
+    # get interval filtered resframe
     a_time = datetime.fromtimestamp(int(request.args.get('start')))
     z_time = datetime.fromtimestamp(int(request.args.get('end')))
     alarm = interval_filter(a_time, z_time)
     # construct json for frontend
-    data = dict()
-    data['group_id'] = list(set(alarm['GroupId']))
-    return jsonify(data)
+    res = dict()
+    res['group_id'] = list(set(alarm['GroupId']))
+    return jsonify(res)
 
 
 @app.route('/analyze')
@@ -153,11 +153,11 @@ def analyze():
     topo_path = find_path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
     # construct json for frontend
-    data = dict()
-    data['topo'] = topo_tree
-    data['table'] = json.loads(alarm.to_json(orient='records'))
-    data['orange'] = list(set(alarm['AlarmSource']))
-    return jsonify(data)
+    res = dict()
+    res['topo'] = topo_tree
+    res['table'] = json.loads(alarm.to_json(orient='records'))
+    res['orange'] = list(set(alarm['AlarmSource']))
+    return jsonify(res)
 
 
 @app.route('/locate')
@@ -169,9 +169,9 @@ def locate():
     alarm = group_filter(group_id)
     alarm = alarm.loc[alarm[locator] == locator_value]
     # construct json for frontend
-    data = dict()
-    data['red'] = list(set(alarm['AlarmSource']))
-    return jsonify(data)
+    res = dict()
+    res['red'] = list(set(alarm['AlarmSource']))
+    return jsonify(res)
 
 
 @app.route('/expand')
@@ -180,7 +180,7 @@ def expand():
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
-    # get interval filtered dataframe
+    # get interval filtered resframe
     a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
                                     .timestamp() - 5 * 60 - 8 * 60 * 60)
     z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
@@ -191,30 +191,37 @@ def expand():
     topo_path = topo_path | extra_path
     topo_tree = build_tree(topo_path)
     # construct json for frontend
-    data = dict()
-    data['topo'] = topo_tree
-    data['table'] = json.loads(alarm.to_json(orient='records'))
+    res = dict()
+    res['topo'] = topo_tree
+    res['table'] = json.loads(alarm.to_json(orient='records'))
     alarm = alarm.loc[alarm['GroupId'] != group_id]
-    data['yellow'] = list(set(alarm['AlarmSource']))
-    return jsonify(data)
+    res['yellow'] = list(set(alarm['AlarmSource']))
+    return jsonify(res)
 
 
 @app.route('/confirm', methods=['POST'])
 def confirm():
     # get edited info
-    data = request.get_json()
+    req = request.get_json()
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
-    row_edited = data['row']
-    column_edited = data['column']
-    value_edited = data['value']
+    row_edited = req['row']
+    column_edited = req['column']
+    value_edited = req['value']
     # return confirmed alarm table
     for row, column, value in zip(row_edited, column_edited, value_edited):
         edited = dict(alarm.iloc[row])
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
-        alarm.iloc[row] = pd.Series[edited]
-    return alarm.to_json(orient='records')
+        alarm.iloc[row] = pd.Series(edited)
+    res = dict()
+    res['total_alarm'] = alarm.shape[0]
+    res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 1].shape[0]
+    res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 2].shape[0]
+    res['group_count'] = len(set(alarm['GroupId_Edited']))
+    res['confirmed'] = 0
+    res['unconfirmed'] = res['group_count']
+    return jsonify(res)
 
 
 if __name__ == '__main__':
