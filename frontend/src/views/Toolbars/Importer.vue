@@ -32,6 +32,14 @@ import { State } from 'vuex-class';
 import { postTopoData } from '@/api/request';
 import bus from '@/util/bus';
 import { EventType, StaticsRes } from '@/types/type';
+import NProgress from 'nprogress';
+NProgress.configure({     
+  easing: 'ease',  // 动画方式    
+  speed: 500,  // 递增进度条的速度    
+  showSpinner: false, // 是否显示加载ico    
+  trickleSpeed: 200, // 自动递增间隔    
+  minimum: 0.3 // 初始化时的最小百分比
+})
 
 @Component
 export default class Importer extends Vue {
@@ -63,6 +71,7 @@ export default class Importer extends Vue {
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
+    NProgress.start();
     postTopoData(form).then((res: StaticsRes) => {
       localStorage.setItem('client-id', res.client_id);
       const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
@@ -70,6 +79,7 @@ export default class Importer extends Vue {
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
       this.available = false;
+      NProgress.done();
     });
   }
   public submitData() {

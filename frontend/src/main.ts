@@ -5,6 +5,7 @@ import store from './store';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import './styles/global.scss';
+import 'nprogress/nprogress.css';
 
 Vue.use(ElementUI);
 
