@@ -4,8 +4,8 @@ SERVER_PORT = '8080'
 UPLOAD_FOLDER = 'temp'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
 
-TOPO_FILE = 'topo_format.xlsx'
-ALARM_FILE = 'alarm_format.xlsx'
+TOPO_FILE = 'topo_format.csv'
+ALARM_FILE = 'alarm_format.csv'
 
 TOPO_COLUMNS = ['PathID', 'NEName', 'Path Hop', 'NEType']
 TOPO_MAPPING = ['PathId', 'NEName', 'PathHop', 'NEType']
