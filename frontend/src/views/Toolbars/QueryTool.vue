@@ -189,9 +189,12 @@ export default class QueryTool extends Vue {
       clearTime: item['Clear'],
       domain: item['Domain'],
       groupId: item['GroupId'],
+      groupId_edit: item['GroupId_Edited'],
       rcaResult: item['RcaResult'].toString(),
+      rcaResult_edit: item['RcaResult_Edited'],
       rcaReg: item['RuleName'],
-      isConfirmed: false
+      rcaReg_edit: item['RuleName_Edited'],
+      isConfirmed: !!item['Confirmed']
     };
   }
   public formatSelectOption(alarmDatas: AlarmData[]) {
