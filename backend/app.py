@@ -41,7 +41,6 @@ def save_format(df, client_id):
         path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                             app.config['TOPO_FILE'])
     df.to_excel(path, index=False)
-    return client_id
 
 
 def check_file(files):
