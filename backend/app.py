@@ -21,8 +21,7 @@ def allowed_file(filename):
            app.config['ALLOWED_EXTENSIONS']
 
 
-def save_format(df):
-    client_id = str(uuid.uuid1())
+def save_format(df, client_id):
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     if df.shape[1] > app.config['DISTINCT_NUM']:
         df = df[app.config['ALARM_COLUMNS']]
@@ -46,15 +45,16 @@ def save_format(df):
 
 
 def check_file(files):
+    client_id = str(uuid.uuid1())
     for file in files:
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             if filename.endswith('.xlsx') or filename.endswith('xls'):
                 df = pd.read_excel(file)
-                client_id = save_format(df)
+                save_format(df, client_id)
             else:
                 df = pd.read_csv(file)
-                client_id = save_format(df)
+                save_format(df, client_id)
             return client_id
         # TODO(ICHIGOI7E): exception handling
 
