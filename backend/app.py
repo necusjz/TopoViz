@@ -25,6 +25,7 @@ def save_format(df, client_id):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
+        df.replace({'RcaResult': {1: 'C', 2: 'P'}})
         df_index = range(0, df.shape[0])
         df.insert(0, 'Index', df_index)
         df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
@@ -180,8 +181,10 @@ def expand():
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     # get interval filtered dataframe
-    a_time = pd.to_datetime(alarm['First'].min()).timestamp() - 5 * 60
-    z_time = pd.to_datetime(alarm['First'].max()).timestamp() + 5 * 60
+    a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
+                                    .timestamp() - 5 * 60)
+    z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
+                                    .timestamp() + 5 * 60)
     alarm = interval_filter(a_time, z_time)
     # generate topo tree
     extra_path = find_path(set(alarm['AlarmSource']))
