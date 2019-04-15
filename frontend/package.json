@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@types/dagre-d3": "^0.4.39",
+    "@types/nprogress": "^0.0.29",
     "axios": "^0.18.0",
     "dagre-d3": "^0.6.3",
     "element-ui": "^2.6.1",
+    "nprogress": "^0.2.0",
     "vue": "^2.6.6",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^7.0.0",
