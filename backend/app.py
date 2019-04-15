@@ -31,7 +31,7 @@ def save_format(df, client_id):
         df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
         df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
-        df['Confirmed'] = 0
+        df['Confirmed'] = ''
         df = df.sort_values('First')
         path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                             app.config['ALARM_FILE'])
@@ -40,7 +40,7 @@ def save_format(df, client_id):
         df.columns = app.config['TOPO_MAPPING']
         path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                             app.config['TOPO_FILE'])
-    df.to_excel(path, index=False)
+    df.to_csv(path, index=False)
 
 
 def check_file(files):
@@ -135,7 +135,7 @@ def upload():
 
 @app.route('/interval')
 def interval():
-    # get interval filtered resframe
+    # get interval filtered dataframe
     a_time = datetime.fromtimestamp(int(request.args.get('start')))
     z_time = datetime.fromtimestamp(int(request.args.get('end')))
     alarm = interval_filter(a_time, z_time)
@@ -208,19 +208,26 @@ def confirm():
     row_edited = req['row']
     column_edited = req['column']
     value_edited = req['value']
-    # return confirmed alarm table
+
     for row, column, value in zip(row_edited, column_edited, value_edited):
         edited = dict(alarm.iloc[row])
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
+
+    confirmed_num = 0
+    for group_id in set(alarm['GroupId_Edited']):
+        mask = alarm['GroupId_Edited'] == group_id
+        if alarm.loc[mask].shape[0] == alarm.loc[mask]['RcaResult'].count():
+            confirmed_num += 1
+
     res = dict()
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 1].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 2].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited']))
-    res['confirmed'] = 0
-    res['unconfirmed'] = res['group_count']
+    res['confirmed'] = confirmed_num
+    res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
 
 
