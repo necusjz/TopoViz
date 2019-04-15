@@ -22,7 +22,6 @@ def allowed_file(filename):
 
 
 def save_format(df, client_id):
-    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     if df.shape[1] > app.config['DISTINCT_NUM']:
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
@@ -45,6 +44,7 @@ def save_format(df, client_id):
 
 def check_file(files):
     client_id = str(uuid.uuid1())
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     for file in files:
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
