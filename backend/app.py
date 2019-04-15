@@ -182,9 +182,9 @@ def expand():
     topo_path = find_path(set(alarm['AlarmSource']))
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
-                                    .timestamp() - 5 * 60)
+                                    .timestamp() - 5 * 60 - 8 * 60 * 60)
     z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
-                                    .timestamp() + 5 * 60)
+                                    .timestamp() + 5 * 60 - 8 * 60 * 60)
     alarm = interval_filter(a_time, z_time)
     # generate topo tree
     extra_path = find_path(set(alarm['AlarmSource']))
