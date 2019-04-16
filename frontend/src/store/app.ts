@@ -17,6 +17,8 @@ const state: AppState = {
     unconfirmData: [], // 未确认的group数据
     selectAlarm: '',
     defaultDate: [],
+    redAlarms: [],
+    yellowAlarms: [],
 };
 
 const mutations: MutationTree<AppState> = {
@@ -64,6 +66,12 @@ const mutations: MutationTree<AppState> = {
     },
     SET_DEFAULTDATE: (state: AppState, date: number[]) => {
         state.defaultDate = date;
+    },
+    SET_REDALARMS: (state: AppState, nets: string[]) => {
+        state.redAlarms = nets;
+    },
+    SET_YELLOWALARMS: (state: AppState, nets: string[]) => {
+        state.yellowAlarms = nets;
     }
 };
 
