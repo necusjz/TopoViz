@@ -160,20 +160,6 @@ def analyze():
     return jsonify(res)
 
 
-@app.route('/locate')
-def locate():
-    # locate red network element
-    group_id = request.args.get('groupId')
-    locator = request.args.get('locator')
-    locator_value = request.args.get('locatorValue')
-    alarm = group_filter(group_id)
-    alarm = alarm.loc[alarm[locator] == locator_value]
-    # construct json for frontend
-    res = dict()
-    res['red'] = list(set(alarm['AlarmSource']))
-    return jsonify(res)
-
-
 @app.route('/expand')
 def expand():
     # generate topo path
@@ -218,7 +204,7 @@ def confirm():
     confirmed_num = 0
     for group_id in set(alarm['GroupId_Edited']):
         mask = alarm['GroupId_Edited'] == group_id
-        if alarm.loc[mask].shape[0] == alarm.loc[mask]['RcaResult'].count():
+        if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_num += 1
 
     res = dict()
