@@ -62,6 +62,7 @@ import TableData from "@/util/tableData.json";
 import { getAlarmDatas, getGroupIdsDataByInterval } from '@/api/request';
 import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
+
 @Component
 export default class QueryTool extends Vue {
   @Provide() private groupId: string = "";
@@ -95,6 +96,11 @@ export default class QueryTool extends Vue {
   }
   mounted() {
     this.options = ruleOptions;
+    bus.$on(EventType.FILTERRESET, () => {
+      this.regulationValue = [];
+      this.$store.commit("SET_REGVALUE", '');
+      this.$store.commit("SET_REGTYPE", '');
+    });
   }
   public suggestion(val: string, cb: any) {
     const suggestions = this.groupIds.filter((id: string) => val ? id.toLowerCase().includes(val.toLowerCase()) : true)
@@ -158,9 +164,12 @@ export default class QueryTool extends Vue {
     if (this.groupId !== this.store_groupId) {
       this.groupId = this.store_groupId;
     }
-    this.$store.commit("SET_REGVALUE", this.regulationValue[1]);
-    this.$store.commit("SET_REGTYPE", Rules[this.regulationValue[0] as number]);
-    if (this.regulationValue.length === 2) {
+    if (this.regulationValue.length < 2) {
+      this.$store.commit("SET_REGVALUE", '');
+      this.$store.commit("SET_REGTYPE", '');
+    } else {
+      this.$store.commit("SET_REGVALUE", this.regulationValue[1]);
+      this.$store.commit("SET_REGTYPE", Rules[this.regulationValue[0] as number]);
       bus.$emit('NETWORKFILTER', this.filterAlarmData(this.alarmDatas));
     }
   }
