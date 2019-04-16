@@ -11,6 +11,7 @@ export enum EventType {
     TIPVISIBLE = 'TIPVISIBLE',
     ERRORVISIBLE = 'ERRORVISIBLE',
     NETWORKFILTER = 'NETWORKFILTER',
+    FILTERRESET = 'FILTERRESET',
 }
 
 export interface AppState {
@@ -29,6 +30,8 @@ export interface AppState {
     unconfirmData: GroupData[];
     selectAlarm: string;
     defaultDate: number[];
+    redAlarms: string[];
+    yellowAlarms: string[];
 }
 
 export interface AlarmData {
