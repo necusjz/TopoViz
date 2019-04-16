@@ -23,15 +23,18 @@ def allowed_file(filename):
 
 def save_format(df, client_id):
     if df.shape[1] > app.config['DISTINCT_NUM']:
+        # format raw data and map column name
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
         df = df.replace({'RcaResult': {1: 'P', 2: 'C'}})
+        # add new columns
         df_index = range(0, df.shape[0])
         df.insert(0, 'Index', df_index)
         df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
         df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
         df['Confirmed'] = ''
+        # sort by first occurrence
         df = df.sort_values('First')
         path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                             app.config['ALARM_FILE'])
@@ -44,9 +47,11 @@ def save_format(df, client_id):
 
 
 def check_file(files):
+    # generate client id and create folder
     client_id = str(uuid.uuid1())
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     for file in files:
+        # check file legality
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             if filename.endswith('.xlsx') or filename.endswith('xls'):
@@ -63,6 +68,7 @@ def interval_filter(start, end):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
+    # convert to datetime and set mask
     alarm['First'] = pd.to_datetime(alarm['First'])
     mask = (alarm['First'] >= start) & (alarm['First'] <= end)
     alarm = alarm.loc[mask]
@@ -79,12 +85,14 @@ def group_filter(group_id):
 
 def find_path(alarms):
     client_id = request.headers.get('Client-Id')
+    # get paths for each ne
     ne_path = []
     for alarm in alarms:
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['NEName'] == alarm]
         ne_path.append(set(topo['PathId']))
+    # calculate topo paths to show
     topo_path = set()
     for i in range(0, len(ne_path)):
         topo_path = topo_path | ne_path[i]
@@ -98,6 +106,7 @@ def build_tree(paths):
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
+        # unified format for per path
         per_path = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             per_path.append({'NEName': ne_name, 'NEType': ne_type})
@@ -194,19 +203,19 @@ def confirm():
     row_edited = req['row']
     column_edited = req['column']
     value_edited = req['value']
-
+    # store confirmed data
     for row, column, value in zip(row_edited, column_edited, value_edited):
         edited = dict(alarm.iloc[row])
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
-
+    # calculate the number of confirmed groups
     confirmed_num = 0
     for group_id in set(alarm['GroupId_Edited']):
         mask = alarm['GroupId_Edited'] == group_id
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_num += 1
-
+    # construct json for frontend
     res = dict()
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
