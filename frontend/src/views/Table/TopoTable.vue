@@ -52,7 +52,7 @@
         <span :title="scope.row.clearTime">{{scope.row.clearTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="domain" label="域" width="40">
+    <el-table-column prop="domain" label="域" width="60">
       <template slot-scope="scope">
         <span :title="scope.row.domain">{{scope.row.domain}}</span>
       </template>
