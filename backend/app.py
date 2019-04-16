@@ -85,14 +85,14 @@ def group_filter(group_id):
 
 def find_path(alarms):
     client_id = request.headers.get('Client-Id')
-    # get paths for each ne
+    # get paths for each network element
     ne_path = []
     for alarm in alarms:
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['NEName'] == alarm]
         ne_path.append(set(topo['PathId']))
-    # calculate topo paths to show
+    # calculate the topo paths need to be displayed
     topo_path = set()
     for i in range(0, len(ne_path)):
         topo_path = topo_path | ne_path[i]
@@ -196,7 +196,7 @@ def expand():
 
 @app.route('/confirm', methods=['POST'])
 def confirm():
-    # get edited info
+    # get edited information
     req = request.get_json()
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
