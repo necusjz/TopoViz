@@ -2,8 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 
 
 const service: AxiosInstance = axios.create({
-  // baseURL: 'http://10.40.49.171:8080/',
-  baseURL: 'http://localhost:8080/',
+  baseURL: process.env.NODE_ENV === 'development' ? 'http://localhost:8080/' : 'http://10.40.49.171:8080/',
   timeout: 150000,
 });
 
