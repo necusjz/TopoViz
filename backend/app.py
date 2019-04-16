@@ -25,7 +25,7 @@ def save_format(df, client_id):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
-        df = df.replace({'RcaResult': {1: 'C', 2: 'P'}})
+        df = df.replace({'RcaResult': {1: 'P', 2: 'C'}})
         df_index = range(0, df.shape[0])
         df.insert(0, 'Index', df_index)
         df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
@@ -125,8 +125,8 @@ def upload():
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     res['total_alarm'] = alarm.shape[0]
-    res['p_count'] = alarm.loc[alarm['RcaResult'] == 1].shape[0]
-    res['c_count'] = alarm.loc[alarm['RcaResult'] == 2].shape[0]
+    res['p_count'] = alarm.loc[alarm['RcaResult'] == 'P'].shape[0]
+    res['c_count'] = alarm.loc[alarm['RcaResult'] == 'C'].shape[0]
     res['group_count'] = len(set(alarm['GroupId']))
     res['confirmed'] = 0
     res['unconfirmed'] = res['group_count']
@@ -209,8 +209,8 @@ def confirm():
 
     res = dict()
     res['total_alarm'] = alarm.shape[0]
-    res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 1].shape[0]
-    res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 2].shape[0]
+    res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
+    res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited']))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
