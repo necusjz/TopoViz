@@ -8,9 +8,9 @@
       <div class="topo-board-item" v-show="groupId">
         <span class="tag-square tag-orange"></span>
         <span class="tag-label">Group ID: {{groupId}}</span>
-        <i class="el-icon-arrow-right" v-show="regValue"></i>
+        <i class="el-icon-arrow-right" v-show="regType"></i>
       </div>
-      <div class="topo-board-item" v-show="regValue">
+      <div class="topo-board-item" v-show="regType">
         <span class="tag-square tag-red"></span>
         <span class="tag-label">{{conditionLabel}}: {{regValue}}</span>
       </div>
@@ -23,19 +23,25 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
+import { Component, Prop, Vue, Provide, Watch, Mixins } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { Rules } from '@/types/type';
+import { Rules, AlarmData, NodeData, EventType } from '@/types/type';
 import { getExpandAlarmDatas } from '@/api/request';
+import CommonMixin from '@/components/mixins/commonMixin.vue';
+import bus from '@/util/bus';
 
 @Component
-export default class StaticsBoard extends Vue {
+export default class StaticsBoard extends Mixins(CommonMixin) {
   @State((state) => state.app.groupId) private groupId: any;
   @State((state) => state.app.regValue) private regValue: any;
   @State((state) => state.app.regType) private regType: any;
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData: any;
+  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
+  @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
   @Provide() private status: boolean = false;
   @Provide() private conditionLabel: string = '';
+  @Provide() private oldAlarmDatas!: AlarmData[];
+  @Provide() private oldTopoDatas!: NodeData[][];
   @Watch('regType')
   public watchRegType(val: string) {
     if (val) {
@@ -46,11 +52,38 @@ export default class StaticsBoard extends Vue {
       this.conditionLabel = temp[val] || '告警名称';
     }
   }
+  @Watch('groupId')
+  public watchGroupId(val: string) {
+    if (val) {
+      this.status = false;
+    }
+  }
   public expand(val: boolean) {
-    console.log(val);
-    getExpandAlarmDatas({groupId: this.groupId}).then((res) => {
-      console.log(res);
-    });
+    bus.$emit(EventType.FILTERRESET);
+    if (val) {
+      getExpandAlarmDatas({groupId: this.groupId}).then((res) => {
+        this.oldAlarmDatas = this.alarmDatas;
+        this.oldTopoDatas = this.topoDatas;
+        if (res.table) {
+          const alarmDatas = res.table.map((item: any) => this.formatData(item));
+          this.$store.commit('SET_ALARMDATAS', alarmDatas);
+        }
+        if (res.topo) {
+          const topoTreeData = res.topo.map((path: any) => {
+            return path.reverse().map((node: any) => {
+              return { name: node.NEName, type: node.NEType };
+            });
+          });
+          this.$store.commit('SET_TOPODATA', topoTreeData);
+          setTimeout(() => {
+            bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
+          });
+        }
+      });
+    } else {
+      this.$store.commit('SET_ALARMDATAS', this.oldAlarmDatas);
+      this.$store.commit('SET_TOPODATA', this.oldTopoDatas);
+    }
   }
 }
 </script>

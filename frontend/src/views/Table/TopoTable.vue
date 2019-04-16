@@ -32,46 +32,45 @@
         <span :title="scope.row.company">{{scope.row.company}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="firstTime" label="首次发生时间" min-width="150">
+    <el-table-column prop="firstTime" label="首次发生时间" width="150">
       <template slot-scope="scope">
         <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="lastTime" label="最近发生时间" min-width="150">
+    <el-table-column prop="lastTime" label="最近发生时间" width="150">
       <template slot-scope="scope">
         <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="level" label="级别">
+    <el-table-column prop="level" label="级别" width="70">
       <template slot-scope="scope">
         <span :title="scope.row.level">{{scope.row.level}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="clearTime" label="清除时间" min-width="150">
+    <el-table-column prop="clearTime" label="清除时间" width="150">
       <template slot-scope="scope">
         <span :title="scope.row.clearTime">{{scope.row.clearTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="domain" label="域">
+    <el-table-column prop="domain" label="域" width="40">
       <template slot-scope="scope">
         <span :title="scope.row.domain">{{scope.row.domain}}</span>
       </template>
     </el-table-column>
     <el-table-column prop="groupId_edit" label="Group ID" width="180">
       <template slot-scope="scope">
-        <el-popover placement="bottom" popper-class="drop-select" trigger="click">
-          <div class="drop-label">{{dropLabel}}</div>
+        <el-popover placement="bottom" popper-class="drop-select" trigger="hover" :value="activePopover === `${scope.row.uid}-reg`">
+          <div class="drop-label" @click="updateRowData(scope.row, 'groupId_edit')">{{dropLabel}}</div>
           <span :title="scope.row.groupId_edit" slot="reference">{{scope.row.groupId_edit}}
             <i class="el-icon-arrow-down"></i>
           </span>
         </el-popover>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaResult_edit" label="RCA结果">
+    <el-table-column prop="rcaResult_edit" label="RCA结果" width="90">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.uid}-result`">{{scope.row.rcaResult_edit}}</span>
-        <el-popover placement="bottom" popper-class="drop-select" trigger="click">
-          <div class="drop-label">{{dropLabel}}</div>
+        <el-popover placement="bottom" popper-class="drop-select" trigger="hover" :value="activePopover === `${scope.row.uid}-result`">
+          <div class="drop-label" @click="updateRowData(scope.row, 'rcaResult_edit')">{{dropLabel}}</div>
           <span :title="scope.row.rcaResult_edit" slot="reference">{{scope.row.rcaResult_edit}}
             <i class="el-icon-arrow-down"></i>
           </span>
@@ -123,7 +122,7 @@ export default class TopoTable extends Vue {
   @Provide() private editRows: AlarmData[] = [];
   @Provide() private needSave: boolean = false;
   @Provide() private showTip: boolean = true;
-  @Provide() private activeItem!: AlarmData;
+  @Provide() private activePopover: string = '';
   @Provide() private dropLabel: string = '空';
   @Prop() private isunConfirmed!: boolean;
   @Prop() private tableData!: AlarmData[];
@@ -151,16 +150,23 @@ export default class TopoTable extends Vue {
       if (column.property.includes("rcaReg_edit")) {
         this.editCellId = `${row.uid}-reg`;
         this.inputValue = row.rcaReg_edit;
+        this.activePopover = row.uid + '-reg';
       } else if (column.property.includes("rcaResult_edit")) {
         this.editCellId = `${row.uid}-result`;
         this.inputValue = row.rcaResult_edit;
+        this.activePopover = row.uid + '-result';
       }
     }
   }
   public handleRowClick(row: any, column: any) {
     if (column.property) {
       if (column.property === 'groupId_edit') {
-        this.dropLabel = row.groupId_edit === '空' ? this.groupId : row.groupId_edit === this.groupId ? row.groupId : '空';
+        // 同组
+        if (row.groupId === this.groupId) {
+          this.dropLabel = row.groupId_edit === '空' ? this.groupId : '空';
+        } else {
+          this.dropLabel = row.groupId_edit === this.groupId ? row.groupId : this.groupId;
+        }
       } else if (column.property === 'rcaResult_edit') {
         this.dropLabel = row.rcaResult_edit === RCAResult.P ? RCAResult.C : RCAResult.P;
       }
@@ -173,6 +179,12 @@ export default class TopoTable extends Vue {
     setTimeout(() => {
       window.location.hash = '';
     });
+  }
+  public updateRowData(row: AlarmData, prop: string) {
+    if (row[prop]) {
+      row[prop] = this.dropLabel;
+    }
+    this.activePopover = '';
   }
   public inputBlur(newRow: AlarmData) {
     console.log(newRow);
@@ -344,10 +356,12 @@ export default class TopoTable extends Vue {
 }
 .drop-select {
   min-width: 80px!important;
+  padding: 5px 0!important;
   cursor: pointer;
   .drop-label {
+    padding: 0 7px;
     &:hover {
-      background: #3189ff;
+      background: #f5f7fa;
     }
   }
 }
