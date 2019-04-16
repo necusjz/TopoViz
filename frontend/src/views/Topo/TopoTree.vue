@@ -27,8 +27,6 @@ import { Node, EventType, NodeData, AlarmData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
-// const { graphlib, dagre } = require('dagre-d3');
-// import ForceDirect from '@/util/force-direct';
 import TopoTreeHelper from '@/util/topoTree';
 
 @Component({
@@ -55,17 +53,21 @@ export default class TopoTree extends Vue {
     this.selectNetwork();
   }
   mounted() {
-    bus.$on('NETWORKFILTER', (neNames: string[]) => {
+    bus.$on('NETWORKFILTER', (neNames: string[], type: string = 'Error') => {
       this.stage.startBatch();
       this.stage.eachLayer((layer: xCanvas.Layer) => {
         if (layer.getLayerType() === 'IMAGE') {
           const dirtyData = layer.getDirtyData();
-          if (dirtyData && neNames.includes(dirtyData.alarmSourceName)) {
-            const url = require(`../../assets/${dirtyData.type}-Error.png`);
-            (layer as xCanvas.ImageLayer).setImage(url);
-          } else if(dirtyData) {
-            const url = require(`../../assets/${dirtyData.type}-Warning.png`);
-            (layer as xCanvas.ImageLayer).setImage(url);
+          if (dirtyData) {
+            if (neNames.includes(dirtyData.alarmSourceName)) {
+              dirtyData.statusType = dirtyData.statusType || type;
+              const url = require(`../../assets/${dirtyData.type}-${type}.png`);
+              (layer as xCanvas.ImageLayer).setImage(url);
+            } else {
+              dirtyData.statusType = dirtyData.statusType || 'Warning';
+              const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
+              (layer as xCanvas.ImageLayer).setImage(url);
+            }
           }
         }
       });
@@ -139,30 +141,6 @@ export default class TopoTree extends Vue {
     const p1 = q.clone().add(oppositDir.clone().rotate(angle / 2).scale(len));
     const p2 = q.clone().add(oppositDir.clone().rotate(-angle / 2).scale(len));
     return [v2, [p1.x, p1.y], [p2.x, p2.y]];
-  }
-  public createNetWork(nodes: any[], edges: any[]) {
-    const stage: xCanvas.Stage = this.stage;
-    stage.startBatch();
-    this.stage.clearAllLayers();
-    const size: number = 40;
-    edges.forEach((edge: any) => {
-      const pts: Vertex[] = [];
-      pts.push([edge.source.x, edge.source.y], [edge.target.x, edge.target.y]);
-      const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
-      const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
-      const group = new xCanvas.LayerGroup([leader, arrow]).addTo(stage);
-    });
-    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
-    nodes.forEach((node: any) => {
-      const url = require(`../../assets/${node.type}.png`);
-      // const url = node.icon;
-      const childLayer = new xCanvas.ImageLayer(url, node.x, node.y, size, size).addTo(stage);
-      childLayer.setDirtyData(node);
-      bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
-    });
-    this.center = bound.getCenter();
-    stage.setView(this.center);
-    stage.endBatch();
   }
   public leaveContainer() {
     bus.$emit(EventType.TIPVISIBLE, false);
