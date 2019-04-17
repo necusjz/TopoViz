@@ -15,4 +15,4 @@ ALARM_MAPPING = ['AlarmName', 'AlarmSource', 'Vendor', 'First', 'Last',
 
 EDITED_COLUMNS = ['GroupId', 'RcaResult', 'RuleName']
 
-DISTINCT_NUM = 16
+DISTINCT_NUM = 8
