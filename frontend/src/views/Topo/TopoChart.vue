@@ -57,8 +57,8 @@ export default class StaticsBoard extends Vue {
       uid: generateUUID(),
       index: -9999,
       type: "statics",
-      ratio: "80%",
-      alarmName: "当前组精准率: ",
+      ratio: "",
+      alarmName: "",
       alarmSourceName: "保存",
       company: "",
       firstTime: "",
@@ -76,7 +76,7 @@ export default class StaticsBoard extends Vue {
     }
     if (!this.activeType) {
       lastRow.ratio = '';
-      lastRow.alarmName = '温馨提示： 一键确认”过的数据别忘了去”已确认“里保存哦';
+      lastRow.alarmName = '';
       lastRow.alarmSourceName = '一键确认';
     }
     this.tabData.splice(this.tabData.length, 0, lastRow);
@@ -92,7 +92,7 @@ export default class StaticsBoard extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 .rca-topo-table {
-  padding: 0 30px 0 30px;
+  padding: 0 0px 0 0px;
   .topo-table-tab {
     color: #282828;
     cursor: pointer;
