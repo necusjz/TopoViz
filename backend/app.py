@@ -209,22 +209,26 @@ def confirm():
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
-    # for confirmed and correct groups
+    # reload alarm data
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+    # initialize variables
+    accuracy = ''
     confirmed_num = 0
     correct_num = 0
     total_num = len(set(alarm['GroupId']))
-    accuracy = ''
-    cmp_columns = ['GroupId', 'RcaResult', 'RuleName']
+    # count the number of confirmed groups and correct groups
     for group_id in set(alarm['GroupId']):
         mask = alarm['GroupId_Edited'] == group_id
-        # count the number of confirmed groups
+        # confirmed groups
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_num += 1
-        # count the number of correct groups
-        pre_alarm = alarm.loc[mask][cmp_columns]
+        # correct groups
+        pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
         post_alarm = alarm.loc[mask][list(map(lambda x: x+'_Edited',
-                                              cmp_columns))]
-        post_alarm.columns = cmp_columns
+                                              app.config['EDITED_COLUMNS']))]
+        post_alarm.columns = app.config['EDITED_COLUMNS']
         if pre_alarm.equals(post_alarm):
             correct_num += 1
     # calculate overall accuracy
@@ -232,11 +236,33 @@ def confirm():
         accuracy = str(correct_num / total_num)
     # construct json for frontend
     res = dict()
+    res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited']))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
-    res['accuracy'] = accuracy
+    return jsonify(res)
+
+
+@app.route('/detail')
+def detail():
+    # reload alarm data
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+    # get confirmed/unconfirmed groups
+    confirmed_group = []
+    unconfirmed_group = []
+    for group_id in set(alarm['GroupId']):
+        mask = alarm['GroupId_Edited'] == group_id
+        if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
+            confirmed_group.append(group_id)
+        else:
+            unconfirmed_group.append(group_id)
+    # construct json for frontend
+    res = dict()
+    res['confirmed'] = confirmed_group
+    res['unconfirmed'] = unconfirmed_group
     return jsonify(res)
