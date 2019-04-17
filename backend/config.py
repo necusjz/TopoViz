@@ -13,4 +13,6 @@ ALARM_COLUMNS = ['Alarm Name', 'Alarm Source', 'Vendor', 'First Occurrence',
 ALARM_MAPPING = ['AlarmName', 'AlarmSource', 'Vendor', 'First', 'Last',
                  'Level', 'Clear', 'Domain', 'GroupId', 'RcaResult', 'RuleName']
 
+EDITED_COLUMNS = ['GroupId', 'RcaResult', 'RuleName']
+
 DISTINCT_NUM = 16
