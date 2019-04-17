@@ -7,7 +7,8 @@ import time
 import json
 import os
 
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, render_template, Response, abort, jsonify, request, \
+                  send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
@@ -143,8 +144,8 @@ def upload():
     # generate client id and create folder
     client_id = str(uuid.uuid1())
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
-    # check filename legality
     for file in [file1, file2]:
+        # check filename legality
         if allowed_file(file.filename):
             filename = secure_filename(file.filename)
             # convert excel to dataframe
@@ -156,7 +157,10 @@ def upload():
             if 'Confirmed' not in dataframe.columns:
                 dataframe = format_data(dataframe)
             save_data(dataframe, client_id)
-        # TODO(ICHIGOI7E): exception handling
+        # exception handling
+        else:
+            error = Response('Unsupported file format.')
+            abort(error)
     confirmed_num, accuracy = result_monitor()
     # construct json for frontend
     res = dict()
