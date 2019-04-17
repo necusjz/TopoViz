@@ -161,7 +161,6 @@ def upload():
         else:
             error = Response('Unsupported file format.')
             abort(error)
-    confirmed_num, accuracy = result_monitor()
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
@@ -169,6 +168,7 @@ def upload():
                                      app.config['ALARM_FILE']))
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
+    confirmed_num, accuracy = result_monitor()
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
@@ -246,9 +246,9 @@ def confirm():
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
-    confirmed_num, accuracy = result_monitor()
     # construct json for frontend
     res = dict()
+    confirmed_num, accuracy = result_monitor()
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
