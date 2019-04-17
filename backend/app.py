@@ -3,10 +3,11 @@
 
 import pandas as pd
 import uuid
+import time
 import json
 import os
 
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
@@ -266,3 +267,14 @@ def detail():
     res['confirmed'] = confirmed_group
     res['unconfirmed'] = unconfirmed_group
     return jsonify(res)
+
+
+@app.route('/download')
+def download():
+    # get directory path
+    client_id = request.headers.get('Client-Id')
+    dir_path = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
+    # generate file name
+    file_name = 'verified_alarm_' + str(int(time.time())) + '_.csv'
+    return send_from_directory(dir_path, 'alarm_format.csv', as_attachment=True,
+                               attachment_filename=file_name)
