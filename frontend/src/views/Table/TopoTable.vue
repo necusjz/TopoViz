@@ -59,25 +59,31 @@
     </el-table-column>
     <el-table-column prop="groupId_edit" label="Group ID" width="180">
       <template slot-scope="scope">
-        <el-popover placement="bottom" popper-class="drop-select" trigger="hover" :value="activePopover === `${scope.row.uid}-reg`">
-          <div class="drop-label" @click="updateRowData(scope.row, 'groupId_edit')">{{dropLabel}}</div>
-          <span :title="scope.row.groupId_edit" slot="reference">{{scope.row.groupId_edit}}
-            <i class="el-icon-arrow-down"></i>
+        <el-dropdown trigger="click" size="small" @command="handleCommandGroupId" placement="bottom">
+          <span :title="scope.row.groupId_edit">
+            {{scope.row.groupId_edit}}
+            <i class="el-icon-arrow-down el-icon--right"></i>
           </span>
-        </el-popover>
+          <el-dropdown-menu slot="dropdown" class="group_dropdown">
+            <el-dropdown-item :command="scope.row">{{getEditGroupIdLabel(scope.row)}}</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </template>
     </el-table-column>
     <el-table-column prop="rcaResult_edit" label="RCA结果" width="90">
       <template slot-scope="scope">
-        <el-popover placement="bottom" popper-class="drop-select" trigger="hover" :value="activePopover === `${scope.row.uid}-result`">
-          <div class="drop-label" @click="updateRowData(scope.row, 'rcaResult_edit')">{{dropLabel}}</div>
-          <span :title="scope.row.rcaResult_edit" slot="reference">{{scope.row.rcaResult_edit}}
-            <i class="el-icon-arrow-down"></i>
+        <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" placement="bottom">
+          <span :title="scope.row.rcaResult_edit">
+            {{scope.row.rcaResult_edit}}
+            <i class="el-icon-arrow-down el-icon--right"></i>
           </span>
-        </el-popover>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item :command="scope.row">{{scope.row.rcaResult_edit === 'C' ? 'P' : 'C'}}</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaReg_edit" label="RCA 规则">
+    <el-table-column prop="rcaReg_edit" label="RCA 规则" min-width="180px">
       <template slot-scope="scope">
         <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.rcaReg_edit">{{scope.row.rcaReg_edit}}</span>
         <TopoInput
@@ -247,6 +253,23 @@ export default class TopoTable extends Vue {
       }
     }
   }
+  public getEditGroupIdLabel(item: AlarmData): string {
+    if (item.groupId_edit === '空') {
+      return this.groupId;
+    } else if (item.groupId === this.groupId) {
+      return '空';
+    } else {
+      return item.groupId_edit === this.groupId ? item.groupId : this.groupId;
+    }
+  }
+  public handleCommandRCAResult(item: AlarmData) {
+    console.log(item);
+    item.rcaResult_edit = item.rcaResult_edit === 'P' ? 'C' : 'P';
+  }
+  public handleCommandGroupId(item: AlarmData) {
+    const edit_groupId = this.getEditGroupIdLabel(item).trim();
+    item.groupId_edit = edit_groupId;
+  }
   // 提交确认的数据
   public confirm(row: any, column: any) {
     if (row.type === 'statics' && column.property === 'alarmSourceName') {
@@ -339,7 +362,7 @@ export default class TopoTable extends Vue {
       position: absolute;
       left: 50%;
       top: 50%;
-      margin-top: 12%;
+      margin-top: 8%;
       transform: translateX(-50%);
       font-size: 20px;
       i {
@@ -350,7 +373,7 @@ export default class TopoTable extends Vue {
   .el-table__empty-block {
     background-image: url('../../assets/none-topoChart.png');
     background-position: center 40%;
-    background-size: 30% auto;
+    background-size: 290px 190px;
     background-repeat: no-repeat;
   }
 }
@@ -364,5 +387,8 @@ export default class TopoTable extends Vue {
       background: #f5f7fa;
     }
   }
+}
+.group_dropdown {
+  min-width: 120px;
 }
 </style>

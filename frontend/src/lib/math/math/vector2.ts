@@ -1,4 +1,5 @@
 import Operation from './operation';
+import { Vertex } from '@/lib/typeof/typeof';
 
 export default class Vector2 {
   public static lerp(vec1: Vector2, vec2: Vector2, lerp: number): Vector2 {
@@ -60,5 +61,8 @@ export default class Vector2 {
   }
   public getModelLength(): number {
     return Math.sqrt(this.x ** 2 + this.y ** 2);
+  }
+  public toArray(): Vertex {
+    return [this.x, this.y];
   }
 }
