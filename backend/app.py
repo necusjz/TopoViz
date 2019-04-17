@@ -22,7 +22,7 @@ def allowed_file(filename):
            app.config['ALLOWED_EXTENSIONS']
 
 
-def save_format(df, client_id):
+def format_data(df):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         # format raw data and map column name
         df = df[app.config['ALARM_COLUMNS']]
@@ -37,32 +37,20 @@ def save_format(df, client_id):
         df['Confirmed'] = ''
         # sort by first occurrence
         df = df.sort_values('First')
-        path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                            app.config['ALARM_FILE'])
     else:
         df = df[app.config['TOPO_COLUMNS']]
         df.columns = app.config['TOPO_MAPPING']
+    return df
+
+
+def save_data(df, client_id):
+    if df.shape[1] > app.config['DISTINCT_NUM']:
+        path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                            app.config['ALARM_FILE'])
+    else:
         path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                             app.config['TOPO_FILE'])
     df.to_csv(path, index=False)
-
-
-def check_file(files):
-    # generate client id and create folder
-    client_id = str(uuid.uuid1())
-    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
-    for file in files:
-        # check file legality
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            if filename.endswith('.xlsx') or filename.endswith('xls'):
-                df = pd.read_excel(file)
-                save_format(df, client_id)
-            else:
-                df = pd.read_csv(file)
-                save_format(df, client_id)
-        # TODO(ICHIGOI7E): exception handling
-    return client_id
 
 
 def interval_filter(start, end):
@@ -76,7 +64,7 @@ def interval_filter(start, end):
     return alarm
 
 
-def group_filter(group_id):
+def group_picker(group_id):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -122,11 +110,26 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    # get upload file
+    # get upload files
     file1 = request.files['file1']
     file2 = request.files['file2']
-    # check filename and save file
-    client_id = check_file([file1, file2])
+    # generate client id and create folder
+    client_id = str(uuid.uuid1())
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
+    # check filename legality
+    for file in [file1, file2]:
+        if allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            # convert excel to dataframe
+            if filename.endswith('.xlsx') or filename.endswith('xls'):
+                dataframe = pd.read_excel(file)
+            else:
+                dataframe = pd.read_csv(file)
+            # save formatted dataframe
+            if 'Confirmed' not in dataframe.columns:
+                dataframe = format_data(dataframe)
+            save_data(dataframe, client_id)
+        # TODO(ICHIGOI7E): exception handling
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
@@ -159,7 +162,7 @@ def interval():
 def analyze():
     # generate topo tree
     group_id = request.args.get('groupId')
-    alarm = group_filter(group_id)
+    alarm = group_picker(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
     # construct json for frontend
@@ -174,7 +177,7 @@ def analyze():
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
-    alarm = group_filter(group_id)
+    alarm = group_picker(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
@@ -200,7 +203,7 @@ def confirm():
     # get edited information
     req = request.get_json()
     group_id = request.args.get('groupId')
-    alarm = group_filter(group_id)
+    alarm = group_picker(group_id)
     row_edited = req['row']
     column_edited = req['column']
     value_edited = req['value']
@@ -273,8 +276,8 @@ def detail():
 def download():
     # get directory path
     client_id = request.headers.get('Client-Id')
-    dir_path = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
+    path = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
-    file_name = 'verified_alarm_' + str(int(time.time())) + '_.csv'
-    return send_from_directory(dir_path, 'alarm_format.csv', as_attachment=True,
-                               attachment_filename=file_name)
+    filename = 'verified_alarm_' + str(int(time.time())) + '_.csv'
+    return send_from_directory(path, 'alarm_format.csv',
+                               as_attachment=True, attachment_filename=filename)
