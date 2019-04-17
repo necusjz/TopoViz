@@ -209,12 +209,27 @@ def confirm():
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
-    # calculate the number of confirmed groups
+    # for confirmed and correct groups
     confirmed_num = 0
-    for group_id in set(alarm['GroupId_Edited']):
+    correct_num = 0
+    total_num = len(set(alarm['GroupId']))
+    accuracy = ''
+    cmp_columns = ['GroupId', 'RcaResult', 'RuleName']
+    for group_id in set(alarm['GroupId']):
         mask = alarm['GroupId_Edited'] == group_id
+        # count the number of confirmed groups
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_num += 1
+        # count the number of correct groups
+        pre_alarm = alarm.loc[mask][cmp_columns]
+        post_alarm = alarm.loc[mask][list(map(lambda x: x+'_Edited',
+                                              cmp_columns))]
+        post_alarm.columns = cmp_columns
+        if pre_alarm.equals(post_alarm):
+            correct_num += 1
+    # calculate overall accuracy
+    if confirmed_num == total_num:
+        accuracy = str(correct_num / total_num)
     # construct json for frontend
     res = dict()
     res['total_alarm'] = alarm.shape[0]
@@ -223,8 +238,5 @@ def confirm():
     res['group_count'] = len(set(alarm['GroupId_Edited']))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
+    res['accuracy'] = accuracy
     return jsonify(res)
-
-
-if __name__ == '__main__':
-    app.run(host=app.config['SERVER_HOST'], port=app.config['SERVER_PORT'])
