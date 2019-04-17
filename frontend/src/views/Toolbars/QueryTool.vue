@@ -37,8 +37,7 @@
         <el-cascader
           :options="options"
           v-model="regulationValue"
-          change-on-select
-          expand-trigger="hover"
+          :clearable="true"
           popper-class="select-popper"
           @change="locateNetWork"
           size="small"
@@ -131,11 +130,14 @@ export default class QueryTool extends Vue {
   public queryTopoData() {
     if (!this.groupId || !this.groupIds.includes(this.groupId)) {
       this.groupId = this.store_groupId;
+      bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
       return;
     }
+    this.regulationValue = [];
+    this.$store.commit("SET_REGVALUE", '');
+    this.$store.commit("SET_REGTYPE", '');
     getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
       const table = data.table;
-      // data.topo.push([{NEName: "DJLKE 3E - GJKLEW GJLEW", NEType: "MicroWave"}, {NEName: "DJLKE 3E - GJKLEW GJLEW1", NEType: "nodeB"}])
       const topoData = data.topo;
       if (topoData && topoData.length > 0) {
         this.$store.commit('SET_ISNONETOPODATA', false);
@@ -157,7 +159,6 @@ export default class QueryTool extends Vue {
     });
     this.$store.commit("SET_GROUPID", this.groupId);
     this.visibleErrorTip = !this.groupId;
-    // bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
     // bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
   }
   public locateNetWork() {
@@ -167,10 +168,11 @@ export default class QueryTool extends Vue {
     if (this.regulationValue.length < 2) {
       this.$store.commit("SET_REGVALUE", '');
       this.$store.commit("SET_REGTYPE", '');
+      bus.$emit(EventType.RESETREDALARM);
     } else {
       this.$store.commit("SET_REGVALUE", this.regulationValue[1]);
       this.$store.commit("SET_REGTYPE", Rules[this.regulationValue[0] as number]);
-      bus.$emit('NETWORKFILTER', this.filterAlarmData(this.alarmDatas));
+      bus.$emit(EventType.NETWORKFILTER, this.filterAlarmData(this.alarmDatas));
     }
   }
   public filterAlarmData(alarmDatas: AlarmData[]): string[] {
@@ -286,7 +288,7 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
     .app-query-date-wrap {
       border-right: 1px solid #dfdfdf;
       .app-query-date {
-        width: 300px;
+        width: 370px;
         height: 30px;
         background-image: $Btn_Background;
         color: #778296;

@@ -3,7 +3,7 @@
   <div class="tip-container" :style="{left: `${left}px`, top: `${top}px`}" v-show="tipVisible">
     <div class="tip-table" :class="[sortClass]">
       <div class="tip-table-header-row tip-table-row">
-        <div class="header-cell tip-table-cell">告警名称</div>
+        <div class="header-cell tip-table-cell">告警名称({{totalCount}})</div>
         <div class="header-cell tip-table-cell">
           首次发生时间
           <span class="caret-wrapper">
@@ -41,6 +41,7 @@ export default class TipDialog extends Vue {
   @Provide() private tipVisible: boolean = false;
   @Provide() private top: number = 0;
   @Provide() private left: number = 0;
+  @Provide() private totalCount: number = 0;
   @Provide() private tableData: { name: string; date: string }[] = [];
   @Provide() private sortClass: string = "";
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -50,6 +51,7 @@ export default class TipDialog extends Vue {
       this.tableData = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.alarmSourceName === name).map((alarmData: AlarmData) => {
         return { name: alarmData.alarmName, date: alarmData.firstTime}
       });
+      this.totalCount = this.tableData.length;
       this.sortClass = '';
       if (this.tipVisible && loc) {
         this.top = loc.top - 60;
