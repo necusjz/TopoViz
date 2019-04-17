@@ -1,6 +1,3 @@
-SERVER_HOST = '0.0.0.0'
-SERVER_PORT = '8080'
-
 UPLOAD_FOLDER = 'temp'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'csv'}
 
@@ -17,5 +14,3 @@ ALARM_MAPPING = ['AlarmName', 'AlarmSource', 'Vendor', 'First', 'Last',
                  'Level', 'Clear', 'Domain', 'GroupId', 'RcaResult', 'RuleName']
 
 DISTINCT_NUM = 16
-
-DEBUG = False
