@@ -256,11 +256,19 @@ export default class TopoTreeHelper {
                     const edge = new Edge(preNode, node);
                     this.edges.push(edge);
                     if (preNode.type === node.type) {
-                        preNode.right.push(node);
-                        node.left.push(preNode);
+                        if (!preNode.right.find((nd) => nd === node)) {
+                            preNode.right.push(node);
+                        }
+                        if (!node.left.find((nd) => nd === preNode)) {
+                            node.left.push(preNode);
+                        }
                     } else {
-                        preNode.bottom.push(node);
-                        node.top.push(preNode);
+                        if (!preNode.bottom.find((nd) => nd === node)) {
+                            preNode.bottom.push(node);
+                        }
+                        if (!node.top.find((nd) => nd === node)) {
+                            node.top.push(preNode);
+                        }
                     }
                 }
                 preNode = node;
