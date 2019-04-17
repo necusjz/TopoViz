@@ -53,6 +53,33 @@ def save_data(df, client_id):
     df.to_csv(path, index=False)
 
 
+def result_monitor():
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+    # initialize variables
+    accuracy = 0
+    confirmed_num = 0
+    correct_num = 0
+    total_num = len(set(alarm['GroupId']))
+    # count the number of confirmed groups
+    for group_id in set(alarm['GroupId']):
+        mask = alarm['GroupId_Edited'] == group_id
+        if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
+            confirmed_num += 1
+            # count the number of correct groups
+            pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
+            post_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
+                                              app.config['EDITED_COLUMNS']))]
+            post_alarm.columns = app.config['EDITED_COLUMNS']
+            if pre_alarm.equals(post_alarm):
+                correct_num += 1
+    # calculate global accuracy
+    if confirmed_num == total_num:
+        accuracy = correct_num / total_num
+    return confirmed_num, accuracy
+
+
 def interval_filter(start, end):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
@@ -73,10 +100,10 @@ def group_picker(group_id):
 
 
 def find_path(alarms):
-    client_id = request.headers.get('Client-Id')
     # get paths for each network element
     ne_path = []
     for alarm in alarms:
+        client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['NEName'] == alarm]
@@ -89,13 +116,13 @@ def find_path(alarms):
 
 
 def build_tree(paths):
-    client_id = request.headers.get('Client-Id')
     topo_tree = []
     for path in paths:
+        client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
-        topo = topo.loc[topo['PathId'] == path]
         # unified format for per path
+        topo = topo.loc[topo['PathId'] == path]
         per_path = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             per_path.append({'NEName': ne_name, 'NEType': ne_type})
@@ -130,6 +157,7 @@ def upload():
                 dataframe = format_data(dataframe)
             save_data(dataframe, client_id)
         # TODO(ICHIGOI7E): exception handling
+    confirmed_num, accuracy = result_monitor()
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
@@ -137,12 +165,13 @@ def upload():
                                      app.config['ALARM_FILE']))
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
+    res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
-    res['p_count'] = alarm.loc[alarm['RcaResult'] == 'P'].shape[0]
-    res['c_count'] = alarm.loc[alarm['RcaResult'] == 'C'].shape[0]
-    res['group_count'] = len(set(alarm['GroupId']))
-    res['confirmed'] = 0
-    res['unconfirmed'] = res['group_count']
+    res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
+    res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
+    res['group_count'] = len(set(alarm['GroupId_Edited']))
+    res['confirmed'] = confirmed_num
+    res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
 
 
@@ -207,37 +236,13 @@ def confirm():
     row_edited = req['row']
     column_edited = req['column']
     value_edited = req['value']
-    # store confirmed data
+    # save confirmed data
     for row, column, value in zip(row_edited, column_edited, value_edited):
         edited = dict(alarm.iloc[row])
         edited[column + '_Edited'] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
-    # reload alarm data
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    # initialize variables
-    accuracy = ''
-    confirmed_num = 0
-    correct_num = 0
-    total_num = len(set(alarm['GroupId']))
-    # count the number of confirmed groups and correct groups
-    for group_id in set(alarm['GroupId']):
-        mask = alarm['GroupId_Edited'] == group_id
-        # confirmed groups
-        if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
-            confirmed_num += 1
-        # correct groups
-        pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-        post_alarm = alarm.loc[mask][list(map(lambda x: x+'_Edited',
-                                              app.config['EDITED_COLUMNS']))]
-        post_alarm.columns = app.config['EDITED_COLUMNS']
-        if pre_alarm.equals(post_alarm):
-            correct_num += 1
-    # calculate overall accuracy
-    if confirmed_num == total_num:
-        accuracy = str(correct_num / total_num)
+    confirmed_num, accuracy = result_monitor()
     # construct json for frontend
     res = dict()
     res['accuracy'] = accuracy
@@ -252,7 +257,6 @@ def confirm():
 
 @app.route('/detail')
 def detail():
-    # reload alarm data
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -279,5 +283,5 @@ def download():
     path = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
     filename = 'verified_alarm_' + str(int(time.time())) + '_.csv'
-    return send_from_directory(path, 'alarm_format.csv',
-                               as_attachment=True, attachment_filename=filename)
+    return send_from_directory(path, 'alarm_format.csv', as_attachment=True,
+                               attachment_filename=filename)
