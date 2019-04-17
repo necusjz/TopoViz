@@ -46,32 +46,21 @@ export default class TopoTree extends Vue {
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
   public watchTopoDatas(val: NodeData[][]) {
-    this.init();
+    this.initTopoTree();
   }
   @Watch('selectAlarm')
   public watchSlectAlarm(val: string) {
     this.selectNetwork();
   }
   mounted() {
-    bus.$on('NETWORKFILTER', (neNames: string[], type: string = 'Error') => {
-      this.stage.startBatch();
-      this.stage.eachLayer((layer: xCanvas.Layer) => {
-        if (layer.getLayerType() === 'IMAGE') {
-          const dirtyData = layer.getDirtyData();
-          if (dirtyData) {
-            if (neNames.includes(dirtyData.alarmSourceName)) {
-              dirtyData.statusType = dirtyData.statusType || type;
-              const url = require(`../../assets/${dirtyData.type}-${type}.png`);
-              (layer as xCanvas.ImageLayer).setImage(url);
-            } else {
-              dirtyData.statusType = dirtyData.statusType || 'Warning';
-              const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
-              (layer as xCanvas.ImageLayer).setImage(url);
-            }
-          }
-        }
-      });
-      this.stage.endBatch();
+    bus.$on(EventType.NETWORKFILTER, (neNames: string[], type: string = 'Red') => {
+      this.updateAlarmImg(neNames, type);
+    });
+    bus.$on(EventType.RESETREDALARM, () => {
+      this.reset();
+    })
+    document.addEventListener('resize', () => {
+      this.resize();
     });
   }
   public zoom(step: number) {
@@ -85,7 +74,7 @@ export default class TopoTree extends Vue {
       stage.zoomOut();
     }
   }
-  public clearEvent() {
+  public addEvents() {
     const stage: xCanvas.Stage = this.stage;
     stage.clearAllEvents();
     stage.on('mousemove', util.throttle((e: any) => {
@@ -145,12 +134,13 @@ export default class TopoTree extends Vue {
   public leaveContainer() {
     bus.$emit(EventType.TIPVISIBLE, false);
   }
-  public init() {
+  public initTopoTree() {
     if (!this.stage) {
       this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
     }
     const size: number = 40;
-    const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size});
+    const step: number = 80;
+    const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size, step});
     helper.run();
     const stage: xCanvas.Stage = this.stage;
     stage.startBatch();
@@ -158,14 +148,27 @@ export default class TopoTree extends Vue {
     for (const edge of helper.edges) {
       const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
       const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
-      const dir = target.clone().substract(source.clone()).normalize();
-      const p1 = source.clone().add(dir.clone().scale(size / 1.5));
-      const p2 = target.clone().substract(dir.clone().scale(size / 1.5));
-      const pts: Vertex[] = [];
-      pts.push([p1.x, p1.y], [p2.x, p2.y]);
-      const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
-      const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
-      const group = new xCanvas.LayerGroup([leader, arrow]).addTo(stage);
+      const path = [];
+      if (edge.source.type ===  edge.target.type && helper.isStraight(source.x, target.x, edge.source.type)) {
+        const ydir = new xCanvas.Math.Vector2(0, -1);
+        const p1 = source.clone().add(ydir.clone().scale(size / 1.8));
+        const p2 = target.clone().add(ydir.clone().scale(size / 1.8));
+        const p3 = p1.clone().add(ydir.clone().scale(step / 3));
+        const p4 = p2.clone().add(ydir.clone().scale(step / 3));
+        path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
+        const leader = new xCanvas.Polyline(path, {color: '#0276F7'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
+      } else {
+        const dir = target.clone().substract(source.clone()).normalize();
+        const p1 = source.clone().add(dir.clone().scale(size / 1.5));
+        const p2 = target.clone().substract(dir.clone().scale(size / 1.5));
+        const pts: Vertex[] = [];
+        pts.push([p1.x, p1.y], [p2.x, p2.y]);
+        const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
+      }
     }
     let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
     for (const node of helper.nodes.values()) {
@@ -184,12 +187,46 @@ export default class TopoTree extends Vue {
     this.center = bound.getCenter();
     stage.setView(this.center);
     stage.endBatch();
-    this.clearEvent();
+    this.addEvents();
   }
   public resize() {
     if (this.stage) {
       this.stage.setView(this.center);
     }
+  }
+  public reset() {
+    this.stage.startBatch();
+    this.stage.eachLayer((layer: xCanvas.Layer) => {
+      if (layer.getLayerType() === 'IMAGE') {
+        const dirtyData = layer.getDirtyData();
+        console.log(dirtyData);
+        if (dirtyData && dirtyData.statusType === 'Red') {
+          dirtyData.statusType = 'Warning';
+          const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
+          (layer as xCanvas.ImageLayer).setImage(url);
+        }
+      }
+    });
+    this.stage.endBatch();
+  }
+  public updateAlarmImg(neNames: string[], type: string) {
+    this.stage.startBatch();
+    this.stage.eachLayer((layer: xCanvas.Layer) => {
+      if (layer.getLayerType() === 'IMAGE') {
+        const dirtyData = layer.getDirtyData();
+        if (!dirtyData) return;
+        if (neNames.includes(dirtyData.alarmSourceName)) {
+          dirtyData.statusType = dirtyData.statusType || type;
+          const url = require(`../../assets/${dirtyData.type}-${type}.png`);
+          (layer as xCanvas.ImageLayer).setImage(url);
+        } else {
+          dirtyData.statusType = dirtyData.statusType || 'Warning';
+          const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
+          (layer as xCanvas.ImageLayer).setImage(url);
+        }
+      }
+    });
+    this.stage.endBatch();
   }
   /**
    * 根据网元名称获得告警信息
@@ -230,13 +267,13 @@ export default class TopoTree extends Vue {
     height: 100%;
     background-image: url('../../assets/none-topoTree.png');
     background-position: center 40%;
-    background-size: 30% auto;
+    background-size: 290px 190px;
     background-repeat: no-repeat;
     .none-topoTree-label {
       position: absolute;
       left: 50%;
       top: 50%;
-      margin-top: 12%;
+      margin-top: 8%;
       transform: translateX(-50%);
       font-family: PingFang-SC;
       font-size: 20px;
@@ -261,6 +298,7 @@ export default class TopoTree extends Vue {
       color: #B5B2B2;
       font-size: 18px;
       line-height: 30px;
+      background: #fff;
       &:hover {
         color: #409EFF;
       }

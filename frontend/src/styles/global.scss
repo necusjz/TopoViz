@@ -9,6 +9,11 @@ ul, li, p {
     padding: 0;
     margin: 0;
     list-style: none;
+    margin-block-start: 0;
+    margin-block-end: 0;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    padding-inline-start: 0;
 }
 .confirm-btn {
     font-size: 14px;
@@ -36,7 +41,7 @@ ul, li, p {
 }
 #nprogress .bar {
     background: #ffb46a!important;
-    height: 3px!important;
+    height: 5px!important;
 }
 .fade-enter-active, .fade-leave-active {
     transition: opacity .5s;

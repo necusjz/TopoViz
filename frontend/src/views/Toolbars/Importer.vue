@@ -68,6 +68,8 @@ export default class Importer extends Vue {
     return false;
   }
   public autoUpload() {
+    // 禁止再次点击
+    this.available = false;
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
@@ -78,7 +80,6 @@ export default class Importer extends Vue {
       this.$store.commit('SET_DEFAULTDATE', dateValue);
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
-      this.available = false;
       NProgress.done();
     });
   }

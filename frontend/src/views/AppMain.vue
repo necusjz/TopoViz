@@ -91,23 +91,6 @@ export default class AppMain extends Vue {
   .app-topo-chart-none-label {
     display: none;
   }
-  .app-topo-chart.none {
-    position: relative;
-    background-image: url('../assets/none-topoChart.png');
-    background-position: center 40%;
-    background-size: 30% auto;
-    background-repeat: no-repeat;
-    .app-topo-chart-none-label {
-      display: block;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      margin-top: 12%;
-      transform: translateX(-50%);
-      font-family: PingFang-SC;
-      font-size: 20px;
-    }
-  }
   .app-rca-body {
     position: relative;
     height: calc(100% - 100px);
@@ -121,8 +104,25 @@ export default class AppMain extends Vue {
     }
     .app-topo-chart {
       margin-top: 20px;
-      min-height: 500px;
       @extend .box-border;
+      &.none {
+        position: relative;
+        background-image: url('../assets/none-topoChart.png');
+        background-position: center 40%;
+        background-size: 290px 190px;
+        background-repeat: no-repeat;
+        min-height: 600px;
+        .app-topo-chart-none-label {
+          display: block;
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          margin-top: 8%;
+          transform: translateX(-50%);
+          font-family: PingFang-SC;
+          font-size: 20px;
+        }
+      }
     }
     .app-topo-pagination, .app-statics-pagination {
       margin-top: 20px;

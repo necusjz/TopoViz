@@ -12,6 +12,7 @@ export enum EventType {
     ERRORVISIBLE = 'ERRORVISIBLE',
     NETWORKFILTER = 'NETWORKFILTER',
     FILTERRESET = 'FILTERRESET',
+    RESETREDALARM = 'RESETREDALARM',
 }
 
 export interface AppState {
