@@ -233,8 +233,8 @@ def expand():
 @app.route('/confirm', methods=['POST'])
 def confirm():
     client_id = request.headers.get('Client-Id')
-    group_id = request.args.get('groupId')
-    alarm = group_filter(group_id)
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
     # get edited information
     req = request.get_json()
     row_edited = req['row']
@@ -245,7 +245,7 @@ def confirm():
         mask = alarm['Index'] == row
         for column, value in zip(columns, values):
             alarm.loc[mask, column] = value
-        alarm.loc[mask, 'Confirmed'] = 1
+        alarm.loc[mask, 'Confirmed'] = '1'
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
@@ -292,4 +292,3 @@ def download():
                         as_attachment=True, attachment_filename=filename))
     res.headers["Content-Disposition"] = "attachment; filename={}"
     return res
-
