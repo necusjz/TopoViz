@@ -109,6 +109,7 @@ export default class StaticsBoard extends Vue {
     height: 50px;
     line-height: 50px;
     border-bottom: 1px solid #ededed;
+    padding-left: 20px;
   }
 }
 </style>
