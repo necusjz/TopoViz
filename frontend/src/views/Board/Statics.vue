@@ -50,7 +50,7 @@
             <span class="board-count">{{accuracy}}</span>
             <span>RCA精准率</span>
           </div>
-          <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count === group_count" @click="checkStatics">
+          <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count !== group_count" @click="checkStatics">
             <i class="el-icon-arrow-right board-viewer-icon"></i>
           </div> 
         </el-col>
