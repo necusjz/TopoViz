@@ -1,23 +1,26 @@
 import { MutationTree, Module } from 'vuex';
 import { StaticsRes } from '@/types/type';
+import { decimalToPercentage } from '@/util/util';
 
 interface ProjectState {
-    total_count: number;
-    p_count: number;
-    c_count: number;
-    group_count: number;
-    confirmed_count: number;
-    unconfirmed_count: number;
+    total_count: string | number;
+    p_count: string | number;
+    c_count: string | number;
+    group_count: string | number;
+    confirmed_count: string | number;
+    unconfirmed_count: string | number;
+    accuracy: string;
     groupIds: string[];
 }
 const state = {
-    total_count: 0,
-    p_count: 0,
-    c_count: 0,
-    group_count: 0,
-    confirmed_count: 0,
-    unconfirmed_count: 0,
+    total_count: '--',
+    p_count: '--',
+    c_count: '--',
+    group_count: '--',
+    confirmed_count: '--',
+    unconfirmed_count: '--',
     groupIds: [],
+    accuracy: '--'
 };
 
 const mutations: MutationTree<ProjectState> = {
@@ -28,6 +31,7 @@ const mutations: MutationTree<ProjectState> = {
         state.group_count = data.group_count;
         state.confirmed_count = data.confirmed;
         state.unconfirmed_count = data.unconfirmed;
+        state.accuracy = decimalToPercentage(data.accuracy);
     },
     SET_TOTALALARM: (state: ProjectState, count: number) => {
         state.total_count = count;

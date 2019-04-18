@@ -9,8 +9,6 @@ import 'nprogress/nprogress.css';
 
 Vue.use(ElementUI);
 
-Vue.config.productionTip = false;
-
 new Vue({
   router,
   store,

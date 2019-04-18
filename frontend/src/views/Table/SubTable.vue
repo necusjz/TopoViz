@@ -1,13 +1,11 @@
 <template>
   <div class="sub-table">
-      <el-row class="sub-table-row">
-          <el-col :span="12" class="left">Group ID</el-col>
-          <el-col :span="12">精准率</el-col>
-      </el-row>
-      <el-row class="sub-table-row" v-for="(rowData, index) in tableData" :key="index">
-        <el-col :span="12" class="left">{{rowData.groupId}}</el-col>
-        <el-col :span="12">{{rowData.precision}}</el-col>
-      </el-row>
+    <el-row class="sub-table-row">
+        <el-col :span="24" class="leftAlign">Group ID</el-col>
+    </el-row>
+    <el-row class="sub-table-row body-item" v-for="(groupId, index) in tableData" :key="index">
+      <el-col :span="24" class="leftAlign" @click.native="viewGroup(groupId)">{{groupId}}</el-col>
+    </el-row>
   </div>
 </template>
 
@@ -15,13 +13,13 @@
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 
-interface RowData {
-  groupId: string;
-  precision: string;
-}
 @Component
 export default class SubTable extends Vue {
-  @Prop() tableData!: RowData[];
+  @Prop() tableData!: string[];
+  public viewGroup(groupId: string) {
+    this.$store.commit('SET_ISCHECKSTATICS', false);
+    this.$store.commit('SET_GROUPID', groupId);
+  }
 }
 </script>
 
@@ -34,15 +32,17 @@ $Gray-border: 1px solid #f8f9ff;
     border-bottom: $Gray-border;
     box-sizing: border-box;
     text-align: center;
-    .left {
+    .leftAlign {
       text-align: left;
       padding-left: 20px;
     }
-    &:hover {
-      color: #319efa;
-      background-color: #d2ecff;
+    &.body-item {
+      cursor: pointer;
+      &:hover {
+        color: #319efa;
+        background-color: #d2ecff;
+      }
     }
-    
   }
 }
 </style>
