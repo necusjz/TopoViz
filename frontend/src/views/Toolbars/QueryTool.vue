@@ -157,7 +157,6 @@ export default class QueryTool extends Vue {
     });
     this.$store.commit("SET_GROUPID", this.groupId);
     this.visibleErrorTip = !this.groupId;
-    // bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
   }
   public locateNetWork() {
     if (this.groupId !== this.store_groupId) {
