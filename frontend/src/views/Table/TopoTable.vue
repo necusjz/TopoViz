@@ -15,7 +15,7 @@
     row-key="uid"
     :span-method="objectSpanMethod"
   >
-    <el-table-column type="selection" width="55" v-if="isunConfirmed"></el-table-column>
+    <el-table-column type="selection" width="60" v-if="isunConfirmed"></el-table-column>
     <el-table-column prop="alarmName" label="告警名称">
       <template slot-scope="scope">
         <span :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
@@ -109,6 +109,7 @@ import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import TopoInput from "../Edit/TopoInput.vue";
 import { AlarmData, RCAResult } from '@/types/type';
+import { confirmAlarmDatas } from '@/api/request';
 
 interface CellData {
   row: any;
@@ -193,7 +194,6 @@ export default class TopoTable extends Vue {
     this.activePopover = '';
   }
   public inputBlur(newRow: AlarmData) {
-    console.log(newRow);
     this.editCellId = "";
   }
   public getHeaderCellClass(item: CellData) {
@@ -263,7 +263,6 @@ export default class TopoTable extends Vue {
     }
   }
   public handleCommandRCAResult(item: AlarmData) {
-    console.log(item);
     item.rcaResult_edit = item.rcaResult_edit === 'P' ? 'C' : 'P';
   }
   public handleCommandGroupId(item: AlarmData) {
@@ -273,10 +272,32 @@ export default class TopoTable extends Vue {
   // 提交确认的数据
   public confirm(row: any, column: any) {
     if (row.type === 'statics' && column.property === 'alarmSourceName') {
-      this.editRows.forEach((row) => {
-        row.isConfirmed = true;
+      const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
+      this.editRows.forEach((grow: AlarmData) => {
+        grow.isConfirmed = true;
+        const columns: string[] = [];
+        const values: string[] = [];
+        const propsMapping: {[k: string]: string} = {
+          groupId: 'GroupId_Edited',
+          rcaResult: 'RcaResult_Edited',
+          rcaReg: 'RuleName_Edited',
+        }
+        for (const key of Object.keys(propsMapping)) {
+          if (grow[key] !== grow[`${key}_edit`]) {
+            columns.push(propsMapping[key]);
+            values.push(grow[`${key}_edit`]);
+          }
+        }
+        if (values.length > 0) {
+          data.row.push(grow.index);
+          data.columns.push(columns);
+          data.values.push(values);
+        }
       });
       this.$emit('updateCount');
+      confirmAlarmDatas(this.groupId, data).then((res) => {
+        this.$store.commit('SET_STATICS', res);
+      })
     }
   }
 }

@@ -54,8 +54,7 @@ def save_data(df, client_id):
     df.to_csv(path, index=False)
 
 
-def result_monitor():
-    client_id = request.headers.get('Client-Id')
+def result_monitor(client_id):
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     # initialize variables
@@ -168,7 +167,7 @@ def upload():
                                      app.config['ALARM_FILE']))
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
-    confirmed_num, accuracy = result_monitor()
+    confirmed_num, accuracy = result_monitor(client_id)
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
@@ -248,8 +247,9 @@ def confirm():
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
     # construct json for frontend
+    client_id = request.headers.get('Client-Id')
     res = dict()
-    confirmed_num, accuracy = result_monitor()
+    confirmed_num, accuracy = result_monitor(client_id)
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]

@@ -6,10 +6,10 @@
     </el-row>
     <div class="statics-subtable">
       <div class="statics-left-subtable sub">
-        <SubTable :tableData="data2"></SubTable>
+        <SubTable :tableData="unconfirmData"></SubTable>
       </div>
       <div class="statics-right-subtable sub">
-        <SubTable :tableData="data1"></SubTable>
+        <SubTable :tableData="confirmData"></SubTable>
       </div>
     </div>
   </div>
@@ -19,7 +19,8 @@
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import SubTable from "./SubTable.vue";
-import { AlarmData } from '@/types/type';
+import { AlarmData, StaticsRes } from '@/types/type';
+import { getStaticsGroupData } from '@/api/request';
 
 @Component({
   components: {
@@ -27,16 +28,16 @@ import { AlarmData } from '@/types/type';
   }
 })
 export default class StaticsTable extends Vue {
-    @Provide() private data1 = [];
-    @Provide() private data2 = [];
+    @Provide() private confirmData: string[] = [];
+    @Provide() private unconfirmData: string[] = [];
     @State((state) => state.app.alarmDatas) private alarmDatas: any;
-    mounted() {
-        this.data1 = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed).map((alarmData: AlarmData) => {
-            return {groupId: alarmData.groupId, precision: '80%'};
-        });
-        this.data2 = this.alarmDatas.filter((alarmData: AlarmData) => !alarmData.isConfirmed).map((alarmData: AlarmData) => {
-            return {groupId: alarmData.groupId, precision: '--'};
-        });
+    created() {
+      getStaticsGroupData().then((res) => {
+        if (res) {
+          this.confirmData = res.confirmed;
+          this.unconfirmData = res.unconfirmed;
+        }
+      });
     }
 }
 </script>
@@ -45,6 +46,7 @@ export default class StaticsTable extends Vue {
 <style lang="scss" scoped>
 $Gray-border: 1px solid #f8f9ff;
 .statics-table {
+  margin-top: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
   background-color: #ffffff;
