@@ -8,7 +8,7 @@ import json
 import os
 
 from flask import Flask, render_template, Response, abort, jsonify, request, \
-                  send_from_directory
+                  send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
@@ -243,11 +243,9 @@ def confirm():
     # save confirmed data
     for row, columns, values in zip(row_edited, columns_edited, values_edited):
         mask = alarm['Index'] == row
-        edited = dict(alarm.iloc[mask])
         for column, value in zip(columns, values):
-            edited[column] = value
-        edited['Confirmed'] = 1
-        alarm.iloc[mask] = pd.Series(edited)
+            alarm.loc[mask, column] = value
+        alarm.loc[mask, 'Confirmed'] = 1
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
@@ -283,12 +281,15 @@ def detail():
     return jsonify(res)
 
 
-@app.route('/download')
+@app.route('/download', methods=['GET'])
 def download():
     # get directory path
     client_id = request.headers.get('Client-Id')
-    path = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
+    dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
-    filename = 'verified_alarm_' + str(int(time.time())) + '_.csv'
-    return send_from_directory(path, 'alarm_format.csv', as_attachment=False,
-                               attachment_filename=filename)
+    filename = 'verified_alarm_' + str(int(time.time())) + '.csv'
+    res = make_response(send_from_directory(dirpath, 'alarm_format.csv',
+                        as_attachment=True, attachment_filename=filename))
+    res.headers["Content-Disposition"] = "attachment; filename={}"
+    return res
+
