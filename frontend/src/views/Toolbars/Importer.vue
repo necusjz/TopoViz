@@ -51,6 +51,7 @@ export default class Importer extends Vue {
   @Provide() private formatFile: any;
   @Provide() private available: boolean = false;
   @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
+  @State((state) => state.app.clientId) private clientId!: string;
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
       if (type === 'target') {
@@ -97,11 +98,7 @@ export default class Importer extends Vue {
     this.$store.commit('SET_ISCHECKSTATICS', false);
   }
   public exportData() {
-    exportAlarmData().then((res) => {
-      if (res) {
-        downLoad(res.url, res.fileName);
-      }
-    });
+    downLoad(`download?clientId=${this.clientId}`, 'exporter.csv');
   }
 }
 </script>
