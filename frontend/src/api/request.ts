@@ -20,7 +20,7 @@ export function getAlarmDatas(params: { groupId?: string, addCondition?: number,
     return service({
         url: 'analyze',
         method: 'get',
-        params
+        params: {t: Date.now(), ...params}
     })
 }
 
@@ -50,7 +50,7 @@ export function getStaticsGroupData() {
 
 export function exportAlarmData() {
     return service({
-        url: 'download',
+        url: `download?${Date.now()}`,
         method: 'get'
     })
 }
