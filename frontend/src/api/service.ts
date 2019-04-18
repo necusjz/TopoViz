@@ -1,9 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 import app from '@/store/app';
-
+import { baseUrl } from '@/util/config';
 
 const service: AxiosInstance = axios.create({
-  baseURL: process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://10.40.49.171:8080/',
+  baseURL: baseUrl,
   timeout: 150000,
 });
 
