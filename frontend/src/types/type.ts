@@ -33,6 +33,7 @@ export interface AppState {
     defaultDate: number[];
     redAlarms: string[];
     yellowAlarms: string[];
+    clientId: string;
 }
 
 export interface AlarmData {
@@ -83,6 +84,7 @@ export interface StaticsRes {
     start: number;
     end: number;
     client_id: string;
+    accuracy: number;
 }
 
 export interface AnalyzeRes {

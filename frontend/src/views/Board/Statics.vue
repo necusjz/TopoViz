@@ -1,10 +1,10 @@
 <template>
-  <div class="rca-statics-board" :class="{'rca-statics-valid': !isNonImported}">
+  <div class="rca-statics-board" :class="{'rca-statics-view': isCheckStatics}">
     <div class="rca-dec blue-text" v-if="isCheckStatics">
       <i class="el-icon-warning"></i>
       <span class="rca-waring-dec">提示：只有当前数据的所有Group ID都确认过时才可得出RCA精准率哦</span>
     </div>
-    <div class="statics-board">
+    <div class="statics-board" v-else>
       <p class="statics-title">RCA结果汇总</p>
       <el-row class="statics-board-row">
         <el-col :span="11" class="board-col board-left">
@@ -42,15 +42,15 @@
             <span class="blue-text">提示：</span>
             <span>只有当前数据的所有Group ID都处理过时才可得出RCA精准率哦</span>
             <div class="board-col-item board-precision" slot="reference">
-              <span class="board-count">{{precision}}</span>
+              <span class="board-count">{{accuracy}}</span>
               <span>RCA精准率</span>
             </div>
           </el-popover>
           <div class="board-col-item" v-else>
-            <span class="board-count">{{precision}}</span>
+            <span class="board-count">{{accuracy}}</span>
             <span>RCA精准率</span>
           </div>
-          <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count !== group_count">
+          <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count === group_count" @click="checkStatics">
             <i class="el-icon-arrow-right board-viewer-icon"></i>
           </div> 
         </el-col>
@@ -64,15 +64,14 @@ import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
 @Component
 export default class StaticsBoard extends Vue {
-  @State((state) => state.app.isNonImported) private isNonImported: any;
-  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
+  @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
   @State((state) => state.project.total_count) private total_count!: number;
   @State((state) => state.project.p_count) private p_count!: number;
   @State((state) => state.project.c_count) private c_count!: number;
   @State((state) => state.project.group_count) private group_count!: number;
   @State((state) => state.project.confirmed_count) private confirmed_count!: number;
   @State((state) => state.project.unconfirmed_count) private unconfirmed_count!: number;
-  @Provide() private precision: string = '--';
+  @State((state) => state.project.accuracy) private accuracy!: string;
   public checkStatics() {
     this.$store.commit('SET_ISCHECKSTATICS', true);
   }
@@ -81,11 +80,6 @@ export default class StaticsBoard extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-.rca-statics-valid {
-  border-radius: 8px;
-  box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
-  background-color: #ffffff;
-}
 .rca-statics-board {
   font-size: 16px;
   color: #000000;
@@ -93,6 +87,9 @@ export default class StaticsBoard extends Vue {
   text-align: left;
   display: flex;
   justify-content: space-between;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
+  background-color: #ffffff;
   .statics-board {
     width: 100%;
     .statics-title {
@@ -127,6 +124,7 @@ export default class StaticsBoard extends Vue {
           line-height: 50px;
           font-size: 36px;
           color: #979797;
+          cursor: pointer;
         }
       }
     }
@@ -149,5 +147,10 @@ export default class StaticsBoard extends Vue {
 .statics-precision {
   padding-right: 5px;
   color: #282828;
+}
+.rca-statics-view {
+  line-height: 40px;
+  background-color: transparent;
+  box-shadow: none;
 }
 </style>

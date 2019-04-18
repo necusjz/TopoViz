@@ -8,7 +8,7 @@ export function postTopoData(data: FormData) {
     })
 }
 
-export function getGroupIdsDataByInterval(params: {start: string, end: string}) {
+export function getGroupIdsDataByInterval(params: { start: string, end: string }) {
     return service({
         url: 'interval',
         method: 'get',
@@ -16,7 +16,7 @@ export function getGroupIdsDataByInterval(params: {start: string, end: string}) 
     })
 }
 
-export function getAlarmDatas(params: {groupId?: string, addCondition?: number, addValue?: string}) {
+export function getAlarmDatas(params: { groupId?: string, addCondition?: number, addValue?: string }) {
     return service({
         url: 'analyze',
         method: 'get',
@@ -24,7 +24,7 @@ export function getAlarmDatas(params: {groupId?: string, addCondition?: number, 
     })
 }
 
-export function getExpandAlarmDatas(params: {groupId: string}) {
+export function getExpandAlarmDatas(params: { groupId: string }) {
     return service({
         url: 'expand',
         method: 'get',
@@ -32,3 +32,25 @@ export function getExpandAlarmDatas(params: {groupId: string}) {
     })
 }
 
+export function confirmAlarmDatas(groupId: string, data: { row: number[], columns: string[][], values: string[][] }) {
+    return service({
+        url: 'confirm',
+        method: 'post',
+        params: { groupId },
+        data
+    })
+}
+
+export function getStaticsGroupData() {
+    return service({
+        url: 'detail',
+        method: 'get'
+    })
+}
+
+export function exportAlarmData() {
+    return service({
+        url: 'download',
+        method: 'get'
+    })
+}
