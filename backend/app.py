@@ -232,10 +232,11 @@ def expand():
 
 @app.route('/confirm', methods=['POST'])
 def confirm():
-    # get edited information
-    req = request.get_json()
+    client_id = request.headers.get('Client-Id')
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
+    # get edited information
+    req = request.get_json()
     row_edited = req['row']
     columns_edited = req['columns']
     values_edited = req['values']
@@ -246,8 +247,8 @@ def confirm():
             edited[column] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
+    save_data(alarm, client_id)
     # construct json for frontend
-    client_id = request.headers.get('Client-Id')
     res = dict()
     confirmed_num, accuracy = result_monitor(client_id)
     res['accuracy'] = accuracy
@@ -288,5 +289,5 @@ def download():
     path = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
     filename = 'verified_alarm_' + str(int(time.time())) + '_.csv'
-    return send_from_directory(path, 'alarm_format.csv', as_attachment=True,
+    return send_from_directory(path, 'alarm_format.csv', as_attachment=False,
                                attachment_filename=filename)
