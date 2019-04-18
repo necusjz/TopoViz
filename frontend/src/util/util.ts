@@ -42,3 +42,20 @@ export function generateDateByTimestamp(timeStamp: number): string {
   const s: number = date.getSeconds();
   return `${year}-${formatSingleNumber(month)}-${formatSingleNumber(day)} ${formatSingleNumber(h)}:${formatSingleNumber(m)}:${formatSingleNumber(s)}`
 }
+
+export function decimalToPercentage(decimal: number, fix?: number) {
+  if (decimal === 0) {
+    return '--';
+  } else if (fix && fix > -1) {
+    return `${(decimal * 100).toFixed(fix)}%`;
+  } else {
+    return `${decimal * 100}%`;
+  }
+}
+
+export function downLoad(url: string, fileName: string) {
+  const a: HTMLAnchorElement = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+}

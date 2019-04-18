@@ -26,12 +26,11 @@
           class="app-query-tool-group"
           :class="{'error-border-input': visibleErrorTip}"
           :fetch-suggestions="suggestion"
-          @focus="clearErrorTip"
           @select="updateCurGroupId"
           @keyup.enter.native="queryTopoData">
           <el-button slot="append" class="query-btn" icon="el-icon-search" size="small" @click="queryTopoData"></el-button>
         </el-autocomplete>
-        <span class="query-none-groupId" v-show="visibleErrorTip">注意: 请输入Group ID方可查看topo图</span>
+        <span class="query-none-groupId" v-show="visibleErrorTip">该时间段内没有分组数据</span>
       </div>
       <div class="app-query-tool-item app-query-tool-regulation">
         <el-cascader
@@ -75,12 +74,6 @@ export default class QueryTool extends Vue {
   @State((state) => state.app.groupId) private store_groupId!: string;
   @State((state) => state.app.regValue) private store_regValue!: string;
   @State((state) => state.app.defaultDate) private defaultDate!: number[];
-  @Watch('groupId')
-  public watchGroupId(val: string) {
-    if (val && !this.visibleErrorTip) {
-      this.visibleErrorTip = false;
-    }
-  }
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
     this.dateValue = this.defaultDate;
@@ -118,11 +111,16 @@ export default class QueryTool extends Vue {
   }
   public dateChange(value: number[]) {
     getGroupIdsDataByInterval({start: (value[0] / 1000).toString(), end: (value[1] / 1000).toString()}).then((res) => {
-      if (res && res['group_id'].length > 0) {
+      if (res) {
         this.$store.commit('SET_GROUPIDS', res['group_id']);
-        if (!this.store_groupId) {
-          // 初始化groupId
-          this.$store.commit('SET_GROUPID', res['group_id'][0]);
+        if (res['group_id'].length > 0) {
+          this.visibleErrorTip = false;
+          if (!this.store_groupId) {
+            // 初始化groupId
+            this.$store.commit('SET_GROUPID', res['group_id'][0]);
+          }
+        } else {
+          this.visibleErrorTip = true;
         }
       }
     })
@@ -236,9 +234,6 @@ export default class QueryTool extends Vue {
       parent.children = children;
     }
   }
-  public clearErrorTip() {
-    this.visibleErrorTip = false;
-  }
 }
 </script>
 <style lang="scss">
@@ -279,10 +274,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       }
       .query-none-groupId {
         position: absolute;
-        left: 0;
+        left: 20px;
         top: 28px;
         font-size: 12px;
-        color: #bf0000;
+        color: #e40303;
       }
     }
     .app-query-date-wrap {

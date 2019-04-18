@@ -3,7 +3,7 @@
     <!-- <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics"> -->
     <div class="app-top-right">
       <i class="app-help app-icon"></i>
-      <i class="app-account app-icon"></i>
+      <!-- <i class="app-account app-icon"></i> -->
       <!-- <el-dropdown class="app-user-dropdown">
         <span class="app-user">
           <i class="el-icon-caret-bottom"></i>
@@ -14,12 +14,12 @@
           <el-dropdown-item>退出</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown> -->
-      <div class="app-user-dropdown">
+      <!-- <div class="app-user-dropdown">
         <span class="app-user">
           <i class="el-icon-caret-bottom"></i>
           {{userName}}
         </span>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
