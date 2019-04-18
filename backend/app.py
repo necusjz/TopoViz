@@ -242,11 +242,12 @@ def confirm():
     values_edited = req['values']
     # save confirmed data
     for row, columns, values in zip(row_edited, columns_edited, values_edited):
-        edited = dict(alarm.iloc[row])
+        mask = alarm['Index'] == row
+        edited = dict(alarm.iloc[mask])
         for column, value in zip(columns, values):
             edited[column] = value
         edited['Confirmed'] = 1
-        alarm.iloc[row] = pd.Series(edited)
+        alarm.iloc[mask] = pd.Series(edited)
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
