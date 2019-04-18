@@ -58,7 +58,10 @@ export default class TopoTree extends Vue {
     });
     bus.$on(EventType.RESETREDALARM, () => {
       this.reset();
-    })
+    });
+    bus.$on(EventType.CLEARALARMNET, (noGroupAlarmsSet: Set<string>) => {
+      this.clearAlarmNet(noGroupAlarmsSet);
+    });
     document.addEventListener('resize', () => {
       this.resize();
     });
@@ -202,6 +205,20 @@ export default class TopoTree extends Vue {
         if (dirtyData) {
           const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
           (layer as xCanvas.ImageLayer).setImage(url);
+        }
+      }
+    });
+    this.stage.endBatch();
+  }
+  public clearAlarmNet(noGroupAlarms: Set<string>) {
+    this.stage.startBatch();
+    this.stage.eachLayer((layer: xCanvas.Layer) => {
+      if (layer.getLayerType() === 'IMAGE') {
+        const dirtyData = layer.getDirtyData();
+        if (dirtyData && noGroupAlarms.has(dirtyData.alarmSourceName)) {
+          const url = require(`../../assets/${dirtyData.type}.png`);
+          (layer as xCanvas.ImageLayer).setImage(url);
+          delete layer.dirtyData;
         }
       }
     });

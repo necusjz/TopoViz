@@ -284,11 +284,10 @@ def detail():
 @app.route('/download', methods=['GET'])
 def download():
     # get directory path
-    client_id = request.headers.get('Client-Id')
+    client_id = request.args.get('clientId')
     dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
     filename = 'verified_alarm_' + str(int(time.time())) + '.csv'
     res = make_response(send_from_directory(dirpath, 'alarm_format.csv',
                         as_attachment=True, attachment_filename=filename))
-    res.headers["Content-Disposition"] = "attachment; filename={}"
     return res

@@ -108,8 +108,9 @@
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import TopoInput from "../Edit/TopoInput.vue";
-import { AlarmData, RCAResult } from '@/types/type';
+import { AlarmData, RCAResult, EventType } from '@/types/type';
 import { confirmAlarmDatas } from '@/api/request';
+import bus from '@/util/bus';
 
 interface CellData {
   row: any;
@@ -129,13 +130,13 @@ export default class TopoTable extends Vue {
   @Provide() private editRows: AlarmData[] = [];
   @Provide() private needSave: boolean = false;
   @Provide() private showTip: boolean = true;
-  @Provide() private activePopover: string = '';
   @Provide() private dropLabel: string = '空';
   @Prop() private isunConfirmed!: boolean;
   @Prop() private tableData!: AlarmData[];
   @State((state) => state.app.pageData) private pageData: any;
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @State((state) => state.app.groupId) private groupId!: string;
+  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
     this.$nextTick(() => {
@@ -153,16 +154,9 @@ export default class TopoTable extends Vue {
     this.needSave = this.editRows.length > 0;
   }
   public handleCellDbclick(row: any, column: any) {
-    if (column.property) {
-      if (column.property.includes("rcaReg_edit")) {
-        this.editCellId = `${row.uid}-reg`;
-        this.inputValue = row.rcaReg_edit;
-        this.activePopover = row.uid + '-reg';
-      } else if (column.property.includes("rcaResult_edit")) {
-        this.editCellId = `${row.uid}-result`;
-        this.inputValue = row.rcaResult_edit;
-        this.activePopover = row.uid + '-result';
-      }
+    if (column.property && column.property.includes("rcaReg_edit")) {
+      this.editCellId = `${row.uid}-reg`;
+      this.inputValue = row.rcaReg_edit;
     }
   }
   public handleRowClick(row: any, column: any) {
@@ -186,12 +180,6 @@ export default class TopoTable extends Vue {
     setTimeout(() => {
       window.location.hash = '';
     });
-  }
-  public updateRowData(row: AlarmData, prop: string) {
-    if (row[prop]) {
-      row[prop] = this.dropLabel;
-    }
-    this.activePopover = '';
   }
   public inputBlur(newRow: AlarmData) {
     this.editCellId = "";
@@ -263,18 +251,34 @@ export default class TopoTable extends Vue {
     }
   }
   public handleCommandRCAResult(item: AlarmData) {
-    item.rcaResult_edit = item.rcaResult_edit === 'P' ? 'C' : 'P';
+    const result: string = item.rcaResult_edit === RCAResult.P ? RCAResult.C : RCAResult.P;
+    if (result === RCAResult.C) {
+      const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
+      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
+      if (pAlarms.length === 1) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+        return;
+      }
+    }
+    item.rcaResult_edit = result;
+    this.needSave = true;
   }
   public handleCommandGroupId(item: AlarmData) {
     const edit_groupId = this.getEditGroupIdLabel(item).trim();
     item.groupId_edit = edit_groupId;
+    this.needSave = true;
   }
   // 提交确认的数据
   public confirm(row: any, column: any) {
     if (row.type === 'statics' && column.property === 'alarmSourceName') {
       const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
-      this.editRows.forEach((grow: AlarmData) => {
-        grow.isConfirmed = true;
+      const noGroupAlarmsSet: Set<string> = new Set();
+      const rows = this.isunConfirmed ? this.editRows : this.alarmDatas;
+      rows.forEach((grow: AlarmData) => {
+        if (grow.type === 'statics') return;
+        if (this.isunConfirmed) {
+          grow.isConfirmed = true;
+        }
         const columns: string[] = [];
         const values: string[] = [];
         const propsMapping: {[k: string]: string} = {
@@ -288,17 +292,31 @@ export default class TopoTable extends Vue {
             values.push(grow[`${key}_edit`]);
           }
         }
-        if (values.length > 0) {
-          data.row.push(grow.index);
-          data.columns.push(columns);
-          data.values.push(values);
+        if (grow.groupId_edit === '空') {
+          noGroupAlarmsSet.add(grow.alarmSourceName);
         }
+        data.row.push(grow.index);
+        data.columns.push(columns);
+        data.values.push(values);
       });
       this.$emit('updateCount');
       confirmAlarmDatas(this.groupId, data).then((res) => {
         this.$store.commit('SET_STATICS', res);
+        this.$message.success('保存成功');
+        this.needSave = false;
       })
+      this.findClearAlars(noGroupAlarmsSet);
     }
+  }
+  public findClearAlars(noGroupAlarmsSet: Set<string>) {
+      for (const alarmData of this.alarmDatas) {
+        if (alarmData.groupId_edit === this.groupId && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
+          noGroupAlarmsSet.delete(alarmData.alarmSourceName);
+        }
+      }
+      if (noGroupAlarmsSet.size > 0) {
+        bus.$emit(EventType.CLEARALARMNET, noGroupAlarmsSet);
+      }
   }
 }
 </script>
