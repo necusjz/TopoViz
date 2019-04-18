@@ -15,10 +15,11 @@ const state: AppState = {
     topoDatas: [], // 拓扑树数据
     confirmData: [], // 已确认的group数据
     unconfirmData: [], // 未确认的group数据
-    selectAlarm: '',
-    defaultDate: [],
-    redAlarms: [],
-    yellowAlarms: [],
+    selectAlarm: '', // 当前选中的alarm
+    defaultDate: [], // 默认的时间区间
+    redAlarms: [], // 红色的告警元
+    yellowAlarms: [], // 黄色的告警元
+    clientId: '',
 };
 
 const mutations: MutationTree<AppState> = {
@@ -72,6 +73,9 @@ const mutations: MutationTree<AppState> = {
     },
     SET_YELLOWALARMS: (state: AppState, nets: string[]) => {
         state.yellowAlarms = nets;
+    },
+    SET_CLIENTID: (state: AppState, clienId: string) => {
+        state.clientId = clienId;
     }
 };
 

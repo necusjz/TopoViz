@@ -199,9 +199,7 @@ export default class TopoTree extends Vue {
     this.stage.eachLayer((layer: xCanvas.Layer) => {
       if (layer.getLayerType() === 'IMAGE') {
         const dirtyData = layer.getDirtyData();
-        console.log(dirtyData);
-        if (dirtyData && dirtyData.statusType === 'Red') {
-          dirtyData.statusType = 'Warning';
+        if (dirtyData) {
           const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
           (layer as xCanvas.ImageLayer).setImage(url);
         }
@@ -215,12 +213,15 @@ export default class TopoTree extends Vue {
       if (layer.getLayerType() === 'IMAGE') {
         const dirtyData = layer.getDirtyData();
         if (!dirtyData) return;
+        if (type !== 'Red') {
+          dirtyData.statusType = type;
+        } else if (!dirtyData.statusType) {
+          dirtyData.statusType = 'Warning';
+        }
         if (neNames.includes(dirtyData.alarmSourceName)) {
-          dirtyData.statusType = dirtyData.statusType || type;
           const url = require(`../../assets/${dirtyData.type}-${type}.png`);
           (layer as xCanvas.ImageLayer).setImage(url);
         } else {
-          dirtyData.statusType = dirtyData.statusType || 'Warning';
           const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
           (layer as xCanvas.ImageLayer).setImage(url);
         }

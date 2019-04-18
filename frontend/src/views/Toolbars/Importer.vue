@@ -21,7 +21,7 @@
       <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !available}" @click="submitData">确定</el-button>
     </div>
     <div class="app-export-item">
-      <el-button size="small" plain class="export-btn">导出数据</el-button>
+      <el-button size="small" plain class="export-btn" @click="exportData">导出数据</el-button>
     </div>
   </div>
 </template>
@@ -29,7 +29,7 @@
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { postTopoData } from '@/api/request';
+import { postTopoData, exportAlarmData } from '@/api/request';
 import bus from '@/util/bus';
 import { EventType, StaticsRes } from '@/types/type';
 import NProgress from 'nprogress';
@@ -75,7 +75,7 @@ export default class Importer extends Vue {
     form.append('file2', this.formatFile);
     NProgress.start();
     postTopoData(form).then((res: StaticsRes) => {
-      localStorage.setItem('client-id', res.client_id);
+      this.$store.commit('SET_CLIENTID', res.client_id);
       const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
       this.$store.commit('SET_DEFAULTDATE', dateValue);
       this.$store.commit('SET_STATICS', res);
@@ -93,6 +93,11 @@ export default class Importer extends Vue {
   }
   public goBack() {
     this.$store.commit('SET_ISCHECKSTATICS', false);
+  }
+  public exportData() {
+    exportAlarmData().then((res) => {
+      console.log(res);
+    });
   }
 }
 </script>
