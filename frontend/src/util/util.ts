@@ -1,3 +1,5 @@
+import { baseUrl } from '@/util/config';
+
 export function throttle(fn: any, delay: number = 50, isDebounce: boolean = false) {
     let timer = 0;
     let lastCall = 0;
@@ -55,7 +57,8 @@ export function decimalToPercentage(decimal: number, fix?: number) {
 
 export function downLoad(url: string, fileName: string) {
   const a: HTMLAnchorElement = document.createElement('a');
-  a.href = url;
+  a.href = `${baseUrl}${url}`;
+  a.target = '_blank';
   a.download = fileName;
   a.click();
 }
