@@ -33,6 +33,8 @@ import { postTopoData, exportAlarmData } from '@/api/request';
 import bus from '@/util/bus';
 import { EventType, StaticsRes } from '@/types/type';
 import NProgress from 'nprogress';
+import { downLoad } from '@/util/util';
+
 NProgress.configure({     
   easing: 'ease',  // 动画方式    
   speed: 500,  // 递增进度条的速度    
@@ -96,7 +98,9 @@ export default class Importer extends Vue {
   }
   public exportData() {
     exportAlarmData().then((res) => {
-      console.log(res);
+      if (res) {
+        downLoad(res.url, res.fileName);
+      }
     });
   }
 }
