@@ -81,7 +81,7 @@ def result_monitor():
     return confirmed_num, accuracy
 
 
-def interval_filter(start, end):
+def interval_limit(start, end):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -92,7 +92,7 @@ def interval_filter(start, end):
     return alarm
 
 
-def group_picker(group_id):
+def group_filter(group_id):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -184,7 +184,7 @@ def interval():
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(int(request.args.get('start')))
     z_time = datetime.fromtimestamp(int(request.args.get('end')))
-    alarm = interval_filter(a_time, z_time)
+    alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
     res['group_id'] = list(set(alarm['GroupId']))
@@ -195,7 +195,7 @@ def interval():
 def analyze():
     # generate topo tree
     group_id = request.args.get('groupId')
-    alarm = group_picker(group_id)
+    alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
     # construct json for frontend
@@ -210,14 +210,14 @@ def analyze():
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
-    alarm = group_picker(group_id)
+    alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
                                     .timestamp() - 5 * 60 - 8 * 60 * 60)
     z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
                                     .timestamp() + 5 * 60 - 8 * 60 * 60)
-    alarm = interval_filter(a_time, z_time)
+    alarm = interval_limit(a_time, z_time)
     # generate topo tree
     extra_path = find_path(set(alarm['AlarmSource']))
     topo_path = topo_path | extra_path
@@ -236,14 +236,15 @@ def confirm():
     # get edited information
     req = request.get_json()
     group_id = request.args.get('groupId')
-    alarm = group_picker(group_id)
+    alarm = group_filter(group_id)
     row_edited = req['row']
-    column_edited = req['column']
-    value_edited = req['value']
+    columns_edited = req['columns']
+    values_edited = req['values']
     # save confirmed data
-    for row, column, value in zip(row_edited, column_edited, value_edited):
+    for row, columns, values in zip(row_edited, columns_edited, values_edited):
         edited = dict(alarm.iloc[row])
-        edited[column + '_Edited'] = value
+        for column, value in zip(columns, values):
+            edited[column] = value
         edited['Confirmed'] = 1
         alarm.iloc[row] = pd.Series(edited)
     # construct json for frontend
