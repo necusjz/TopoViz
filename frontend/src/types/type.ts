@@ -13,6 +13,7 @@ export enum EventType {
     NETWORKFILTER = 'NETWORKFILTER',
     FILTERRESET = 'FILTERRESET',
     RESETREDALARM = 'RESETREDALARM',
+    CLEARALARMNET = 'CLEARALARMNET',
 }
 
 export interface AppState {
