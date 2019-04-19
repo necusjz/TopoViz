@@ -2,10 +2,10 @@
   <div class="rca-statics-board" :class="{'rca-statics-view': isCheckStatics}">
     <div class="rca-dec blue-text" v-if="isCheckStatics">
       <i class="el-icon-warning"></i>
-      <span class="rca-waring-dec">提示：只有当前数据的所有Group ID都确认过时才可得出RCA精准率哦</span>
+      <span class="rca-waring-dec">提示：只有当前数据的所有 Group ID 都确认过时才可得出 RCA 准确率哦</span>
     </div>
     <div class="statics-board" v-else>
-      <p class="statics-title">RCA结果汇总</p>
+      <p class="statics-title">RCA 结果汇总</p>
       <el-row class="statics-board-row">
         <el-col :span="11" class="board-col board-left">
           <div class="board-col-item">
@@ -14,12 +14,12 @@
           </div>
           <div class="board-col-item">
             <span class="board-count">{{p_count}}</span>
-            <span>P告警</span>
+            <span>P 告警</span>
           </div>
           <div class="board-col-item">
             <span class="board-count">{{c_count}}</span>
-            <span>C告警</span>
-          </div>         
+            <span>C 告警</span>
+          </div>
         </el-col>
         <el-col :span="13" class="board-col">
           <div class="board-col-item">
@@ -40,19 +40,19 @@
             trigger="hover"
             v-if="unconfirmed_count > 0">
             <span class="blue-text">提示：</span>
-            <span>只有当前数据的所有Group ID都处理过时才可得出RCA精准率哦</span>
+            <span>只有当前数据的所有 Group ID 都处理过时才可得出 RCA 准确率哦</span>
             <div class="board-col-item board-precision" slot="reference">
               <span class="board-count">{{accuracy}}</span>
-              <span>RCA精准率</span>
+              <span>RCA 准确率</span>
             </div>
           </el-popover>
           <div class="board-col-item" v-else>
             <span class="board-count">{{accuracy}}</span>
-            <span>RCA精准率</span>
+            <span>RCA 准确率</span>
           </div>
           <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count !== group_count" @click="checkStatics">
             <i class="el-icon-arrow-right board-viewer-icon"></i>
-          </div> 
+          </div>
         </el-col>
       </el-row>
     </div>

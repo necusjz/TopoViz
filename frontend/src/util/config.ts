@@ -9,15 +9,15 @@ const ruleOptions = [{
     value: Rules.alarmName,
     children: []
 },{
-    label: `按RCA规则查询`,
+    label: `按 RCA 规则查询`,
     value: Rules.rcaReg,
     children: []
 },{
-    label: `按P告警查询`,
+    label: `按 P 告警查询`,
     value: Rules.pAlarm,
     children: []
 },{
-    label: `按C告警查询`,
+    label: `按 C 告警查询`,
     value: Rules.cAlarm,
     children: []
 }];
