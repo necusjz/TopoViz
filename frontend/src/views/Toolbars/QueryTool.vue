@@ -20,7 +20,7 @@
       </div>
       <div class="app-query-tool-item app-query-tool-group-wrap">
         <el-autocomplete
-          placeholder="请输入Group ID"
+          placeholder="请输入 Group ID"
           v-model="groupId"
           size="small"
           class="app-query-tool-group"

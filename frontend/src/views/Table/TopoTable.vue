@@ -70,7 +70,7 @@
         </el-dropdown>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaResult_edit" label="RCA结果" width="90">
+    <el-table-column prop="rcaResult_edit" label="RCA 结果" width="90">
       <template slot-scope="scope">
         <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" placement="bottom">
           <span :title="scope.row.rcaResult_edit">
@@ -256,7 +256,7 @@ export default class TopoTable extends Vue {
       const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
       const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
       if (pAlarms.length === 1) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+        bus.$emit(EventType.ERRORVISIBLE, '<p>一组 Group ID 的数据中至少包含一个 P 告警哦，请查询后再编辑。</p>');
         return;
       }
     }

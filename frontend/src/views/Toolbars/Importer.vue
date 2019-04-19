@@ -7,18 +7,18 @@
     </div>
     <div class="app-importer-item app-importer-excel">
       <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false">
-        <el-button size="small" class="upload-btn">{{targetName || '导入Topo数据'}}
+        <el-button size="small" class="upload-btn">{{targetName || '导入 TOPO 数据'}}
           <i class="upload-icon"></i>
         </el-button>
       </el-upload>
       <el-upload class="upload-format" action :before-upload="beforeUpload.bind(null, 'format')" :show-file-list="false">
-        <el-button size="small" class="upload-btn">{{formatName || '导入历史告警数据'}}
+        <el-button size="small" class="upload-btn">{{formatName || '导入 RCA 结果'}}
           <i class="upload-icon"></i>
         </el-button>
       </el-upload>
     </div>
     <div class="app-importer-item">
-      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !available}" @click="submitData">确定</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !available}" @click="submitData">上传</el-button>
     </div>
     <div class="app-export-item">
       <el-button size="small" plain class="export-btn" @click="exportData">导出数据</el-button>
@@ -35,11 +35,11 @@ import { EventType, StaticsRes } from '@/types/type';
 import NProgress from 'nprogress';
 import { downLoad } from '@/util/util';
 
-NProgress.configure({     
-  easing: 'ease',  // 动画方式    
-  speed: 500,  // 递增进度条的速度    
-  showSpinner: false, // 是否显示加载ico    
-  trickleSpeed: 200, // 自动递增间隔    
+NProgress.configure({
+  easing: 'ease',  // 动画方式
+  speed: 500,  // 递增进度条的速度
+  showSpinner: false, // 是否显示加载ico
+  trickleSpeed: 200, // 自动递增间隔
   minimum: 0.3 // 初始化时的最小百分比
 })
 
@@ -175,4 +175,3 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   }
 }
 </style>
-
