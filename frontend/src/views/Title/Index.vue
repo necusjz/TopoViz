@@ -53,7 +53,7 @@ export default class Title extends Vue {
       position: absolute;
       height: 50px;
       top: 0;
-      right: 20px;
+      right: 10px;
       display: flex;
       justify-content: flex-end;
       align-items: center;
