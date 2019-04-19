@@ -8,7 +8,7 @@ import json
 import os
 
 from flask import Flask, render_template, Response, abort, jsonify, request, \
-                  send_from_directory, make_response
+                  send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
@@ -288,6 +288,5 @@ def download():
     dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
     filename = 'verified_alarm_' + str(int(time.time())) + '.csv'
-    res = make_response(send_from_directory(dirpath, 'alarm_format.csv',
-                        as_attachment=True, attachment_filename=filename))
-    return res
+    return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
+                               attachment_filename=filename)
