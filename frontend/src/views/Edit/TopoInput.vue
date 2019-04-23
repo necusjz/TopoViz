@@ -30,10 +30,8 @@ export default class TopoInput extends Vue {
   public emitData() {
     // 校验输入的数据
     const validStr: string = this.inputValue.trim();
-    if (validStr) {
-      this.row[this.attr] = validStr;
-      this.$emit("blur", this.row);
-    }
+    this.row[this.attr] = validStr;
+    this.$emit("blur", this.row);
   }
 }
 </script>
