@@ -185,7 +185,7 @@ def upload():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['group_count'] = len(set(alarm['GroupId_Edited']))
+    res['group_count'] = alarm['GroupId_Edited'].count()
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
@@ -258,9 +258,12 @@ def confirm():
     # save confirmed data
     for row, columns, values in zip(row_edited, columns_edited, values_edited):
         mask = alarm['Index'] == row
+
         for column, value in zip(columns, values):
             alarm.loc[mask, column] = value
-        alarm.loc[mask, 'Confirmed'] = '1'
+
+        if alarm.loc[mask, 'Group_Edited']:
+            alarm.loc[mask, 'Confirmed'] = '1'
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
@@ -269,7 +272,7 @@ def confirm():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['group_count'] = len(set(alarm['GroupId_Edited']))
+    res['group_count'] = alarm['GroupId_Edited'].count()
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
