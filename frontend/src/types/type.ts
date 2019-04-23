@@ -1,10 +1,11 @@
 export interface Node {
-    id: string;
-    content: string;
-    pId: string | null;
-    layer: any;
-    childs: Node[];
-    type: string;
+    id: string | number;
+    type?: string;
+}
+
+export interface Edge {
+    from: string | number;
+    to: string | number;
 }
 
 export enum EventType {
