@@ -185,7 +185,7 @@ def upload():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['group_count'] = alarm['GroupId_Edited'].count()
+    res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
@@ -272,7 +272,7 @@ def confirm():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['group_count'] = alarm['GroupId_Edited'].count()
+    res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
