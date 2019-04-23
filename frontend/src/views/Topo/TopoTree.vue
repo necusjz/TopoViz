@@ -23,7 +23,7 @@ import { Component, Prop, Vue, Provide, Watch } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
 import { Vertex } from '@/lib/typeof/typeof';
-import { Node, Edge, EventType, NodeData, AlarmData } from '../../types/type';
+import { Node, Edge, EventType, AlarmData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
@@ -42,15 +42,15 @@ export default class TopoTree extends Vue {
   @Provide() private center: Vertex = [0, 0];
   @Provide() private borderLayer!: xCanvas.Layer;
   @Provide() private size: number = 40;
+  @Provide() private temp: any;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
-  @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
+  @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
-  public watchTopoDatas(val: NodeData[][]) {
-    // this.initTopoTree();
-    this.buildGraph();
+  public watchTopoDatas(val: {elements: Node[], edges: Edge[]}) {
+    this.buildTopoTree();
   }
   @Watch('selectAlarm')
   public watchSlectAlarm(val: string) {
@@ -58,7 +58,11 @@ export default class TopoTree extends Vue {
   }
   mounted() {
     bus.$on(EventType.NETWORKFILTER, (neNames: string[], type: string = 'Red') => {
-      this.updateAlarmImg(neNames, type);
+      if (type !== 'Red') {
+        this.temp = this.updateAlarmImg.bind(this, neNames, type);
+      } else {
+        this.updateAlarmImg(neNames, type);
+      }
     });
     bus.$on(EventType.RESETREDALARM, () => {
       this.reset();
@@ -80,7 +84,6 @@ export default class TopoTree extends Vue {
     } else {
       stage.zoomOut();
     }
-    // this.buildGraph();
   }
   public addEvents() {
     const stage: xCanvas.Stage = this.stage;
@@ -142,29 +145,32 @@ export default class TopoTree extends Vue {
   public leaveContainer() {
     bus.$emit(EventType.TIPVISIBLE, false);
   }
-  public buildGraph() {
+  public buildTopoTree() {
     const graph = new ht.graph.GraphView();
     const dm = graph.dm();
-    const nodes = new Map();
+    const nodes: Map<string, Node> = new Map();
     const edges: any = [];
-    for (var i = 0; i < topoData.nodes.length; i++) {
-      const node = topoData.nodes[i];
-      var router = new ht.Node();
-      nodes.set(node.id, router);
-      dm.add(router);
+    for (const element of this.topoDatas.elements) {
+      const node = new ht.Node();
+      nodes.set(element.name, {...element, data: node});
+      dm.add(node);
     }
-    for (let i = 0; i < topoData.edges.length; i++) {
-      const from = nodes.get(topoData.edges[i].from);
-      const to = nodes.get(topoData.edges[i].to);
-      const edge = new ht.Edge(from, to);
-      dm.add(edge);
-      edges.push(edge);
+    for (const edg of this.topoDatas.edges) {
+      const from = nodes.get(edg.from);
+      const to = nodes.get(edg.to);
+      if (from && to) {
+        const edge = new ht.Edge(from.data, to.data);
+        dm.add(edge);
+        edges.push(edge);
+      }
     }
     const autoLayout = new ht.layout.AutoLayout(graph);
     autoLayout.setRepulsion(1);
     autoLayout.layout("symmetric", () => { // symmetric
       graph.fitContent();
       this.drawTopoTree(nodes, edges);
+      this.temp && this.temp();
+      this.temp = null;
     });
   }
   public drawTopoTree(nodes: any, edges: any) {
@@ -181,70 +187,22 @@ export default class TopoTree extends Vue {
       const leader = new xCanvas.Polyline([[from.x, from.y], [to.x, to.y]], {color: '#0276F7'});
       this.stage.addLayer(leader);
     }
-    for (const [id, node] of nodes) {
+    for (const [id, element] of nodes) {
+      const node = element.data;
       const position = node.getPosition();
-      const url = require(`../../assets/MicroWave-Warning.png`);
+      const dirtyData = this.getDataByAlarmSourceName(element.name);
+      const ex: string = dirtyData ? '-Warning' : '';
+      const url = require(`../../assets/${element.type}${ex}.png`);
       const childLayer = new xCanvas.ImageLayer(url, position.x, position.y, size, size).addTo(this.stage);
+      if (dirtyData) {
+        childLayer.setDirtyData({...dirtyData, type: element.type});
+      }
       // const childLayer = new xCanvas.IText([position.x, position.y], id).addTo(this.stage);
       bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
     }
     this.center = bound.getCenter();
     this.stage.setView(this.center);
     this.stage.endBatch();
-  }
-  public initTopoTree() {
-    if (!this.stage) {
-      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
-    }
-    const size: number = 40;
-    const step: number = 80;
-    const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size, step});
-    helper.run();
-    const stage: xCanvas.Stage = this.stage;
-    stage.startBatch();
-    this.stage.clearAllLayers();
-    for (const edge of helper.edges) {
-      const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
-      const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
-      const path = [];
-      if (edge.source.type ===  edge.target.type && helper.isStraight(source.x, target.x, edge.source.type)) {
-        const ydir = new xCanvas.Math.Vector2(0, -1);
-        const p1 = source.clone().add(ydir.clone().scale(size / 1.8));
-        const p2 = target.clone().add(ydir.clone().scale(size / 1.8));
-        const p3 = p1.clone().add(ydir.clone().scale(step / 3));
-        const p4 = p2.clone().add(ydir.clone().scale(step / 3));
-        path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
-        const leader = new xCanvas.Polyline(path, {color: '#0276F7'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
-      } else {
-        const dir = target.clone().substract(source.clone()).normalize();
-        const p1 = source.clone().add(dir.clone().scale(size / 1.5));
-        const p2 = target.clone().substract(dir.clone().scale(size / 1.5));
-        const pts: Vertex[] = [];
-        pts.push([p1.x, p1.y], [p2.x, p2.y]);
-        const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
-      }
-    }
-    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
-    for (const node of helper.nodes.values()) {
-      const dirtyData = this.getDataByAlarmSourceName(node.name);
-      let ex: string = '';
-      if (dirtyData) {
-        ex = '-Warning';
-      }
-      const url = require(`../../assets/${node.type}${ex}.png`);
-      const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
-      if (dirtyData) {
-        childLayer.setDirtyData({...dirtyData, type: node.type});
-      }
-      bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
-    }
-    this.center = bound.getCenter();
-    stage.setView(this.center);
-    stage.endBatch();
     this.addEvents();
   }
   public resize() {
@@ -290,13 +248,15 @@ export default class TopoTree extends Vue {
         } else if (!dirtyData.statusType) {
           dirtyData.statusType = 'Warning';
         }
+        let url: string = '';
         if (neNames.includes(dirtyData.alarmSourceName)) {
-          const url = require(`../../assets/${dirtyData.type}-${type}.png`);
+          url = require(`../../assets/${dirtyData.type}-${type}.png`);
           (layer as xCanvas.ImageLayer).setImage(url);
         } else {
-          const url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
-          (layer as xCanvas.ImageLayer).setImage(url);
+          url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
         }
+        console.log(dirtyData.alarmSourceName, url);
+        (layer as xCanvas.ImageLayer).setImage(url);
       }
     });
     this.stage.endBatch();
