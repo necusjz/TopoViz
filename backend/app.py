@@ -68,15 +68,15 @@ def result_monitor(client_id):
             confirmed_num += 1
             # count the number of correct groups
             pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-            post_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
-                                              app.config['EDITED_COLUMNS']))]
-            post_alarm.columns = app.config['EDITED_COLUMNS']
-            if pre_alarm.equals(post_alarm):
+            pst_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
+                                                 app.config['EDITED_COLUMNS']))]
+            pst_alarm.columns = app.config['EDITED_COLUMNS']
+            if pre_alarm.equals(pst_alarm):
                 correct_num += 1
     # calculate global accuracy
     if confirmed_num == total_num:
         accuracy = correct_num / total_num
-    return confirmed_num, accuracy
+    return alarm, confirmed_num, accuracy
 
 
 def interval_limit(start, end):
@@ -115,30 +115,35 @@ def find_path(alarms):
 
 
 def build_tree(paths):
-    elements = []
-    edges = []
+    total_element = []
+    total_edge = []
     for path in paths:
+        element = []
+        # get elements for per path
         client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
-            elements.append({'NEName': ne_name, 'NEType': ne_type})
-
-        for i in range(0, len(elements) - 1):
+            element.append({'NEName': ne_name, 'NEType': ne_type})
+        # add elements to total
+        total_element.extend(element)
+        # get edges according to elements
+        for i in range(0, len(element) - 1):
             edge = dict()
-            edge['from'] = elements[i]['NEName']
-            edge['to'] = elements[i+1]['NEName']
-            edges.append(edge)
-
-    elements = unique_dict(elements)
-    edges = unique_dict(edges)
+            edge['from'] = element[i]['NEName']
+            edge['to'] = element[i+1]['NEName']
+            total_edge.append(edge)
+    # deduplication for elements and edges
+    elements = unique_dict(total_element)
+    edges = unique_dict(total_edge)
     return elements, edges
 
 
 def unique_dict(dicts):
     seen = set()
     unique = []
+    # deduplication
     for d in dicts:
         t = tuple(d.items())
         if t not in seen:
@@ -176,11 +181,9 @@ def upload():
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
+    alarm, confirmed_num, accuracy = result_monitor(client_id)
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
-    confirmed_num, accuracy = result_monitor(client_id)
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
@@ -258,10 +261,10 @@ def confirm():
     # save confirmed data
     for row, columns, values in zip(row_edited, columns_edited, values_edited):
         mask = alarm['Index'] == row
-
+        # edit each row
         for column, value in zip(columns, values):
             alarm.loc[mask, column] = value
-
+        # fill confirmed field
         if alarm.loc[mask, 'GroupId_Edited'].any():
             alarm.loc[mask, 'Confirmed'] = '1'
         else:
@@ -269,9 +272,7 @@ def confirm():
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    confirmed_num, accuracy = result_monitor(client_id)
+    alarm, confirmed_num, accuracy = result_monitor(client_id)
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
