@@ -116,23 +116,36 @@ def find_path(alarms):
 
 
 def build_tree(paths):
-    elements = set()
-    edges = set()
+    elements = []
+    edges = []
     for path in paths:
         client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
-            elements.add({'NEName': ne_name, 'NEType': ne_type})
+            elements.append({'NEName': ne_name, 'NEType': ne_type})
+
         edge = dict()
         for i in range(0, len(elements) - 1):
             edge['from'] = elements[i]['NEName']
             edge['to'] = elements[i+1]['NEName']
-            edges.add(edge)
-    # elements = list(elements)
-    # edges = list(edges)
+            edges.append(edge)
+
+    elements = unique_dict(elements)
+    edges = unique_dict(edges)
     return elements, edges
+
+
+def unique_dict(dicts):
+    seen = set()
+    unique = []
+    for d in dicts:
+        t = tuple(d.items())
+        if t not in seen:
+            seen.add(t)
+            unique.append(d)
+    return unique
 
 
 @app.route('/', methods=['GET'])
