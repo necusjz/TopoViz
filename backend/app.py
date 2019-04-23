@@ -264,6 +264,8 @@ def confirm():
 
         if alarm.loc[mask, 'GroupId_Edited'].any():
             alarm.loc[mask, 'Confirmed'] = '1'
+        else:
+            alarm.loc[mask, 'Confirmed'] = ''
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
