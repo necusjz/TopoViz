@@ -93,6 +93,9 @@ export default class QueryTool extends Vue {
       this.$store.commit("SET_REGVALUE", '');
       this.$store.commit("SET_REGTYPE", '');
     });
+    bus.$on(EventType.QUERY, () => {
+      this.queryTopoData();
+    });
   }
   public suggestion(val: string, cb: any) {
     const suggestions = this.groupIds.filter((id: string) => val ? id.toLowerCase().includes(val.toLowerCase()) : true)
@@ -136,15 +139,13 @@ export default class QueryTool extends Vue {
     this.$store.commit("SET_REGTYPE", '');
     getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
       const table = data.table;
-      const topoData = data.topo;
-      if (topoData && topoData.length > 0) {
+      if (data.elements.length > 0 && data.edges.length > 0) {
         this.$store.commit('SET_ISNONETOPODATA', false);
-        const topoTreeData = data.topo.map((path: any) => {
-          return path.reverse().map((node: any) => {
-            return { name: node.NEName, type: node.NEType };
-          });
+        const elements = data.elements.map((ele) => {
+          return {name: ele.NEName, type: ele.NEType};
         });
-        this.$store.commit('SET_TOPODATA', topoTreeData);
+        const edges = data.edges;
+        this.$store.commit('SET_TOPODATA', {elements, edges});
       }
       if (table && table.length > 0) {
         this.$store.commit('SET_ISNONETABLEDATA', false);

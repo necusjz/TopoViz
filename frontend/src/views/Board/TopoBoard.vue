@@ -25,7 +25,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Provide, Watch, Mixins } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { Rules, AlarmData, NodeData, EventType } from '@/types/type';
+import { Rules, AlarmData, Node, Edge, EventType } from '@/types/type';
 import { getExpandAlarmDatas } from '@/api/request';
 import CommonMixin from '@/components/mixins/commonMixin.vue';
 import bus from '@/util/bus';
@@ -37,11 +37,11 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
   @State((state) => state.app.regType) private regType: any;
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
-  @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
+  @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
   @Provide() private status: boolean = false;
   @Provide() private conditionLabel: string = '';
   @Provide() private oldAlarmDatas!: AlarmData[];
-  @Provide() private oldTopoDatas!: NodeData[][];
+  @Provide() private oldTopoDatas!: {elements: Node[], edges: Edge[]};
   @Watch('regType')
   public watchRegType(val: string) {
     if (val) {
@@ -68,21 +68,18 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
           const alarmDatas = res.table.map((item: any) => this.formatData(item));
           this.$store.commit('SET_ALARMDATAS', alarmDatas);
         }
-        if (res.topo) {
-          const topoTreeData = res.topo.map((path: any) => {
-            return path.reverse().map((node: any) => {
-              return { name: node.NEName, type: node.NEType };
-            });
+        if (res.elements.length > 0 && res.edges.length > 0) {
+          this.$store.commit('SET_ISNONETOPODATA', false);
+          const elements = res.elements.map((ele: Node) => {
+            return {name: ele.NEName, type: ele.NEType};
           });
-          this.$store.commit('SET_TOPODATA', topoTreeData);
-          setTimeout(() => {
-            bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
-          });
+          const edges = res.edges;
+          this.$store.commit('SET_TOPODATA', {elements, edges});
+          bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
         }
       });
     } else {
-      this.$store.commit('SET_ALARMDATAS', this.oldAlarmDatas);
-      this.$store.commit('SET_TOPODATA', this.oldTopoDatas);
+      bus.$emit(EventType.QUERY);
     }
   }
 }

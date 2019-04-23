@@ -20,7 +20,7 @@ export function getAlarmDatas(params: { groupId?: string, addCondition?: number,
     return service({
         url: 'analyze',
         method: 'get',
-        params: {t: Date.now(), ...params}
+        params: {...params, t: Date.now()}
     })
 }
 
