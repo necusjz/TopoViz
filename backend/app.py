@@ -267,6 +267,8 @@ def confirm():
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
     confirmed_num, accuracy = result_monitor(client_id)
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
