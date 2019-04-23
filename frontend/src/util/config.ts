@@ -22,7 +22,7 @@ const ruleOptions = [{
     children: []
 }];
 
-const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://localhost:5000/';
+const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : '10.40.49.171:5000';
 
 export {
     ruleOptions,
