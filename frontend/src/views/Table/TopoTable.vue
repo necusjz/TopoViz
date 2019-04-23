@@ -22,7 +22,7 @@
         <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="alarmSourceName" label="告警源名称">
+    <el-table-column prop="alarmSourceName" label="告警源">
       <template slot-scope="scope">
         <span :id="scope.row.alarmSourceName" :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
       </template>
