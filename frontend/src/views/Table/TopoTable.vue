@@ -1,5 +1,6 @@
 <template>
   <el-table
+    ref="table"
     class="topoTable"
     :class="{'topoTable-none-confirm': isunConfirmed}"
     :data="tableData"
@@ -9,7 +10,6 @@
     :header-cell-class-name="getHeaderCellClass"
     header-row-class-name="topoTable-header-row"
     @selection-change="handleSelectionChange"
-    @cell-dblclick="handleCellDbclick"
     @cell-click="confirm"
     @row-click="handleRowClick"
     row-key="uid"
@@ -59,33 +59,73 @@
     </el-table-column>
     <el-table-column prop="groupId_edit" label="Group ID" width="180">
       <template slot-scope="scope">
-        <el-dropdown trigger="click" size="small" @command="handleCommandGroupId" placement="bottom">
-          <span :title="scope.row.groupId_edit">
-            {{scope.row.groupId_edit}}
-            <i class="el-icon-arrow-down el-icon--right"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown" class="group_dropdown">
-            <el-dropdown-item :command="scope.row">{{getEditGroupIdLabel(scope.row)}}</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        <el-popover
+            popper-class="edit-history-wrap"
+            placement="bottom"
+            :width="100"
+            :disabled="popoverDisable || scope.row.groupId === scope.row.groupId_edit"
+            trigger="hover">
+            <div class="edit-record">
+              <p class="gray-text">修改前：</p>
+              <p>{{scope.row.groupId}}</p>
+              <p class="gray-text">修改后：</p>
+              <p>{{scope.row.groupId_edit}}</p>
+            </div>
+            <el-dropdown trigger="click" size="small" @visible-change="dropDownVisble" @command="handleCommandGroupId" placement="bottom" slot="reference">
+              <span :title="scope.row.groupId_edit">
+                {{scope.row.groupId_edit}}
+                <i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown" class="group_dropdown">
+                <el-dropdown-item :command="scope.row">{{getEditGroupIdLabel(scope.row)}}</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </el-popover>
       </template>
     </el-table-column>
     <el-table-column prop="rcaResult_edit" label="RCA 结果" width="90">
       <template slot-scope="scope">
-        <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" placement="bottom">
-          <span :title="scope.row.rcaResult_edit">
-            {{scope.row.rcaResult_edit}}
-            <i class="el-icon-arrow-down el-icon--right"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item :command="scope.row">{{scope.row.rcaResult_edit === 'C' ? 'P' : 'C'}}</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        <el-popover
+            popper-class="edit-history-wrap"
+            placement="bottom"
+            :disabled="popoverDisable || scope.row.rcaResult === scope.row.rcaResult_edit"
+            trigger="hover">
+            <div class="edit-record">
+              <p class="gray-text">修改前：</p>
+              <p>{{scope.row.rcaResult}}</p>
+              <p class="gray-text">修改后：</p>
+              <p>{{scope.row.rcaResult_edit}}</p>
+            </div>
+            <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" @visible-change="dropDownVisble" placement="bottom" slot="reference">
+              <span :title="scope.row.rcaResult_edit">
+                {{scope.row.rcaResult_edit}}
+                <i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item :command="scope.row">{{scope.row.rcaResult_edit === 'C' ? 'P' : 'C'}}</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </el-popover>
       </template>
     </el-table-column>
     <el-table-column prop="rcaReg_edit" label="RCA 规则" min-width="180px">
       <template slot-scope="scope">
-        <span v-show="editCellId !== `${scope.row.uid}-reg`" :title="scope.row.rcaReg_edit">{{scope.row.rcaReg_edit}}</span>
+        <el-popover
+            popper-class="edit-history-wrap"
+            placement="bottom"
+            :disabled="popoverDisable || scope.row.rcaReg === scope.row.rcaReg_edit"
+            trigger="hover">
+          <div class="edit-record">
+            <p class="gray-text">修改前：</p>
+            <p>{{scope.row.rcaReg}}</p>
+            <p class="gray-text">修改后：</p>
+            <p>{{scope.row.rcaReg_edit}}</p>
+          </div>
+          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference">
+            <span :title="scope.row.rcaReg_edit" class="rcaReg-label">{{scope.row.rcaReg_edit}}</span>
+            <i class="el-icon-edit" @click="handleCellClick(scope.row)"></i>
+          </div>
+        </el-popover>
         <TopoInput
           class="topoTable-hidden-input"
           v-if="editCellId === `${scope.row.uid}-reg`"
@@ -131,6 +171,7 @@ export default class TopoTable extends Vue {
   @Provide() private needSave: boolean = false;
   @Provide() private showTip: boolean = true;
   @Provide() private dropLabel: string = '空';
+  @Provide() private popoverDisable: boolean = false;
   @Prop() private isunConfirmed!: boolean;
   @Prop() private tableData!: AlarmData[];
   @State((state) => state.app.pageData) private pageData: any;
@@ -144,7 +185,7 @@ export default class TopoTable extends Vue {
     });
   }
   @Watch('selectAlarm')
-  public watxhSelectAlarm(val: string) {
+  public watchSelectAlarm(val: string) {
     this.$nextTick(() => {
       this.updateStyleOfPrev();
     });
@@ -153,14 +194,14 @@ export default class TopoTable extends Vue {
     this.editRows = Array.from(new Set(rows));
     this.needSave = this.editRows.length > 0;
   }
-  public handleCellDbclick(row: any, column: any) {
-    if (column.property && column.property.includes("rcaReg_edit")) {
-      this.editCellId = `${row.uid}-reg`;
-      this.inputValue = row.rcaReg_edit;
-    }
+  public handleCellClick(row: AlarmData) {
+    this.editCellId = `${row.uid}-reg`;
+    this.inputValue = row.rcaReg_edit;
+    this.popoverDisable = true;
   }
-  public handleRowClick(row: any, column: any) {
-    if (column.property) {
+  public handleRowClick(row: AlarmData, column: any) {
+    if (row.type === 'statics' || !column) return;
+    if (column && column.property) {
       if (column.property === 'groupId_edit') {
         // 同组
         if (row.groupId === this.groupId) {
@@ -171,9 +212,7 @@ export default class TopoTable extends Vue {
       } else if (column.property === 'rcaResult_edit') {
         this.dropLabel = row.rcaResult_edit === RCAResult.P ? RCAResult.C : RCAResult.P;
       }
-    }
-    if (row.type === 'statics' || column.property && /(rcaReg_edit)|(groupId_edit)|(rcaResult_edit)/.test(column.property)) {
-      return;
+      if (/(rcaReg_edit)|(groupId_edit)|(rcaResult_edit)/.test(column.property)) return;
     }
     window.location.hash = '#stage';
     this.$store.commit('SET_SELECTALARM', row.alarmSourceName);
@@ -183,6 +222,8 @@ export default class TopoTable extends Vue {
   }
   public inputBlur(newRow: AlarmData) {
     this.editCellId = "";
+    this.setSelectedRow(newRow);
+    this.popoverDisable = false;
   }
   public getHeaderCellClass(item: CellData) {
     let headerCellClassName: string = "bg-gray ";
@@ -241,6 +282,10 @@ export default class TopoTable extends Vue {
       }
     }
   }
+  // popover是否可见
+  public dropDownVisble(visible: boolean) {
+    this.popoverDisable = visible;
+  }
   public getEditGroupIdLabel(item: AlarmData): string {
     if (item.groupId_edit === '空') {
       return this.groupId;
@@ -261,12 +306,26 @@ export default class TopoTable extends Vue {
       }
     }
     item.rcaResult_edit = result;
-    this.needSave = true;
+    this.setSelectedRow(item);
   }
   public handleCommandGroupId(item: AlarmData) {
     const edit_groupId = this.getEditGroupIdLabel(item).trim();
+    if (item.rcaResult_edit === RCAResult.P) {
+      const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
+      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
+      if (pAlarms.length === 1) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+        return;
+      }
+    }
     item.groupId_edit = edit_groupId;
+    this.setSelectedRow(item);
+  }
+  // 设置选中的行
+  public setSelectedRow(row: AlarmData) {
     this.needSave = true;
+    const table: any = this.$refs.table;
+    table.toggleRowSelection(row, true);
   }
   // 提交确认的数据
   public confirm(row: any, column: any) {
@@ -276,9 +335,6 @@ export default class TopoTable extends Vue {
       const rows = this.isunConfirmed ? this.editRows : this.alarmDatas;
       rows.forEach((grow: AlarmData) => {
         if (grow.type === 'statics') return;
-        if (this.isunConfirmed) {
-          grow.isConfirmed = true;
-        }
         const columns: string[] = [];
         const values: string[] = [];
         const propsMapping: {[k: string]: string} = {
@@ -294,6 +350,8 @@ export default class TopoTable extends Vue {
         }
         if (grow.groupId_edit === '空') {
           noGroupAlarmsSet.add(grow.alarmSourceName);
+        } else {
+          grow.isConfirmed = true;
         }
         data.row.push(grow.index);
         data.columns.push(columns);
@@ -309,14 +367,17 @@ export default class TopoTable extends Vue {
     }
   }
   public findClearAlars(noGroupAlarmsSet: Set<string>) {
-      for (const alarmData of this.alarmDatas) {
-        if (alarmData.groupId_edit === this.groupId && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
-          noGroupAlarmsSet.delete(alarmData.alarmSourceName);
-        }
+
+    for (let i = this.alarmDatas.length - 1; i >= 0; i--) {
+      const alarmData = this.alarmDatas[i];
+      if (alarmData.groupId_edit === this.groupId && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
+        this.alarmDatas.splice(i, 1);
+        noGroupAlarmsSet.delete(alarmData.alarmSourceName);
       }
-      if (noGroupAlarmsSet.size > 0) {
-        bus.$emit(EventType.CLEARALARMNET, noGroupAlarmsSet);
-      }
+    }
+    if (noGroupAlarmsSet.size > 0) {
+      bus.$emit(EventType.CLEARALARMNET, noGroupAlarmsSet);
+    }
   }
 }
 </script>
@@ -391,6 +452,9 @@ export default class TopoTable extends Vue {
       }
     }
   }
+  .rcaReg-label {
+    padding-right: 5px;
+  }
   .topoTable-hidden-input {
     position: relative;
   }
@@ -429,5 +493,13 @@ export default class TopoTable extends Vue {
 }
 .group_dropdown {
   min-width: 120px;
+}
+.edit-history-wrap {
+  min-width: fit-content!important;
+}
+.edit-record {
+  font-size: 12px;
+  color: #282828;
+  line-height: 20px;
 }
 </style>

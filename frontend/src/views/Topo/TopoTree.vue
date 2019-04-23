@@ -23,11 +23,14 @@ import { Component, Prop, Vue, Provide, Watch } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
 import { Vertex } from '@/lib/typeof/typeof';
-import { Node, EventType, NodeData, AlarmData } from '../../types/type';
+import { Node, Edge, EventType, NodeData, AlarmData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
 import TopoTreeHelper from '@/util/topoTree';
+import topoData from './data.json';
+
+declare const ht: any;
 
 @Component({
   components: {
@@ -46,7 +49,8 @@ export default class TopoTree extends Vue {
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
   public watchTopoDatas(val: NodeData[][]) {
-    this.initTopoTree();
+    // this.initTopoTree();
+    this.buildGraph();
   }
   @Watch('selectAlarm')
   public watchSlectAlarm(val: string) {
@@ -76,6 +80,7 @@ export default class TopoTree extends Vue {
     } else {
       stage.zoomOut();
     }
+    // this.buildGraph();
   }
   public addEvents() {
     const stage: xCanvas.Stage = this.stage;
@@ -136,6 +141,56 @@ export default class TopoTree extends Vue {
   }
   public leaveContainer() {
     bus.$emit(EventType.TIPVISIBLE, false);
+  }
+  public buildGraph() {
+    const graph = new ht.graph.GraphView();
+    const dm = graph.dm();
+    const nodes = new Map();
+    const edges: any = [];
+    for (var i = 0; i < topoData.nodes.length; i++) {
+      const node = topoData.nodes[i];
+      var router = new ht.Node();
+      nodes.set(node.id, router);
+      dm.add(router);
+    }
+    for (let i = 0; i < topoData.edges.length; i++) {
+      const from = nodes.get(topoData.edges[i].from);
+      const to = nodes.get(topoData.edges[i].to);
+      const edge = new ht.Edge(from, to);
+      dm.add(edge);
+      edges.push(edge);
+    }
+    const autoLayout = new ht.layout.AutoLayout(graph);
+    autoLayout.setRepulsion(1);
+    autoLayout.layout("symmetric", () => { // symmetric
+      graph.fitContent();
+      this.drawTopoTree(nodes, edges);
+    });
+  }
+  public drawTopoTree(nodes: any, edges: any) {
+    if (!this.stage) {
+      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+    }
+    const size: number = 20;
+    this.stage.startBatch();
+    this.stage.clearAllLayers();
+    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
+    for (const edge of edges) {
+      const from = edge.getSource().getPosition();
+      const to = edge.getTarget().getPosition();
+      const leader = new xCanvas.Polyline([[from.x, from.y], [to.x, to.y]], {color: '#0276F7'});
+      this.stage.addLayer(leader);
+    }
+    for (const [id, node] of nodes) {
+      const position = node.getPosition();
+      const url = require(`../../assets/MicroWave-Warning.png`);
+      const childLayer = new xCanvas.ImageLayer(url, position.x, position.y, size, size).addTo(this.stage);
+      // const childLayer = new xCanvas.IText([position.x, position.y], id).addTo(this.stage);
+      bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
+    }
+    this.center = bound.getCenter();
+    this.stage.setView(this.center);
+    this.stage.endBatch();
   }
   public initTopoTree() {
     if (!this.stage) {
