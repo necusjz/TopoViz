@@ -262,7 +262,7 @@ def confirm():
         for column, value in zip(columns, values):
             alarm.loc[mask, column] = value
 
-        if alarm.loc[mask, 'Group_Edited']:
+        if alarm.loc[mask, 'GroupId_Edited']:
             alarm.loc[mask, 'Confirmed'] = '1'
     save_data(alarm, client_id)
     # construct json for frontend
