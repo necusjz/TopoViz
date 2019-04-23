@@ -130,8 +130,8 @@ def build_tree(paths):
             edge['from'] = elements[i]
             edge['to'] = elements[i+1]
             edges.append(edge)
-    elements = set(elements)
-    edges = set(edges)
+    # elements = set(elements)
+    # edges = set(edges)
     return elements, edges
 
 
