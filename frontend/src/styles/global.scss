@@ -1,5 +1,6 @@
 $None-Color: #B4B4B4;
 $Blue-Color: #338AFF;
+$Gray-Color: #979797;
 html, body {
     margin: 0;
     height: 100%;
@@ -32,6 +33,9 @@ ul, li, p {
 }
 .blue-text {
     color: $Blue-Color;
+}
+.gray-text {
+    color: $Gray-Color;
 }
 .bg-gray {
     background: rgba(67, 146, 255, 0.06);
