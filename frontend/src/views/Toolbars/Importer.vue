@@ -98,7 +98,7 @@ export default class Importer extends Vue {
     this.$store.commit('SET_ISCHECKSTATICS', false);
   }
   public exportData() {
-    downLoad(`download?clientId=${this.clientId}`, 'exporter.csv');
+    downLoad(`download?clientId=${this.clientId}&t=${Date.now()}`);
   }
 }
 </script>
