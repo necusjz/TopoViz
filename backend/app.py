@@ -127,8 +127,8 @@ def build_tree(paths):
             elements.append({'NEName': ne_name, 'NEType': ne_type})
         edge = dict()
         for i in range(0, len(elements) - 1):
-            edge['from'] = elements[i]
-            edge['to'] = elements[i+1]
+            edge['from'] = elements[i]['NEName']
+            edge['to'] = elements[i+1]['NEName']
             edges.append(edge)
     # elements = set(elements)
     # edges = set(edges)
