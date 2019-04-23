@@ -161,10 +161,6 @@ def upload():
             if 'Confirmed' not in dataframe.columns:
                 dataframe = format_data(dataframe)
             save_data(dataframe, client_id)
-        # exception handling
-        else:
-            error = Response('Unsupported file format.')
-            abort(error)
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
