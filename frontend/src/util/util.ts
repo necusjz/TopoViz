@@ -55,10 +55,9 @@ export function decimalToPercentage(decimal: number, fix?: number) {
   }
 }
 
-export function downLoad(url: string, fileName: string) {
+export function downLoad(url: string) {
   const a: HTMLAnchorElement = document.createElement('a');
   a.href = `${baseUrl}${url}`;
   a.target = '_blank';
-  a.download = fileName;
   a.click();
 }
