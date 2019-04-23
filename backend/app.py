@@ -7,8 +7,7 @@ import time
 import json
 import os
 
-from flask import Flask, render_template, Response, abort, jsonify, request, \
-                  send_from_directory
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
@@ -192,7 +191,7 @@ def upload():
     return jsonify(res)
 
 
-@app.route('/interval')
+@app.route('/interval', methods=['GET'])
 def interval():
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(int(request.args.get('start')))
@@ -204,7 +203,7 @@ def interval():
     return jsonify(res)
 
 
-@app.route('/analyze')
+@app.route('/analyze', methods=['GET'])
 def analyze():
     # generate topo tree
     group_id = request.args.get('groupId')
@@ -220,7 +219,7 @@ def analyze():
     return jsonify(res)
 
 
-@app.route('/expand')
+@app.route('/expand', methods=['GET'])
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
@@ -276,7 +275,7 @@ def confirm():
     return jsonify(res)
 
 
-@app.route('/detail')
+@app.route('/detail', methods=['GET'])
 def detail():
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
