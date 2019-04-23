@@ -116,22 +116,22 @@ def find_path(alarms):
 
 
 def build_tree(paths):
-    elements = []
-    edges = []
+    elements = set()
+    edges = set()
     for path in paths:
         client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
-            elements.append({'NEName': ne_name, 'NEType': ne_type})
+            elements.add({'NEName': ne_name, 'NEType': ne_type})
         edge = dict()
         for i in range(0, len(elements) - 1):
             edge['from'] = elements[i]['NEName']
             edge['to'] = elements[i+1]['NEName']
-            edges.append(edge)
-    # elements = set(elements)
-    # edges = set(edges)
+            edges.add(edge)
+    # elements = list(elements)
+    # edges = list(edges)
     return elements, edges
 
 
