@@ -1,11 +1,12 @@
 export interface Node {
-    id: string | number;
+    id: string;
     type?: string;
+    [k: string]: any;
 }
 
 export interface Edge {
-    from: string | number;
-    to: string | number;
+    from: string;
+    to: string;
 }
 
 export enum EventType {
@@ -15,6 +16,7 @@ export enum EventType {
     FILTERRESET = 'FILTERRESET',
     RESETREDALARM = 'RESETREDALARM',
     CLEARALARMNET = 'CLEARALARMNET',
+    QUERY = 'QUERY',
 }
 
 export interface AppState {
@@ -28,7 +30,7 @@ export interface AppState {
     alarmDatas: AlarmData[];
     tableData: AlarmData[];
     pageData: AlarmData[];
-    topoDatas: NodeData[][];
+    topoDatas: {elements: Node[], edges: Edge[]};
     confirmData: GroupData[];
     unconfirmData: GroupData[];
     selectAlarm: string;
@@ -92,6 +94,8 @@ export interface StaticsRes {
 export interface AnalyzeRes {
     table: any;
     topo: any;
+    elements: {NEName: string, NEType: string}[];
+    edges: {from: string, to: string}[];
 }
 export interface SelectOption {
     label: string;
