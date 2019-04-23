@@ -32,6 +32,7 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.app.pageData) private pageData!: AlarmData[];
   @Watch('alarmDatas')
   public watchAlarmDatas(val: AlarmData[]) {
+    this.activeType = 0;
     this.changeTableData()
     this.updateConfirmCOunt();
   }
