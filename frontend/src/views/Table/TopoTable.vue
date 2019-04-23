@@ -72,7 +72,7 @@
               <p>{{scope.row.groupId_edit}}</p>
             </div>
             <el-dropdown trigger="click" size="small" @visible-change="dropDownVisble" @command="handleCommandGroupId" placement="bottom" slot="reference">
-              <span :title="scope.row.groupId_edit">
+              <span :title="scope.row.groupId_edit" class="edit-text">
                 {{scope.row.groupId_edit}}
                 <i class="el-icon-arrow-down el-icon--right"></i>
               </span>
@@ -97,7 +97,7 @@
               <p>{{scope.row.rcaResult_edit}}</p>
             </div>
             <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" @visible-change="dropDownVisble" placement="bottom" slot="reference">
-              <span :title="scope.row.rcaResult_edit">
+              <span :title="scope.row.rcaResult_edit" class="edit-text">
                 {{scope.row.rcaResult_edit}}
                 <i class="el-icon-arrow-down el-icon--right"></i>
               </span>
@@ -122,7 +122,7 @@
             <p>{{scope.row.rcaReg_edit}}</p>
           </div>
           <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference">
-            <span :title="scope.row.rcaReg_edit" class="rcaReg-label">{{scope.row.rcaReg_edit}}</span>
+            <span :title="scope.row.rcaReg_edit" class="rcaReg-label edit-label">{{scope.row.rcaReg_edit}}</span>
             <i class="el-icon-edit" @click="handleCellClick(scope.row)"></i>
           </div>
         </el-popover>
@@ -345,7 +345,8 @@ export default class TopoTable extends Vue {
         for (const key of Object.keys(propsMapping)) {
           if (grow[key] !== grow[`${key}_edit`]) {
             columns.push(propsMapping[key]);
-            values.push(grow[`${key}_edit`]);
+            const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`];
+            values.push(value);
           }
         }
         if (grow.groupId_edit === '空') {
@@ -367,10 +368,9 @@ export default class TopoTable extends Vue {
     }
   }
   public findClearAlars(noGroupAlarmsSet: Set<string>) {
-
     for (let i = this.alarmDatas.length - 1; i >= 0; i--) {
       const alarmData = this.alarmDatas[i];
-      if (alarmData.groupId_edit === this.groupId && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
+      if (alarmData.groupId_edit === '空' && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
         this.alarmDatas.splice(i, 1);
         noGroupAlarmsSet.delete(alarmData.alarmSourceName);
       }
@@ -501,5 +501,8 @@ export default class TopoTable extends Vue {
   font-size: 12px;
   color: #282828;
   line-height: 20px;
+}
+.edit-label:hover {
+  color: #368cff;
 }
 </style>
