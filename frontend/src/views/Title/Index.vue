@@ -2,7 +2,7 @@
   <div class="app-title-wrap">
     <!-- <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics"> -->
     <div class="app-top-right">
-      <i class="app-help app-icon"></i>
+      <!-- <i class="app-help app-icon"></i> -->
       <!-- <i class="app-account app-icon"></i> -->
       <!-- <el-dropdown class="app-user-dropdown">
         <span class="app-user">
