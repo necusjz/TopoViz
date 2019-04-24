@@ -177,7 +177,7 @@ def upload():
     # generate client id and create folder
     client_id = str(uuid.uuid1())
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
-    file_type = []
+    f_type = []
     for file in [file1, file2]:
         # check filename legality
         if allowed_file(file.filename):
@@ -191,11 +191,12 @@ def upload():
             if 'Confirmed' not in dataframe.columns:
                 dataframe = format_data(dataframe)
             save_data(dataframe, client_id)
-            type_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
-            file_type.append(type_flag)
-    # handling same type file exception
+            # store file types by flag
+            f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
+            f_type.append(f_flag)
+    # handling same type exception
     try:
-        if not file_type[0] ^ file_type[1]:
+        if not f_type[0] ^ f_type[1]:
             raise IOError()
     except IOError:
         error = dict()
