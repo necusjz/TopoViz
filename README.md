@@ -4,7 +4,7 @@ Flask + Vue.js to analyze Excel data based on pandas, and display topology map u
 ### Python
 [Python 3.6.8](https://www.python.org/downloads/release/python-368/) (with pip 19.0.3)
 
-Install Python and check the versions like this:
+Install Python and check the version like this:
 
 ![](https://raw.githubusercontent.com/ICHIGOI7E/mdpics/master/TopoViewer/1.jpeg)
 ### Install packages
@@ -21,3 +21,5 @@ $ flask run
 * Running on http://127.0.0.1:5000/
 ```
 Enter the URL in your browser, you can see the page like this:
+
+![](https://raw.githubusercontent.com/ICHIGOI7E/mdpics/master/TopoViewer/2.jpeg)
