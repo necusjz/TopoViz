@@ -337,3 +337,12 @@ def download():
     filename = 'verified_alarm_' + str(int(time.time())) + '.csv'
     return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
                                attachment_filename=filename)
+
+
+@app.errorhandler(500)
+def error_500():
+    # construct json for frontend
+    error = dict()
+    error['code'] = 500
+    error['message'] = 'INTERNAL SERVER ERROR'
+    return jsonify(error), 500
