@@ -14,7 +14,7 @@
             </div>
             <div class="app-topo-chart" :class="{none: isNoneTableData}">
               <TopoChart v-show="!isNoneTableData"></TopoChart>
-              <p class="app-topo-chart-none-label">暂无任何数据展示哦，导入一组表格数据试试</p>
+              <p class="app-topo-chart-none-label">暂无任何数据展示哦，导入 RCA 结果试试。</p>
             </div>
             <div class="app-topo-pagination" v-if="!isNoneTableData">
               <TopoTablePagination></TopoTablePagination>
