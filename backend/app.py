@@ -25,7 +25,13 @@ def allowed_file(filename):
 def format_data(df):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         # format raw data and map column name
-        df = df[app.config['ALARM_COLUMNS']]
+        try:
+            df = df[app.config['ALARM_COLUMNS']]
+        except KeyError:
+            error = dict()
+            error['code'] = 400
+            error['message'] = 'Column name does not match.'
+            return jsonify(error), 400
         df.columns = app.config['ALARM_MAPPING']
         df = df.replace({'RcaResult': {1: 'P', 2: 'C'}})
         # add new columns
@@ -38,7 +44,13 @@ def format_data(df):
         # sort by first occurrence
         df = df.sort_values('First')
     else:
-        df = df[app.config['TOPO_COLUMNS']]
+        try:
+            df = df[app.config['TOPO_COLUMNS']]
+        except KeyError:
+            error = dict()
+            error['code'] = 400
+            error['message'] = 'Column name does not match.'
+            return jsonify(error), 400
         df.columns = app.config['TOPO_MAPPING']
     return df
 
@@ -165,6 +177,7 @@ def upload():
     # generate client id and create folder
     client_id = str(uuid.uuid1())
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
+    file_type = []
     for file in [file1, file2]:
         # check filename legality
         if allowed_file(file.filename):
@@ -178,6 +191,17 @@ def upload():
             if 'Confirmed' not in dataframe.columns:
                 dataframe = format_data(dataframe)
             save_data(dataframe, client_id)
+            type_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
+            file_type.append(type_flag)
+    # handling same type file exception
+    try:
+        if not file_type[0] ^ file_type[1]:
+            raise IOError()
+    except IOError:
+        error = dict()
+        error['code'] = 400
+        error['message'] = 'File type does not match.'
+        return jsonify(error), 400
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
