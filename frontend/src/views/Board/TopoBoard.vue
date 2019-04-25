@@ -70,15 +70,23 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
         if (res.elements.length > 0 && res.edges.length > 0) {
           this.$store.commit('SET_ISNONETOPODATA', false);
           const elements = res.elements.map((ele: Node) => {
-            return {name: ele.NEName, type: ele.NEType};
+            const color = this.getElementColor(ele.NEName, res.yellow);
+            return {name: ele.NEName, type: ele.NEType, color};
           });
           const edges = res.edges;
           this.$store.commit('SET_TOPODATA', {elements, edges});
-          bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
+          // bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
         }
       });
     } else {
       bus.$emit(EventType.QUERY);
+    }
+  }
+  public getElementColor(name: string, yellow: string[] = []) {
+    if (yellow.includes(name)) {
+      return 'Yellow';
+    } else if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === name)) {
+      return 'Warning';
     }
   }
 }

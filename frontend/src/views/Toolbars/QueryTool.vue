@@ -35,7 +35,6 @@
           class="app-query-tool-group"
           :class="{'error-border-input': visibleErrorTip}"
           :fetch-suggestions="suggestion"
-          @select="updateCurGroupId"
           @keyup.enter.native="queryTopoData">
           <el-button slot="append" class="query-btn" icon="el-icon-search" size="small" @click="queryTopoData"></el-button>
         </el-autocomplete>
@@ -95,6 +94,10 @@ export default class QueryTool extends Vue {
       this.queryTopoData();
     }
   }
+  @Watch('alarmDatas')
+  public watchAlarmDatas() {
+    this.formatSelectOption();
+  }
   mounted() {
     this.options = ruleOptions;
     bus.$on(EventType.FILTERRESET, () => {
@@ -112,14 +115,6 @@ export default class QueryTool extends Vue {
         return {value: id};
       });
     cb(suggestions);
-  }
-  public updateCurGroupId() {
-    getAlarmDatas({groupId: this.groupId}).then((res: any) => {
-      if (res.table) {
-        const alarmDatas: AlarmData[] = res.table.map((item: any) => this.formatData(item));
-        this.formatSelectOption(alarmDatas);
-      }
-    });
   }
   public dateChange(value: number[]) {
     if (this.startTime && this.endTime) {
@@ -172,22 +167,26 @@ export default class QueryTool extends Vue {
     bus.$emit(EventType.CLEAREXPAN);
     getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
       const table = data.table;
-      if (data.elements.length > 0 && data.edges.length > 0) {
-        this.$store.commit('SET_ISNONETOPODATA', false);
-        const elements = data.elements.map((ele) => {
-          return {name: ele.NEName, type: ele.NEType};
-        });
-        const edges = data.edges;
-        this.$store.commit('SET_TOPODATA', {elements, edges});
-      }
-      if (table && table.length > 0) {
+      if (table) {
         this.$store.commit('SET_ISNONETABLEDATA', false);
         const alarmDatas: AlarmData[] = table.map((item: any) => {
           return this.formatData(item);
         })
         this.$store.commit('SET_ALARMDATAS', alarmDatas);
-        this.formatSelectOption(alarmDatas);
       }
+      if (data.elements.length > 0 && data.edges.length > 0) {
+        this.$store.commit('SET_ISNONETOPODATA', false);
+        const elements = data.elements.map((ele) => {
+          let color = '';
+          if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === ele.NEName)) {
+            color = 'Warning';
+          }
+          return {name: ele.NEName, type: ele.NEType, color};
+        });
+        const edges = data.edges;
+        this.$store.commit('SET_TOPODATA', {elements, edges});
+      }
+      
     });
     this.$store.commit("SET_GROUPID", this.groupId);
     this.visibleErrorTip = !this.groupId;
@@ -245,7 +244,8 @@ export default class QueryTool extends Vue {
       isConfirmed: !!item['Confirmed']
     };
   }
-  public formatSelectOption(alarmDatas: AlarmData[]) {
+  public formatSelectOption() {
+    const alarmDatas  = this.alarmDatas;
     this.options = [...ruleOptions];
     for (const parent of this.options) {
       let temp: string[] = []
