@@ -1,11 +1,8 @@
 <template>
   <div class="sub-table">
-    <el-row class="sub-table-row">
-        <el-col :span="24" class="leftAlign">Group ID</el-col>
-    </el-row>
-    <el-row class="sub-table-row body-item" v-for="(groupId, index) in tableData" :key="index">
-      <el-col :span="24" class="leftAlign" @click.native="viewGroup(groupId)">{{groupId}}</el-col>
-    </el-row>
+      <el-row class="sub-table-row body-item" v-for="(groupId, index) in tableData" :key="index">
+        <el-col :span="24" class="leftAlign rightBorder bottomBorder" @click.native="viewGroup(groupId)">{{groupId}}</el-col>
+      </el-row>
   </div>
 </template>
 
@@ -27,6 +24,7 @@ export default class SubTable extends Vue {
 <style lang="scss" scoped>
 $Gray-border: 1px solid #f8f9ff;
 .sub-table {
+  box-shadow: 0 0 6px 0 rgba(186, 186, 186, 0);
   .sub-table-row {
     line-height: 60px;
     border-bottom: $Gray-border;
