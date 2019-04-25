@@ -121,16 +121,16 @@ def build_tree(paths):
     topo_tree = []
     for path in paths:
         # get elements for per path
+        element = []
         client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
-        element = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             element.append({'NEName': ne_name, 'NEType': ne_type})
-        topo_tree.append(element)
-        # add elements to total
+        # add elements
         total_element.extend(element)
+        topo_tree.append(element)
         # get edges according to elements
         for i in range(0, len(element) - 1):
             edge = dict()
