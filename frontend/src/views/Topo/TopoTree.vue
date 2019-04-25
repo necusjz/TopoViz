@@ -45,7 +45,6 @@ export default class TopoTree extends Vue {
   @Provide() private center: Vertex = [0, 0];
   @Provide() private borderLayer!: xCanvas.Layer;
   @Provide() private size: number = 40;
-  @Provide() private temp: any;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -61,11 +60,7 @@ export default class TopoTree extends Vue {
   }
   mounted() {
     bus.$on(EventType.NETWORKFILTER, (neNames: string[], type: string = 'Red') => {
-      if (type !== 'Red') {
-        this.temp = this.updateAlarmImg.bind(this, neNames, type);
-      } else {
-        this.updateAlarmImg(neNames, type);
-      }
+      this.updateAlarmImg(neNames, type);
     });
     bus.$on(EventType.RESETREDALARM, () => {
       this.reset();
@@ -178,8 +173,6 @@ export default class TopoTree extends Vue {
     autoLayout.layout("circular", () => { // symmetric 、 circular
       graph.fitContent();
       this.drawTopoTree(nodes, edges);
-      this.temp && this.temp();
-      this.temp = null;
     });
   }
   public drawTopoTree(nodes: any, edges: any) {
@@ -199,13 +192,15 @@ export default class TopoTree extends Vue {
     for (const [id, element] of nodes) {
       const node = element.data;
       const position = node.getPosition();
-      const dirtyData = this.getDataByAlarmSourceName(element.name);
-      const ex: string = dirtyData ? '-Warning' : '';
+      let dirtyData = this.getDataByAlarmSourceName(element.name);
+      if (dirtyData) {
+        dirtyData = {...dirtyData, type: element.type};
+        dirtyData.statusType = element.color;
+      }
+      const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
       const url = require(`../../assets/${element.type}${ex}.png`);
       const childLayer = new xCanvas.ImageLayer(url, position.x, position.y, size, size).addTo(this.stage);
-      if (dirtyData) {
-        childLayer.setDirtyData({...dirtyData, type: element.type});
-      }
+      childLayer.setDirtyData(dirtyData);
       // const childLayer = new xCanvas.IText([position.x, position.y], id).addTo(this.stage);
       bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
     }
@@ -247,14 +242,9 @@ export default class TopoTree extends Vue {
       if (layer.getLayerType() === 'IMAGE') {
         const dirtyData = layer.getDirtyData();
         if (!dirtyData) return;
-        if (type !== 'Red') {
-          dirtyData.statusType = type;
-        } else if (!dirtyData.statusType) {
-          dirtyData.statusType = 'Warning';
-        }
         let url: string = '';
         if (neNames.includes(dirtyData.alarmSourceName)) {
-          url = require(`../../assets/${dirtyData.type}-${type}.png`);
+          url = require(`../../assets/${dirtyData.type}-Red.png`);
           (layer as xCanvas.ImageLayer).setImage(url);
         } else {
           url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
