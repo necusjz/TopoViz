@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
+import shutil
 import uuid
 import time
 import json
@@ -339,10 +340,13 @@ def download():
                                attachment_filename=filename)
 
 
-# TODO(ICHIGOI7E): For clean up the cache.
 @app.route('/clean', methods=['POST'])
 def clean():
-    pass
+    for dirname in os.listdir(app.config['UPLOAD_FOLDER']):
+        dirpath = os.path.join(app.config['UPLOAD_FOLDER'], dirname)
+        diff = time.time() - os.path.getmtime(dirpath)
+        if diff > 7 * 24 * 60 * 60:
+            shutil.rmtree(dirpath)
 
 
 @app.errorhandler(404)
