@@ -80,6 +80,8 @@ export default class QueryTool extends Vue {
   @State((state) => state.app.groupId) private store_groupId!: string;
   @State((state) => state.app.regValue) private store_regValue!: string;
   @State((state) => state.app.defaultDate) private defaultDate!: number[];
+  @State((state) => state.app.needSave) private needSave!: boolean;
+
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
     this.startTime = val[0];
@@ -143,6 +145,27 @@ export default class QueryTool extends Vue {
       bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
       return;
     }
+    if (this.needSave) {
+      bus.$emit(EventType.ERRORVISIBLE, {
+        title: '错误提示',
+        content: '<p>当前结果未保存，您确定要离开吗？</p>',
+        confirmCallback: () => {
+          this.$store.commit('SET_NEEDSAVE', false);
+          this.doQuery();
+        },
+        saveCallback: () => {
+          this.groupId = this.store_groupId;
+          bus.$emit(EventType.SAVEDATA);
+        },
+        cancelCallback: () => {
+          this.groupId = this.store_groupId;
+        }
+      });
+    } else {
+      this.doQuery();
+    }
+  }
+  public doQuery() {
     this.regulationValue = [];
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');

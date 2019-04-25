@@ -5,14 +5,14 @@
         <i class="el-icon-warning"></i>
         <span class="label">{{errorTitle}}</span>
       </div>
-      <div class="title-close" @click="closeDialog">
+      <div class="title-close" @click="cancel">
         <i class="el-icon-close"></i>
       </div>
     </div>
     <div class="dialog-content">
       <div class="error-content-box" v-html="errorHtml"></div>
-      <el-button size="small" class="save-btn">保存</el-button>
-      <el-button size="small" type="primary" class="confirm-btn" @click="closeDialog">确定</el-button>
+      <el-button size="small" class="save-btn" v-if="showSaveBtn" @click="save">保存</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" @click="confirm">确定</el-button>
     </div>
   </el-dialog>
 </template>
@@ -24,28 +24,65 @@ import bus from "../../util/bus";
 interface RecieveData {
   title: string;
   content: string;
-  showSave?: boolean;
   saveCallback?: any;
+  confirmCallback?: any;
+  cancelCallback?: any;
 }
 @Component
 export default class ErrorDialog extends Vue {
   @Provide() private dialogVisible: boolean = false;
   @Provide() private errorHtml: string = "";
   @Provide() private errorTitle: string = "错误提示";
+  @Provide() private showSaveBtn: boolean = false;
   @Provide() private saveCallback?: any;
+  @Provide() private confirmCallback?: any;
+  @Provide() private cancelCallback?: any;
   mounted() {
     bus.$on(EventType.ERRORVISIBLE, (obj: string | RecieveData) => {
       this.dialogVisible = true;
       if (typeof obj === 'string') {
         this.errorHtml = obj;
+        this.showSaveBtn = false;
       } else {
         this.errorTitle = obj.title;
         this.errorHtml = obj.content;
+        this.saveCallback = obj.saveCallback;
+        this.confirmCallback = obj.confirmCallback;
+        this.cancelCallback = obj.cancelCallback;
+        if (this.saveCallback) {
+          this.showSaveBtn = true;
+        }
       }
     });
   }
   public closeDialog() {
-      this.dialogVisible = false;
+    this.dialogVisible = false;
+  }
+  public confirm() {
+    this.closeDialog();
+    if (this.confirmCallback) {
+      this.confirmCallback();
+    }
+    this.clearCallback();
+  }
+  public cancel() {
+    this.closeDialog();
+    if (this.cancelCallback) {
+      this.cancelCallback();
+    }
+    this.clearCallback();
+  }
+  public save() {
+    this.closeDialog();
+    if (this.saveCallback) {
+      this.saveCallback();
+    }
+    this.clearCallback();
+  }
+  public clearCallback() {
+    this.confirmCallback = null;
+    this.saveCallback = null;
+    this.cancelCallback = null;
   }
 }
 </script>
