@@ -190,6 +190,11 @@ export default class TopoTable extends Vue {
       this.updateStyleOfPrev();
     });
   }
+  mounted() {
+    bus.$on(EventType.SAVEDATA, () => {
+      this.confirm('save');
+    });
+  }
   public handleSelectionChange(rows: AlarmData[]) {
     this.editRows = Array.from(new Set(rows));
     this.$store.commit('SET_NEEDSAVE', this.editRows.length > 0);
@@ -313,51 +318,56 @@ export default class TopoTable extends Vue {
     this.$store.commit('SET_NEEDSAVE', true);
   }
   // 提交确认的数据
-  public confirm(row: AlarmData, column: any) {
-    if (row.type === 'statics' && column.property === 'alarmSourceName') {
-      // 验证本组有一个P警告
-      const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
-      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
-      if (pAlarms.length === 0) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
-        return;
-      }
-      const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
-      const noGroupAlarmsSet: Set<string> = new Set();
-      const rows = this.editRows;
-      rows.forEach((grow: AlarmData) => {
-        if (grow.type === 'statics') return;
-        const columns: string[] = [];
-        const values: string[] = [];
-        const propsMapping: {[k: string]: string} = {
-          groupId: 'GroupId_Edited',
-          rcaResult: 'RcaResult_Edited',
-          rcaReg: 'RuleName_Edited',
-        }
-        for (const key of Object.keys(propsMapping)) {
-          if (grow[key] !== grow[`${key}_edit`]) {
-            columns.push(propsMapping[key]);
-            const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`];
-            values.push(value);
-          }
-        }
-        if (grow.groupId_edit === '空') {
-          noGroupAlarmsSet.add(grow.alarmSourceName);
-        } else {
-          grow.isConfirmed = true;
-        }
-        data.row.push(grow.index);
-        data.columns.push(columns);
-        data.values.push(values);
-      });
-      this.$emit('updateCount');
-      confirmAlarmDatas(this.groupId, data).then((res) => {
-        this.$store.commit('SET_STATICS', res);
-        this.$message.success('保存成功');
-        this.$store.commit('SET_NEEDSAVE', false);
-      })
-      this.findClearAlars(noGroupAlarmsSet);
+  public confirm(row: AlarmData | string, column?: any) {
+    if (row === 'save') {
+      this.saveData();
+    } else if (typeof row !== 'string' && row.type === 'statics' && column && column.property === 'alarmSourceName') {
+      this.saveData();
     }
+  }
+  public saveData() {
+    // 验证本组有一个P警告
+    const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
+    const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
+    if (pAlarms.length === 0) {
+      bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+      return;
+    }
+    const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
+    const noGroupAlarmsSet: Set<string> = new Set();
+    const rows = this.editRows;
+    rows.forEach((grow: AlarmData) => {
+      if (grow.type === 'statics') return;
+      const columns: string[] = [];
+      const values: string[] = [];
+      const propsMapping: {[k: string]: string} = {
+        groupId: 'GroupId_Edited',
+        rcaResult: 'RcaResult_Edited',
+        rcaReg: 'RuleName_Edited',
+      }
+      for (const key of Object.keys(propsMapping)) {
+        if (grow[key] !== grow[`${key}_edit`]) {
+          columns.push(propsMapping[key]);
+          const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`];
+          values.push(value);
+        }
+      }
+      if (grow.groupId_edit === '空') {
+        noGroupAlarmsSet.add(grow.alarmSourceName);
+      } else {
+        grow.isConfirmed = true;
+      }
+      data.row.push(grow.index);
+      data.columns.push(columns);
+      data.values.push(values);
+    });
+    this.$emit('updateCount');
+    confirmAlarmDatas(this.groupId, data).then((res) => {
+      this.$store.commit('SET_STATICS', res);
+      this.$message.success('保存成功');
+      this.$store.commit('SET_NEEDSAVE', false);
+    })
+    this.findClearAlars(noGroupAlarmsSet);
   }
   public findClearAlars(noGroupAlarmsSet: Set<string>) {
     for (let i = this.alarmDatas.length - 1; i >= 0; i--) {
