@@ -343,7 +343,9 @@ def download():
 @app.route('/clean', methods=['POST'])
 def clean():
     for dirname in os.listdir(app.config['UPLOAD_FOLDER']):
+        # get directory path
         dirpath = os.path.join(app.config['UPLOAD_FOLDER'], dirname)
+        # clean up cache regularly
         diff = time.time() - os.path.getmtime(dirpath)
         if diff > 7 * 24 * 60 * 60:
             shutil.rmtree(dirpath)
