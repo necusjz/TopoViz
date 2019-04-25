@@ -20,6 +20,10 @@ ul, li, p {
     font-size: 14px;
     padding: 8px 24px;
 }
+.save-btn {
+    background: #ffffff;
+    @extend .confirm-btn;
+}
 .none-status, .none-status:hover, .none-status:focus {
     background: $None-Color;
     border: 1px solid $None-Color;
