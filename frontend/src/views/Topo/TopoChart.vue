@@ -4,7 +4,7 @@
       <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认  {{unconfirm_count}}</div>
       <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认  {{confirm_count}}</div>
     </div>
-    <TopoTable :isunConfirmed="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCOunt"></TopoTable>
+    <TopoTable :isunConfirmed="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCount"></TopoTable>
   </div>
 </template>
 
@@ -30,11 +30,11 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.app.isNoneTableData) private isNoneTableData!: boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.pageData) private pageData!: AlarmData[];
+  @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('alarmDatas')
   public watchAlarmDatas(val: AlarmData[]) {
-    this.activeType = 0;
     this.changeTableData()
-    this.updateConfirmCOunt();
+    this.updateConfirmCount();
   }
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
@@ -44,6 +44,10 @@ export default class StaticsBoard extends Vue {
   @Watch('activeType')
   private watchType(val: string, oval: string) {
     this.changeTableData();
+  }
+  @Watch('selectAlarm')
+  public watchSelectAlarm(val: string) {
+    this.skipPage();
   }
   public changeTableData() {
     let filt: boolean = !!this.activeType;
@@ -82,7 +86,16 @@ export default class StaticsBoard extends Vue {
     }
     this.tabData.splice(this.tabData.length, 0, lastRow);
   }
-  public updateConfirmCOunt() {
+  // 联动跳转到当前页
+  public skipPage() {
+    const filt: boolean = !!this.activeType;
+    const tableData: AlarmData[] = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed === filt);
+    const target = tableData.some((alarmData) => alarmData.alarmSourceName === this.selectAlarm);
+    if (!target) {
+      this.activeType = ~this.activeType + 2;
+    }
+  }
+  public updateConfirmCount() {
     this.confirm_count = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed).length;
     this.unconfirm_count = this.alarmDatas.length - this.confirm_count;
     this.changeTableData();

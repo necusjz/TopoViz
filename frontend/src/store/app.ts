@@ -20,6 +20,7 @@ const state: AppState = {
     redAlarms: [], // 红色的告警元
     yellowAlarms: [], // 黄色的告警元
     clientId: '',
+    needSave: false,
 };
 
 const mutations: MutationTree<AppState> = {
@@ -76,6 +77,9 @@ const mutations: MutationTree<AppState> = {
     },
     SET_CLIENTID: (state: AppState, clienId: string) => {
         state.clientId = clienId;
+    },
+    SET_NEEDSAVE: (state: AppState, need: boolean) => {
+        state.needSave = need;
     }
 };
 
