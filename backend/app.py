@@ -175,14 +175,16 @@ def upload():
                 dataframe = pd.read_excel(file)
             else:
                 dataframe = pd.read_csv(file)
-            # check import data format
+            # handling column name exception
             try:
-                dataframe[app.config['ALARM_COLUMNS']]
-                dataframe[app.config['TOPO_COLUMNS']]
+                if dataframe.shape[1] < app.config['DISTINCT_NUM']:
+                    dataframe[app.config['TOPO_COLUMNS']]
+                else:
+                    dataframe[app.config['ALARM_COLUMNS']]
             except KeyError:
                 error = dict()
                 error['code'] = 400
-                error['message'] = 'Data format does not match.'
+                error['message'] = 'Column name does not match.'
                 return jsonify(error), 400
             # save formatted dataframe
             if 'Confirmed' not in dataframe.columns:
@@ -191,6 +193,15 @@ def upload():
             # store file types by flag
             f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
             f_type.append(f_flag)
+    # handling file type exception
+    try:
+        if not f_type[0] ^ f_type[1]:
+            raise TypeError()
+    except TypeError:
+        error = dict()
+        error['code'] = 400
+        error['message'] = 'File type does not match.'
+        return jsonify(error), 400
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
