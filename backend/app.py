@@ -339,6 +339,12 @@ def download():
                                attachment_filename=filename)
 
 
+# TODO(ICHIGOI7E): For clean up the cache.
+@app.route('/clean', methods=['POST'])
+def clean():
+    pass
+
+
 @app.errorhandler(404)
 def error_404(exception):
     # construct json for frontend
