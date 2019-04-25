@@ -60,6 +60,13 @@ export default class TopoTablePagination extends Vue {
             bus.$emit(EventType.SAVEDATA);
           }
         });
+      } else {
+        this.pageSize = size;
+        if (this.currentPage > Math.ceil(this.totalSize / size)) {
+          this.currentPage = 1;
+        } else {
+          this.submitPageData();
+        }
       }
     }
     public handleCurrentChange(page: number) {
