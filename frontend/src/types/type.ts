@@ -1,6 +1,7 @@
 export interface Node {
     id: string;
     type?: string;
+    color?: string;
     [k: string]: any;
 }
 
