@@ -25,13 +25,7 @@ def allowed_file(filename):
 def format_data(df):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         # format raw data and map column name
-        try:
-            df = df[app.config['ALARM_COLUMNS']]
-        except KeyError:
-            error = dict()
-            error['code'] = 400
-            error['message'] = 'Column name does not match.'
-            return jsonify(error), 400
+        df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
         df = df.replace({'RcaResult': {1: 'P', 2: 'C'}})
         # add new columns
@@ -44,13 +38,7 @@ def format_data(df):
         # sort by first occurrence
         df = df.sort_values('First')
     else:
-        try:
-            df = df[app.config['TOPO_COLUMNS']]
-        except KeyError:
-            error = dict()
-            error['code'] = 400
-            error['message'] = 'Column name does not match.'
-            return jsonify(error), 400
+        df = df[app.config['TOPO_COLUMNS']]
         df.columns = app.config['TOPO_MAPPING']
     return df
 
@@ -187,6 +175,17 @@ def upload():
                 dataframe = pd.read_excel(file)
             else:
                 dataframe = pd.read_csv(file)
+            # handling column name exception
+            try:
+                if dataframe.shape[1] < app.config['DISTINCT_NUM']:
+                    dataframe[app.config['TOPO_COLUMNS']]
+                else:
+                    dataframe[app.config['ALARM_COLUMNS']]
+            except KeyError:
+                error = dict()
+                error['code'] = 400
+                error['message'] = 'Column name does not match.'
+                return jsonify(error), 400
             # save formatted dataframe
             if 'Confirmed' not in dataframe.columns:
                 dataframe = format_data(dataframe)
@@ -194,11 +193,11 @@ def upload():
             # store file types by flag
             f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
             f_type.append(f_flag)
-    # handling same type exception
+    # handling file type exception
     try:
         if not f_type[0] ^ f_type[1]:
-            raise IOError()
-    except IOError:
+            raise TypeError()
+    except TypeError:
         error = dict()
         error['code'] = 400
         error['message'] = 'File type does not match.'
@@ -340,8 +339,23 @@ def download():
                                attachment_filename=filename)
 
 
+# TODO(ICHIGOI7E): For clean up the cache.
+@app.route('/clean', methods=['POST'])
+def clean():
+    pass
+
+
+@app.errorhandler(404)
+def error_404(exception):
+    # construct json for frontend
+    error = dict()
+    error['code'] = 404
+    error['message'] = 'NOT FOUND'
+    return jsonify(error), 404
+
+
 @app.errorhandler(500)
-def error_500():
+def error_500(exception):
     # construct json for frontend
     error = dict()
     error['code'] = 500
