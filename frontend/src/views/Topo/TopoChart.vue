@@ -1,8 +1,8 @@
 <template>
   <div class="rca-topo-table">
     <div class="topo-table-tabs">
-      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="activeType=0">未确认  {{unconfirm_count}}</div>
-      <div class="topo-table-tab" :class="{active: activeType}" @click="activeType=1">已确认  {{confirm_count}}</div>
+      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="switchTab(0)">未确认  {{unconfirm_count}}</div>
+      <div class="topo-table-tab" :class="{active: activeType}" @click="switchTab(1)">已确认  {{confirm_count}}</div>
     </div>
     <TopoTable :isunConfirmed="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCount"></TopoTable>
   </div>
@@ -13,8 +13,9 @@ import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import TopoTable from "../Table/TopoTable.vue";
 import TableData from "./tableData.json";
-import { AlarmData } from '@/types/type';
+import { AlarmData, EventType } from '@/types/type';
 import { generateUUID } from '@/util/util';
+import bus from '@/util/bus';
 
 @Component({
   components: {
@@ -31,6 +32,7 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.pageData) private pageData!: AlarmData[];
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
+  @State((state) => state.app.needSave) private needSave!: boolean;
   @Watch('alarmDatas')
   public watchAlarmDatas(val: AlarmData[]) {
     this.changeTableData()
@@ -53,6 +55,23 @@ export default class StaticsBoard extends Vue {
     let filt: boolean = !!this.activeType;
     const tableData: AlarmData[] = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.isConfirmed === filt);
     this.$store.commit('SET_TABLEDATA', tableData);
+  }
+  public switchTab(conType: number) {
+    if (this.needSave) {
+      bus.$emit(EventType.ERRORVISIBLE, {
+        title: '错误提示',
+        content: '<p>当前结果未保存，您确定要离开吗？</p>',
+        confirmCallback: () => {
+          this.$store.commit('SET_NEEDSAVE', false);
+          this.activeType = conType;
+        },
+        saveCallback: () => {
+          bus.$emit(EventType.SAVEDATA);
+        }
+      });
+    } else {
+      this.activeType = conType;
+    }
   }
   public setLastRow() {
     if (this.tabData.length === 0) {
