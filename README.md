@@ -1,6 +1,6 @@
 # TopoViewer
 Flask + Vue.js to analyze Excel data based on pandas, and display topology map using Canvas. You can synchronize dist package from frontend with `TopoViewer/sync.sh`, and the fake Excel data is in `TopoViewer/topo_alarm`.
-## Dependencies
+## Dependency
 ### Python
 [Python 3.6.8](https://www.python.org/downloads/release/python-368/) (with pip 19.0.3)
 
