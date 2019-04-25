@@ -118,15 +118,17 @@ def find_path(alarms):
 def build_tree(paths):
     total_element = []
     total_edge = []
+    topo_tree = []
     for path in paths:
-        element = []
         # get elements for per path
         client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
         topo = topo.loc[topo['PathId'] == path]
+        element = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             element.append({'NEName': ne_name, 'NEType': ne_type})
+        topo_tree.append(element)
         # add elements to total
         total_element.extend(element)
         # get edges according to elements
@@ -138,7 +140,7 @@ def build_tree(paths):
     # deduplication for elements and edges
     elements = unique_dict(total_element)
     edges = unique_dict(total_edge)
-    return elements, edges
+    return elements, edges, topo_tree
 
 
 def unique_dict(dicts):
@@ -237,11 +239,12 @@ def analyze():
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
-    elements, edges = build_tree(topo_path)
+    elements, edges, topo_tree = build_tree(topo_path)
     # construct json for frontend
     res = dict()
     res['elements'] = elements
     res['edges'] = edges
+    res['topo'] = topo_tree
     res['table'] = json.loads(alarm.to_json(orient='records'))
     res['orange'] = list(set(alarm['AlarmSource']))
     return jsonify(res)
@@ -262,11 +265,12 @@ def expand():
     # generate topo tree
     extra_path = find_path(set(alarm['AlarmSource']))
     topo_path = topo_path | extra_path
-    elements, edges = build_tree(topo_path)
+    elements, edges, topo_tree = build_tree(topo_path)
     # construct json for frontend
     res = dict()
     res['elements'] = elements
     res['edges'] = edges
+    res['topo'] = topo_tree
     res['table'] = json.loads(alarm.to_json(orient='records'))
     alarm = alarm.loc[alarm['GroupId'] != group_id]
     res['yellow'] = list(set(alarm['AlarmSource']))
