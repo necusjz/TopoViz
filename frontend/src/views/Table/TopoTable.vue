@@ -63,7 +63,7 @@
             popper-class="edit-history-wrap"
             placement="bottom"
             :width="100"
-            :disabled="popoverDisable || scope.row.groupId === scope.row.groupId_edit"
+            :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
             trigger="hover">
             <div class="edit-record">
               <p class="gray-text">修改前：</p>
@@ -88,7 +88,7 @@
         <el-popover
             popper-class="edit-history-wrap"
             placement="bottom"
-            :disabled="popoverDisable || scope.row.rcaResult === scope.row.rcaResult_edit"
+            :disabled="isunConfirmed || popoverDisable || scope.row.rcaResult === scope.row.rcaResult_edit"
             trigger="hover">
             <div class="edit-record">
               <p class="gray-text">修改前：</p>
@@ -113,7 +113,7 @@
         <el-popover
             popper-class="edit-history-wrap"
             placement="bottom"
-            :disabled="popoverDisable || scope.row.rcaReg === scope.row.rcaReg_edit"
+            :disabled="isunConfirmed || popoverDisable || scope.row.rcaReg === scope.row.rcaReg_edit"
             trigger="hover">
           <div class="edit-record">
             <p class="gray-text">修改前：</p>
@@ -121,9 +121,9 @@
             <p class="gray-text">修改后：</p>
             <p>{{scope.row.rcaReg_edit}}</p>
           </div>
-          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference">
+          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row)"> 
             <span :title="scope.row.rcaReg_edit" class="rcaReg-label edit-label">{{scope.row.rcaReg_edit}}</span>
-            <i class="el-icon-edit" @click="handleCellClick(scope.row)"></i>
+            <i class="el-icon-edit"></i>
           </div>
         </el-popover>
         <TopoInput
@@ -168,7 +168,6 @@ export default class TopoTable extends Vue {
   @Provide() private editCellId: string = "";
   @Provide() private inputValue: string = "";
   @Provide() private editRows: AlarmData[] = [];
-  @Provide() private needSave: boolean = false;
   @Provide() private showTip: boolean = true;
   @Provide() private dropLabel: string = '空';
   @Provide() private popoverDisable: boolean = false;
@@ -178,6 +177,7 @@ export default class TopoTable extends Vue {
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @State((state) => state.app.groupId) private groupId!: string;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
+  @State((state) => state.app.needSave) private needSave!: boolean;
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
     this.$nextTick(() => {
@@ -192,7 +192,7 @@ export default class TopoTable extends Vue {
   }
   public handleSelectionChange(rows: AlarmData[]) {
     this.editRows = Array.from(new Set(rows));
-    this.needSave = this.editRows.length > 0;
+    this.$store.commit('SET_NEEDSAVE', this.editRows.length > 0);
   }
   public handleCellClick(row: AlarmData) {
     this.editCellId = `${row.uid}-reg`;
@@ -297,42 +297,34 @@ export default class TopoTable extends Vue {
   }
   public handleCommandRCAResult(item: AlarmData) {
     const result: string = item.rcaResult_edit === RCAResult.P ? RCAResult.C : RCAResult.P;
-    if (result === RCAResult.C) {
-      const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
-      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
-      if (pAlarms.length === 1) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>一组 Group ID 的数据中至少包含一个 P 告警哦，请查询后再编辑。</p>');
-        return;
-      }
-    }
     item.rcaResult_edit = result;
     this.setSelectedRow(item);
   }
   public handleCommandGroupId(item: AlarmData) {
     const edit_groupId = this.getEditGroupIdLabel(item).trim();
-    if (item.rcaResult_edit === RCAResult.P) {
-      const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
-      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
-      if (pAlarms.length === 1) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
-        return;
-      }
-    }
     item.groupId_edit = edit_groupId;
     this.setSelectedRow(item);
   }
   // 设置选中的行
   public setSelectedRow(row: AlarmData) {
-    this.needSave = true;
     const table: any = this.$refs.table;
     table.toggleRowSelection(row, true);
+    this.editRows.push(row);
+    this.$store.commit('SET_NEEDSAVE', true);
   }
   // 提交确认的数据
-  public confirm(row: any, column: any) {
+  public confirm(row: AlarmData, column: any) {
     if (row.type === 'statics' && column.property === 'alarmSourceName') {
+      // 验证本组有一个P警告
+      const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
+      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
+      if (pAlarms.length === 0) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+        return;
+      }
       const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
       const noGroupAlarmsSet: Set<string> = new Set();
-      const rows = this.isunConfirmed ? this.editRows : this.alarmDatas;
+      const rows = this.editRows;
       rows.forEach((grow: AlarmData) => {
         if (grow.type === 'statics') return;
         const columns: string[] = [];
@@ -362,7 +354,7 @@ export default class TopoTable extends Vue {
       confirmAlarmDatas(this.groupId, data).then((res) => {
         this.$store.commit('SET_STATICS', res);
         this.$message.success('保存成功');
-        this.needSave = false;
+        this.$store.commit('SET_NEEDSAVE', false);
       })
       this.findClearAlars(noGroupAlarmsSet);
     }

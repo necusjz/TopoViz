@@ -299,10 +299,8 @@ export default class Stage extends Evt {
     this.center = center;
     this.zoom = zoom || this.zoom;
     this.render.setCenter(center, this.zoom);
-    requestAnimationFrame(() => {
-      this.render.redraw();
-      this.fire('moveend', {target: this, sourceTarget: event});
-    });
+    this.render.redraw();
+    this.fire('moveend', {target: this, sourceTarget: event});
   }
   /**
    * 开启pan功能

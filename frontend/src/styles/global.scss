@@ -48,10 +48,16 @@ ul, li, p {
     height: 5px!important;
 }
 .fade-enter-active, .fade-leave-active {
-    transition: opacity .5s;
+    transition: opacity .3s;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
     opacity: 0;
+}
+.rightBorder {
+    border-right: 1px solid #f0f0f0;
+}
+.bottomBorder {
+    border-bottom: 1px solid #f0f0f0;
 }
 @media screen and (max-width: 1440px) {
     .left-align .cell{
