@@ -17,6 +17,8 @@ export enum EventType {
     RESETREDALARM = 'RESETREDALARM',
     CLEARALARMNET = 'CLEARALARMNET',
     QUERY = 'QUERY',
+    CLEAREXPAN = 'CLEAREXPAN',
+    SAVEDATA = 'SAVEDATA',
 }
 
 export interface AppState {
@@ -38,6 +40,7 @@ export interface AppState {
     redAlarms: string[];
     yellowAlarms: string[];
     clientId: string;
+    needSave: boolean;
 }
 
 export interface AlarmData {
