@@ -11,6 +11,7 @@
     </div>
     <div class="dialog-content">
       <div class="error-content-box" v-html="errorHtml"></div>
+      <el-button size="small" class="save-btn">保存</el-button>
       <el-button size="small" type="primary" class="confirm-btn" @click="closeDialog">确定</el-button>
     </div>
   </el-dialog>
@@ -20,13 +21,20 @@
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { EventType } from "../../types/type";
 import bus from "../../util/bus";
+interface RecieveData {
+  title: string;
+  content: string;
+  showSave?: boolean;
+  saveCallback?: any;
+}
 @Component
 export default class ErrorDialog extends Vue {
   @Provide() private dialogVisible: boolean = false;
   @Provide() private errorHtml: string = "";
   @Provide() private errorTitle: string = "错误提示";
+  @Provide() private saveCallback?: any;
   mounted() {
-    bus.$on(EventType.ERRORVISIBLE, (obj: string | {title: string, content: string}) => {
+    bus.$on(EventType.ERRORVISIBLE, (obj: string | RecieveData) => {
       this.dialogVisible = true;
       if (typeof obj === 'string') {
         this.errorHtml = obj;
