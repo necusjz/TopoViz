@@ -170,7 +170,7 @@ export default class TopoTree extends Vue {
     }
     const autoLayout = new ht.layout.AutoLayout(graph);
     autoLayout.setRepulsion(1);
-    autoLayout.layout("circular", () => { // symmetric 、 circular
+    autoLayout.layout("symmetric", () => { // symmetric 、 circular
       graph.fitContent();
       this.drawTopoTree(nodes, edges);
     });
