@@ -4,17 +4,26 @@
     <div class="app-query-tool">
       <div class="app-query-tool-item app-query-date-wrap">
         <el-date-picker
-          v-model="dateValue"
-          type="datetimerange"
+          type="datetime"
+          v-model="startTime"
           class="app-query-date"
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-          :default-time="['00:00:00']"
           value-format="timestamp"
-          range-separator="--"
           :clearable="false"
           :disabled="isNonImported"
           @change="dateChange"
+          placeholder="选择开始时间"
+          size="small"
+        ></el-date-picker>
+        <span style="padding-right: 5px;color:#C0C4CC">—</span>
+        <el-date-picker
+          type="datetime"
+          v-model="endTime"
+          class="app-query-date"
+          value-format="timestamp"
+          :clearable="false"
+          :disabled="isNonImported"
+          @change="dateChange"
+          placeholder="选择截止时间"
           size="small"
         ></el-date-picker>
       </div>
@@ -42,10 +51,6 @@
           size="small"
         ></el-cascader>
       </div>
-      <!-- <div class="app-query-tool-item">
-        <el-button size="small" type="primary" class=" confirm-btn" :class="{'none-status': isNonImported || (!groupId && !regulationValue)}"
-          @click="queryTopoData">查看</el-button>
-      </div> -->
     </div>
   </div>
 </template>
@@ -67,7 +72,8 @@ export default class QueryTool extends Vue {
   @Provide() private regulationValue: (string | number)[] = [];
   @Provide() private visibleErrorTip: boolean = false;
   @Provide() private options: SelectOption[] = [];
-  @Provide() private dateValue: number[] = [];
+  @Provide() private startTime: number = 0;
+  @Provide() private endTime: number = 0;
   @State((state) => state.project.groupIds) private groupIds!: string[];
   @State((state) => state.app.isNonImported) private isNonImported!:boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -76,7 +82,8 @@ export default class QueryTool extends Vue {
   @State((state) => state.app.defaultDate) private defaultDate!: number[];
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
-    this.dateValue = this.defaultDate;
+    this.startTime = val[0];
+    this.endTime = val[1];
     this.dateChange(val);
   }
   @Watch('store_groupId')
@@ -113,20 +120,22 @@ export default class QueryTool extends Vue {
     });
   }
   public dateChange(value: number[]) {
-    getGroupIdsDataByInterval({start: (value[0] / 1000).toString(), end: (value[1] / 1000).toString()}).then((res) => {
-      if (res) {
-        this.$store.commit('SET_GROUPIDS', res['group_id']);
-        if (res['group_id'].length > 0) {
-          this.visibleErrorTip = false;
-          if (!this.store_groupId) {
-            // 初始化groupId
-            this.$store.commit('SET_GROUPID', res['group_id'][0]);
+    if (this.startTime && this.endTime) {
+      getGroupIdsDataByInterval({start: (this.startTime / 1000).toString(), end: (this.endTime / 1000).toString()}).then((res) => {
+        if (res) {
+          this.$store.commit('SET_GROUPIDS', res['group_id']);
+          if (res['group_id'].length > 0) {
+            this.visibleErrorTip = false;
+            if (!this.store_groupId) {
+              // 初始化groupId
+              this.$store.commit('SET_GROUPID', res['group_id'][0]);
+            }
+          } else {
+            this.visibleErrorTip = true;
           }
-        } else {
-          this.visibleErrorTip = true;
         }
-      }
-    })
+      })
+    }
   }
   public queryTopoData() {
     if (!this.groupId || !this.groupIds.includes(this.groupId)) {
@@ -137,6 +146,7 @@ export default class QueryTool extends Vue {
     this.regulationValue = [];
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');
+    bus.$emit(EventType.CLEAREXPAN);
     getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
       const table = data.table;
       if (data.elements.length > 0 && data.edges.length > 0) {
@@ -282,10 +292,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
     }
     .app-query-date-wrap {
       border-right: 1px solid #dfdfdf;
+      display: flex;
       .app-query-date {
-        width: 370px;
+        width: 200px;
         height: 30px;
-        background-image: $Btn_Background;
         color: #778296;
         padding-right: 5px;
         .el-range-input {

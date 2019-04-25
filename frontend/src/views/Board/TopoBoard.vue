@@ -52,11 +52,10 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
       this.conditionLabel = temp[val] || '告警名称';
     }
   }
-  @Watch('groupId')
-  public watchGroupId(val: string) {
-    if (val) {
+  mounted() {
+    bus.$on(EventType.CLEAREXPAN, () => {
       this.status = false;
-    }
+    });
   }
   public expand(val: boolean) {
     bus.$emit(EventType.FILTERRESET);

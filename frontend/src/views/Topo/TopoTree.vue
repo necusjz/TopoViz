@@ -13,6 +13,9 @@
       <div class="stage-toolbar-item" @click="zoom(-1)">
         <i class="el-icon-minus"></i>
       </div>
+      <div class="stage-toolbar-item" @click="fullScreen">
+        <i class="stage-fullScreen"></i>
+      </div>
     </div>
     <TipDialog></TipDialog>
   </div>
@@ -70,9 +73,6 @@ export default class TopoTree extends Vue {
     bus.$on(EventType.CLEARALARMNET, (noGroupAlarmsSet: Set<string>) => {
       this.clearAlarmNet(noGroupAlarmsSet);
     });
-    document.addEventListener('resize', () => {
-      this.resize();
-    });
   }
   public zoom(step: number) {
     if (this.isNoneTopoData) {
@@ -83,6 +83,11 @@ export default class TopoTree extends Vue {
       stage.zoomIn();
     } else {
       stage.zoomOut();
+    }
+  }
+  public fullScreen() {
+    if (this.center) {
+      this.stage.setView(this.center, 1);
     }
   }
   public addEvents() {
@@ -115,6 +120,10 @@ export default class TopoTree extends Vue {
           setTimeout(() => {
             window.location.hash = '';
           });
+        }
+      } else {
+        if (this.borderLayer) {
+          this.stage.removeLayer(this.borderLayer);
         }
       }
     });
@@ -166,7 +175,7 @@ export default class TopoTree extends Vue {
     }
     const autoLayout = new ht.layout.AutoLayout(graph);
     autoLayout.setRepulsion(1);
-    autoLayout.layout("symmetric", () => { // symmetric
+    autoLayout.layout("circular", () => { // symmetric 、 circular
       graph.fitContent();
       this.drawTopoTree(nodes, edges);
       this.temp && this.temp();
@@ -204,11 +213,6 @@ export default class TopoTree extends Vue {
     this.stage.setView(this.center);
     this.stage.endBatch();
     this.addEvents();
-  }
-  public resize() {
-    if (this.stage) {
-      this.stage.setView(this.center);
-    }
   }
   public reset() {
     this.stage.startBatch();
@@ -255,7 +259,6 @@ export default class TopoTree extends Vue {
         } else {
           url = require(`../../assets/${dirtyData.type}-${dirtyData.statusType}.png`);
         }
-        console.log(dirtyData.alarmSourceName, url);
         (layer as xCanvas.ImageLayer).setImage(url);
       }
     });
@@ -316,7 +319,7 @@ export default class TopoTree extends Vue {
     position: absolute;
     top: 40px;
     right: 20px;
-    height: 80px;
+    height: 120px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -335,6 +338,14 @@ export default class TopoTree extends Vue {
       &:hover {
         color: #409EFF;
       }
+    }
+    .stage-fullScreen {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      background-image: url('../../assets/fullScreen.jpg');
+      background-size: cover;
     }
     .stage-toolbar-item:active {
       box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
