@@ -155,6 +155,40 @@ def unique_dict(dicts):
     return unique
 
 
+def check_column(df):
+    try:
+        if df.shape[1] < app.config['DISTINCT_NUM']:
+            if 'Confirmed' not in df.columns:
+                df[app.config['TOPO_COLUMNS']]
+            else:
+                df[app.config['TOPO_MAPPING']]
+        else:
+            if 'Confirmed' not in df.columns:
+                df[app.config['ALARM_COLUMNS']]
+            else:
+                df[app.config['ALARM_MAPPING']]
+    except KeyError:
+        error = dict()
+        error['code'] = 400
+        error['message'] = 'Column name does not match.'
+        return error
+    else:
+        return False
+
+
+def check_type(types):
+    try:
+        if not types[0] ^ types[1]:
+            raise TypeError()
+    except TypeError:
+        error = dict()
+        error['code'] = 400
+        error['message'] = 'File type does not match.'
+        return error
+    else:
+        return False
+
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -170,7 +204,6 @@ def upload():
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     f_type = []
     for file in [file1, file2]:
-        # check filename legality
         if allowed_file(file.filename):
             filename = secure_filename(file.filename)
             # convert excel to dataframe
@@ -179,15 +212,8 @@ def upload():
             else:
                 dataframe = pd.read_csv(file)
             # handling column name exception
-            try:
-                if dataframe.shape[1] < app.config['DISTINCT_NUM']:
-                    dataframe[app.config['TOPO_COLUMNS']]
-                else:
-                    dataframe[app.config['ALARM_COLUMNS']]
-            except KeyError:
-                error = dict()
-                error['code'] = 400
-                error['message'] = 'Column name does not match.'
+            if check_column(dataframe):
+                error = check_column(dataframe)
                 return jsonify(error), 400
             # save formatted dataframe
             if 'Confirmed' not in dataframe.columns:
@@ -197,13 +223,8 @@ def upload():
             f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
             f_type.append(f_flag)
     # handling file type exception
-    try:
-        if not f_type[0] ^ f_type[1]:
-            raise TypeError()
-    except TypeError:
-        error = dict()
-        error['code'] = 400
-        error['message'] = 'File type does not match.'
+    if check_type(f_type):
+        error = check_type(f_type)
         return jsonify(error), 400
     # construct json for frontend
     res = dict()
@@ -360,7 +381,7 @@ def error_404(exception):
     # construct json for frontend
     error = dict()
     error['code'] = 404
-    error['message'] = 'NOT FOUND'
+    error['message'] = '400 NOT FOUND'
     return jsonify(error), 404
 
 
@@ -369,5 +390,5 @@ def error_500(exception):
     # construct json for frontend
     error = dict()
     error['code'] = 500
-    error['message'] = 'INTERNAL SERVER ERROR'
+    error['message'] = '500 INTERNAL SERVER ERROR'
     return jsonify(error), 500
