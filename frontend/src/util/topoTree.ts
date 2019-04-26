@@ -191,6 +191,7 @@ export default class TopoTreeHelper {
             for (const node of group) {
                 x += this.options.interval;
                 node.position.x = x;
+                node.position.y = (Math.random() - 0.5) * this.options.step / 3;
             }
         }
     }
@@ -210,7 +211,7 @@ export default class TopoTreeHelper {
                         return pre + cur;
                     });
                     parentNode.position.x /= parentNode.effectX.length;
-                    parentNode.position.y += node.position.y + this.options.step;
+                    parentNode.position.y += node.position.y + this.options.step + Math.random()* this.options.step / 2;
                     parentNode.effectX = [];
                 }
             }
@@ -236,7 +237,7 @@ export default class TopoTreeHelper {
                         return pre + cur;
                     });
                     childNode.position.x /= childNode.effectX.length;
-                    childNode.position.y -= this.options.step;
+                    childNode.position.y -= this.options.step - Math.random()* this.options.step / 2;
                     childNode.effectX = [];
                 }
             }
