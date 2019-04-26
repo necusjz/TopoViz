@@ -174,19 +174,27 @@ export default class QueryTool extends Vue {
         })
         this.$store.commit('SET_ALARMDATAS', alarmDatas);
       }
-      if (data.elements.length > 0 && data.edges.length > 0) {
+      // if (data.elements.length > 0 && data.edges.length > 0) {
+      //   this.$store.commit('SET_ISNONETOPODATA', false);
+      //   const elements = data.elements.map((ele) => {
+      //     let color = '';
+      //     if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === ele.NEName)) {
+      //       color = 'Warning';
+      //     }
+      //     return {name: ele.NEName, type: ele.NEType, color};
+      //   });
+      //   const edges = data.edges;
+      //   this.$store.commit('SET_TOPODATA', {elements, edges});
+      // }
+      if (data.topo) {
         this.$store.commit('SET_ISNONETOPODATA', false);
-        const elements = data.elements.map((ele) => {
-          let color = '';
-          if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === ele.NEName)) {
-            color = 'Warning';
-          }
-          return {name: ele.NEName, type: ele.NEType, color};
+        const topoTreeData = data.topo.map((path: any) => {
+          return path.reverse().map((node: any) => {
+            return { name: node.NEName, type: node.NEType };
+          });
         });
-        const edges = data.edges;
-        this.$store.commit('SET_TOPODATA', {elements, edges});
+        this.$store.commit('SET_TOPODATA', topoTreeData);
       }
-      
     });
     this.$store.commit("SET_GROUPID", this.groupId);
     this.visibleErrorTip = !this.groupId;
