@@ -24,8 +24,9 @@ service.interceptors.response.use(
     const res = response.data;
     return res;
   },
-  (error: Error) => {
-    return Promise.reject(error);
+  (error: any) => {
+    const errorData = error.response && error.response.data;
+    return Promise.reject(errorData);
   },
 );
 
