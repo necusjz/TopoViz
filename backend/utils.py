@@ -128,6 +128,7 @@ def check_column(df):
                 df[app.config['ALARM_MAPPING']]
         else:
             df[app.config['TOPO_COLUMNS']]
+    # catch key error
     except KeyError:
         error = dict()
         error['code'] = 400
@@ -141,6 +142,7 @@ def check_type(types):
     try:
         if not types[0] ^ types[1]:
             raise TypeError()
+    # catch type error
     except TypeError:
         error = dict()
         error['code'] = 400
