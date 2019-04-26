@@ -2,7 +2,7 @@
   <div class="app-stage" @mouseleave="leaveContainer">
     <div class="stage-wrap" id="stage">
       <div class="none-topoTree" v-if="isNoneTopoData">
-        <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据展示哦，导入一组表格数据试试</p>
+        <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据展示哦，导入 RCA 结果试试。</p>
         <p class="none-topoTree-label" v-else>暂无topo数据图哦，输入一个Group ID试一试</p>
       </div>
     </div>
@@ -108,7 +108,7 @@ export default class TopoTree extends Vue {
     });
   }
   public selectNetwork() {
-    const layer = this.stage.getLayer((glayer: xCanvas.Layer) => { 
+    const layer = this.stage.getLayer((glayer: xCanvas.Layer) => {
       return glayer.getLayerType() === 'IMAGE' && glayer.dirtyData && glayer.dirtyData.alarmSourceName === this.selectAlarm;
     });
     if (layer) {
