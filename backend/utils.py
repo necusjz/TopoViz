@@ -121,16 +121,13 @@ def build_tree(paths):
 
 def check_column(df):
     try:
-        if df.shape[1] < app.config['DISTINCT_NUM']:
-            if 'Confirmed' not in df.columns:
-                df[app.config['TOPO_COLUMNS']]
-            else:
-                df[app.config['TOPO_MAPPING']]
-        else:
+        if df.shape[1] > app.config['DISTINCT_NUM']:
             if 'Confirmed' not in df.columns:
                 df[app.config['ALARM_COLUMNS']]
             else:
                 df[app.config['ALARM_MAPPING']]
+        else:
+            df[app.config['TOPO_COLUMNS']]
     except KeyError:
         error = dict()
         error['code'] = 400
