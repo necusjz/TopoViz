@@ -36,7 +36,7 @@ import Importer from "@/views/Toolbars/Importer.vue";
 import QueryTool from "@/views/Toolbars/QueryTool.vue";
 import StaticsBoard from "./Board/Statics.vue";
 import TopoBoard from "./Board/TopoBoard.vue";
-import TopoTree from "./Topo/TopoTree.vue";
+import TopoTree from "./Topo/TopoTree1.vue";
 import TopoChart from './Topo/TopoChart.vue';
 import TopoTablePagination from './Pagination/TopoPagination.vue';
 import ErrorDialog from './Dialog/ErrorDialog.vue';
@@ -57,10 +57,10 @@ import StaticsTable from './Table/StaticsTable.vue';
   }
 })
 export default class AppMain extends Vue {
-  @State((state) => state.app.isNonImported) private isNonImported!: boolean;
-  @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
-  @State((state) => state.app.isNoneTableData) private isNoneTableData!: boolean;
-  @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
+  @State((state) => state.app.isNonImported) public isNonImported!: boolean;
+  @State((state) => state.app.isNoneTopoData) public isNoneTopoData!: boolean;
+  @State((state) => state.app.isNoneTableData) public isNoneTableData!: boolean;
+  @State((state) => state.app.isCheckStatics) public isCheckStatics!: boolean;
 }
 </script>
 
