@@ -84,7 +84,10 @@ export default class Importer extends Vue {
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
       NProgress.done();
-    });
+    }).catch((e) => {
+      bus.$emit(EventType.ERRORVISIBLE, `<p>${e.message}</p>`);
+      NProgress.done();
+    })
   }
   public submitData() {
     if (this.available) {
