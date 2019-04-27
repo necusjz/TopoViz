@@ -67,16 +67,25 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
           const alarmDatas = res.table.map((item: any) => this.formatData(item));
           this.$store.commit('SET_ALARMDATAS', alarmDatas);
         }
-        if (res.elements.length > 0 && res.edges.length > 0) {
-          this.$store.commit('SET_ISNONETOPODATA', false);
-          const elements = res.elements.map((ele: Node) => {
-            const color = this.getElementColor(ele.NEName, res.yellow);
-            return {name: ele.NEName, type: ele.NEType, color};
+        if (res.topo) {
+          const topoTreeData = res.topo.map((path: any) => {
+            return path.reverse().map((node: any) => {
+              const color = this.getElementColor(node.NEName, res.yellow);
+              return { name: node.NEName, type: node.NEType, color };
+            });
           });
-          const edges = res.edges;
-          this.$store.commit('SET_TOPODATA', {elements, edges});
-          // bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
+          this.$store.commit('SET_TOPODATA', topoTreeData);
         }
+        // if (res.elements.length > 0 && res.edges.length > 0) {
+        //   this.$store.commit('SET_ISNONETOPODATA', false);
+        //   const elements = res.elements.map((ele: Node) => {
+        //     const color = this.getElementColor(ele.NEName, res.yellow);
+        //     return {name: ele.NEName, type: ele.NEType, color};
+        //   });
+        //   const edges = res.edges;
+        //   this.$store.commit('SET_TOPODATA', {elements, edges});
+        //   // bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
+        // }
       });
     } else {
       bus.$emit(EventType.QUERY);
