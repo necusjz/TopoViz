@@ -62,7 +62,7 @@ export default class Importer extends Vue {
         this.formatName = this.formatFile.name;
       }
     } else {
-      bus.$emit(EventType.ERRORVISIBLE, '<p>文件类型仅支持csv, xlsx, xls</p>');
+      bus.$emit(EventType.ERRORVISIBLE, '<p>导入文件仅支持：CSV、XLSX、XLS</p>');
       return;
     }
     if (this.targetFile && this.formatFile) {
