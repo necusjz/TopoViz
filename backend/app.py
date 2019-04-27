@@ -1,158 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pandas as pd
 import shutil
 import uuid
 import time
 import json
-import os
 
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import render_template, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_cors import CORS
+from utils import *
 
-app = Flask(__name__, static_folder='static', static_url_path='')
 app.config.from_object('config')
 CORS(app, resources=r'/*')
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1] in \
-           app.config['ALLOWED_EXTENSIONS']
-
-
-def format_data(df):
-    if df.shape[1] > app.config['DISTINCT_NUM']:
-        # format raw data and map column name
-        df = df[app.config['ALARM_COLUMNS']]
-        df.columns = app.config['ALARM_MAPPING']
-        df = df.replace({'RcaResult': {1: 'P', 2: 'C'}})
-        # add new columns
-        df_index = range(0, df.shape[0])
-        df.insert(0, 'Index', df_index)
-        df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
-        df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
-        df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
-        df['Confirmed'] = ''
-        # sort by first occurrence
-        df = df.sort_values('First')
-    else:
-        df = df[app.config['TOPO_COLUMNS']]
-        df.columns = app.config['TOPO_MAPPING']
-    return df
-
-
-def save_data(df, client_id):
-    if df.shape[1] > app.config['DISTINCT_NUM']:
-        path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                            app.config['ALARM_FILE'])
-    else:
-        path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                            app.config['TOPO_FILE'])
-    df.to_csv(path, index=False)
-
-
-def result_monitor(client_id):
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    # initialize variables
-    accuracy = 0
-    confirmed_num = 0
-    correct_num = 0
-    total_num = len(set(alarm['GroupId']))
-    # count the number of confirmed groups
-    for group_id in set(alarm['GroupId']):
-        mask = alarm['GroupId_Edited'] == group_id
-        if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
-            confirmed_num += 1
-            # count the number of correct groups
-            pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-            pst_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
-                                                 app.config['EDITED_COLUMNS']))]
-            pst_alarm.columns = app.config['EDITED_COLUMNS']
-            if pre_alarm.equals(pst_alarm):
-                correct_num += 1
-    # calculate global accuracy
-    if confirmed_num == total_num:
-        accuracy = correct_num / total_num
-    return alarm, confirmed_num, accuracy
-
-
-def interval_limit(start, end):
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    # convert to datetime and set mask
-    alarm['First'] = pd.to_datetime(alarm['First'])
-    mask = (alarm['First'] >= start) & (alarm['First'] <= end)
-    alarm = alarm.loc[mask]
-    return alarm
-
-
-def group_filter(group_id):
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
-    return alarm
-
-
-def find_path(alarms):
-    # get paths for each network element
-    ne_path = []
-    for alarm in alarms:
-        client_id = request.headers.get('Client-Id')
-        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                        app.config['TOPO_FILE']))
-        topo = topo.loc[topo['NEName'] == alarm]
-        ne_path.append(set(topo['PathId']))
-    # calculate the topo paths need to be displayed
-    topo_path = set()
-    for i in range(0, len(ne_path)):
-        topo_path = topo_path | ne_path[i]
-    return topo_path
-
-
-def build_tree(paths):
-    total_element = []
-    total_edge = []
-    topo_tree = []
-    for path in paths:
-        # get elements for per path
-        element = []
-        client_id = request.headers.get('Client-Id')
-        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                        app.config['TOPO_FILE']))
-        topo = topo.loc[topo['PathId'] == path]
-        for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
-            element.append({'NEName': ne_name, 'NEType': ne_type})
-        # add elements
-        total_element.extend(element)
-        topo_tree.append(element)
-        # get edges according to elements
-        for i in range(0, len(element) - 1):
-            edge = dict()
-            edge['from'] = element[i]['NEName']
-            edge['to'] = element[i+1]['NEName']
-            total_edge.append(edge)
-    # deduplication for elements and edges
-    elements = unique_dict(total_element)
-    edges = unique_dict(total_edge)
-    return elements, edges, topo_tree
-
-
-def unique_dict(dicts):
-    seen = set()
-    unique = []
-    # deduplication
-    for d in dicts:
-        t = tuple(d.items())
-        if t not in seen:
-            seen.add(t)
-            unique.append(d)
-    return unique
 
 
 @app.route('/', methods=['GET'])
@@ -170,7 +31,6 @@ def upload():
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     f_type = []
     for file in [file1, file2]:
-        # check filename legality
         if allowed_file(file.filename):
             filename = secure_filename(file.filename)
             # convert excel to dataframe
@@ -179,15 +39,8 @@ def upload():
             else:
                 dataframe = pd.read_csv(file)
             # handling column name exception
-            try:
-                if dataframe.shape[1] < app.config['DISTINCT_NUM']:
-                    dataframe[app.config['TOPO_COLUMNS']]
-                else:
-                    dataframe[app.config['ALARM_COLUMNS']]
-            except KeyError:
-                error = dict()
-                error['code'] = 400
-                error['message'] = 'Column name does not match.'
+            if check_column(dataframe):
+                error = check_column(dataframe)
                 return jsonify(error), 400
             # save formatted dataframe
             if 'Confirmed' not in dataframe.columns:
@@ -197,13 +50,8 @@ def upload():
             f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
             f_type.append(f_flag)
     # handling file type exception
-    try:
-        if not f_type[0] ^ f_type[1]:
-            raise TypeError()
-    except TypeError:
-        error = dict()
-        error['code'] = 400
-        error['message'] = 'File type does not match.'
+    if check_type(f_type):
+        error = check_type(f_type)
         return jsonify(error), 400
     # construct json for frontend
     res = dict()
@@ -239,11 +87,9 @@ def analyze():
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
-    elements, edges, topo_tree = build_tree(topo_path)
+    topo_tree = build_tree(topo_path)
     # construct json for frontend
     res = dict()
-    res['elements'] = elements
-    res['edges'] = edges
     res['topo'] = topo_tree
     res['table'] = json.loads(alarm.to_json(orient='records'))
     res['orange'] = list(set(alarm['AlarmSource']))
@@ -265,11 +111,9 @@ def expand():
     # generate topo tree
     extra_path = find_path(set(alarm['AlarmSource']))
     topo_path = topo_path | extra_path
-    elements, edges, topo_tree = build_tree(topo_path)
+    topo_tree = build_tree(topo_path)
     # construct json for frontend
     res = dict()
-    res['elements'] = elements
-    res['edges'] = edges
     res['topo'] = topo_tree
     res['table'] = json.loads(alarm.to_json(orient='records'))
     alarm = alarm.loc[alarm['GroupId'] != group_id]
@@ -360,7 +204,7 @@ def error_404(exception):
     # construct json for frontend
     error = dict()
     error['code'] = 404
-    error['message'] = 'NOT FOUND'
+    error['message'] = '400 NOT FOUND'
     return jsonify(error), 404
 
 
@@ -369,5 +213,5 @@ def error_500(exception):
     # construct json for frontend
     error = dict()
     error['code'] = 500
-    error['message'] = 'INTERNAL SERVER ERROR'
+    error['message'] = '500 INTERNAL SERVER ERROR'
     return jsonify(error), 500
