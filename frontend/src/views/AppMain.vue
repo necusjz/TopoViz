@@ -36,7 +36,7 @@ import Importer from "@/views/Toolbars/Importer.vue";
 import QueryTool from "@/views/Toolbars/QueryTool.vue";
 import StaticsBoard from "./Board/Statics.vue";
 import TopoBoard from "./Board/TopoBoard.vue";
-import TopoTree from "./Topo/TopoTree1.vue";
+import TopoTree from "./Topo/TopoTree.vue";
 import TopoChart from './Topo/TopoChart.vue';
 import TopoTablePagination from './Pagination/TopoPagination.vue';
 import ErrorDialog from './Dialog/ErrorDialog.vue';
