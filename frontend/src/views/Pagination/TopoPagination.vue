@@ -18,15 +18,15 @@ import bus from '@/util/bus';
 
 @Component
 export default class TopoTablePagination extends Vue {
-    @Provide() private currentPage: number = 1;
-    @Provide() private pageSize: number = 5;
-    @Provide() private pageSizes: number[] = [5, 10, 15];
-    @Provide() private totalSize: number = 0;
-    @State((state) => state.app.tableData) private tableData!: AlarmData[];
-    @State((state) => state.app.selectAlarm) private selectAlarm!: string;
-    @State((state) => state.app.pageData) private pageData!: AlarmData[];
-    @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
-    @State((state) => state.app.needSave) private needSave!: boolean;
+    @Provide() public currentPage: number = 1;
+    @Provide() public pageSize: number = 5;
+    @Provide() public pageSizes: number[] = [5, 10, 15];
+    @Provide() public totalSize: number = 0;
+    @State((state) => state.app.tableData) public tableData!: AlarmData[];
+    @State((state) => state.app.selectAlarm) public selectAlarm!: string;
+    @State((state) => state.app.pageData) public pageData!: AlarmData[];
+    @State((state) => state.app.alarmDatas) public alarmDatas!: AlarmData[];
+    @State((state) => state.app.needSave) public needSave!: boolean;
     @Watch('tableData')
     public watchTableData(val: AlarmData[]) {
       this.initPagination();
@@ -70,18 +70,22 @@ export default class TopoTablePagination extends Vue {
       }
     }
     public handleCurrentChange(page: number) {
-      bus.$emit(EventType.ERRORVISIBLE, {
-        title: '错误提示',
-        content: '<p>当前结果未保存，您确定要离开吗？</p>',
-        confirmCallback: () => {
-          this.$store.commit('SET_NEEDSAVE', false);
-          this.currentPage = page;
-          this.submitPageData();
-        },
-        saveCallback: () => {
-          bus.$emit(EventType.SAVEDATA);
-        }
-      });
+      if (this.needSave) {
+        bus.$emit(EventType.ERRORVISIBLE, {
+          title: '错误提示',
+          content: '<p>当前结果未保存，您确定要离开吗？</p>',
+          confirmCallback: () => {
+            this.$store.commit('SET_NEEDSAVE', false);
+            this.currentPage = page;
+            this.submitPageData();
+          },
+          saveCallback: () => {
+            bus.$emit(EventType.SAVEDATA);
+          }
+        });
+      } else {
+
+      }
     }
     public submitPageData() {
       const currentPageData: AlarmData[] = this.tableData.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);

@@ -26,7 +26,7 @@ import { Component, Prop, Vue, Provide, Watch } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
 import { Vertex } from '@/lib/typeof/typeof';
-import { Node, Edge, EventType, AlarmData } from '../../types/type';
+import { Node, Edge, EventType, AlarmData, NodeData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
@@ -48,10 +48,10 @@ export default class TopoTree extends Vue {
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
-  @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
+  @State((state) => state.app.topoDatas) private topoDatas!: NodeData[][];
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
-  public watchTopoDatas(val: {elements: Node[], edges: Edge[]}) {
+  public watchTopoDatas(val: NodeData[][]) {
     this.buildTopoTree();
   }
   @Watch('selectAlarm')
@@ -149,64 +149,120 @@ export default class TopoTree extends Vue {
   public leaveContainer() {
     bus.$emit(EventType.TIPVISIBLE, false);
   }
+  // public buildTopoTree() {
+  //   const graph = new ht.graph.GraphView();
+  //   const dm = graph.dm();
+  //   const nodes: Map<string, Node> = new Map();
+  //   const edges: any = [];
+  //   for (const element of this.topoDatas.elements) {
+  //     const node = new ht.Node();
+  //     nodes.set(element.name, {...element, data: node});
+  //     dm.add(node);
+  //   }
+  //   for (const edg of this.topoDatas.edges) {
+  //     const from = nodes.get(edg.from);
+  //     const to = nodes.get(edg.to);
+  //     if (from && to) {
+  //       const edge = new ht.Edge(from.data, to.data);
+  //       dm.add(edge);
+  //       edges.push(edge);
+  //     }
+  //   }
+  //   const autoLayout = new ht.layout.AutoLayout(graph);
+  //   autoLayout.setRepulsion(1);
+  //   autoLayout.layout("symmetric", () => { // symmetric 、 circular
+  //     graph.fitContent();
+  //     this.drawTopoTree(nodes, edges);
+  //   });
+  // }
+  // public drawTopoTree(nodes: any, edges: any) {
+  //   if (!this.stage) {
+  //     this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+  //   }
+  //   const size: number = 20;
+  //   this.stage.startBatch();
+  //   this.stage.clearAllLayers();
+  //   let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
+  //   for (const edge of edges) {
+  //     const from = edge.getSource().getPosition();
+  //     const to = edge.getTarget().getPosition();
+  //     const leader = new xCanvas.Polyline([[from.x, from.y], [to.x, to.y]], {color: '#0276F7'});
+  //     this.stage.addLayer(leader);
+  //   }
+  //   for (const [id, element] of nodes) {
+  //     const node = element.data;
+  //     const position = node.getPosition();
+  //     let dirtyData = this.getDataByAlarmSourceName(element.name);
+  //     if (dirtyData) {
+  //       dirtyData = {...dirtyData, type: element.type};
+  //       dirtyData.statusType = element.color;
+  //     }
+  //     const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
+  //     const url = require(`../../assets/${element.type}${ex}.png`);
+  //     const childLayer = new xCanvas.ImageLayer(url, position.x, position.y, size, size).addTo(this.stage);
+  //     childLayer.setDirtyData(dirtyData);
+  //     // const childLayer = new xCanvas.IText([position.x, position.y], id).addTo(this.stage);
+  //     bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
+  //   }
+  //   this.center = bound.getCenter();
+  //   this.stage.setView(this.center);
+  //   this.stage.endBatch();
+  //   this.addEvents();
+  // }
   public buildTopoTree() {
-    const graph = new ht.graph.GraphView();
-    const dm = graph.dm();
-    const nodes: Map<string, Node> = new Map();
-    const edges: any = [];
-    for (const element of this.topoDatas.elements) {
-      const node = new ht.Node();
-      nodes.set(element.name, {...element, data: node});
-      dm.add(node);
-    }
-    for (const edg of this.topoDatas.edges) {
-      const from = nodes.get(edg.from);
-      const to = nodes.get(edg.to);
-      if (from && to) {
-        const edge = new ht.Edge(from.data, to.data);
-        dm.add(edge);
-        edges.push(edge);
-      }
-    }
-    const autoLayout = new ht.layout.AutoLayout(graph);
-    autoLayout.setRepulsion(1);
-    autoLayout.layout("symmetric", () => { // symmetric 、 circular
-      graph.fitContent();
-      this.drawTopoTree(nodes, edges);
-    });
-  }
-  public drawTopoTree(nodes: any, edges: any) {
     if (!this.stage) {
       this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
     }
-    const size: number = 20;
-    this.stage.startBatch();
+    const size: number = 40;
+    const step: number = 80;
+    const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size, step});
+    helper.run();
+    const stage: xCanvas.Stage = this.stage;
+    stage.startBatch();
     this.stage.clearAllLayers();
-    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
-    for (const edge of edges) {
-      const from = edge.getSource().getPosition();
-      const to = edge.getTarget().getPosition();
-      const leader = new xCanvas.Polyline([[from.x, from.y], [to.x, to.y]], {color: '#0276F7'});
-      this.stage.addLayer(leader);
+    for (const edge of helper.edges) {
+      const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
+      const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
+      const path = [];
+      if (edge.source.type ===  edge.target.type && helper.isStraight(source.x, target.x, edge.source.type)) {
+        const ydir = new xCanvas.Math.Vector2(0, -1);
+        const p1 = source.clone().add(ydir.clone().scale(size / 1.8));
+        const p2 = target.clone().add(ydir.clone().scale(size / 1.8));
+        const p3 = p1.clone().add(ydir.clone().scale(step / 3));
+        const p4 = p2.clone().add(ydir.clone().scale(step / 3));
+        path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
+        const leader = new xCanvas.Polyline(path, {color: '#0276F7'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
+      } else {
+        const dir = target.clone().substract(source.clone()).normalize();
+        const p1 = source.clone().add(dir.clone().scale(size / 1.5));
+        const p2 = target.clone().substract(dir.clone().scale(size / 1.5));
+        const pts: Vertex[] = [];
+        pts.push([p1.x, p1.y], [p2.x, p2.y]);
+        const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
+      }
     }
-    for (const [id, element] of nodes) {
-      const node = element.data;
-      const position = node.getPosition();
-      let dirtyData = this.getDataByAlarmSourceName(element.name);
+    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
+    for (const node of helper.nodes.values()) {
+      let dirtyData = this.getDataByAlarmSourceName(node.name);
       if (dirtyData) {
-        dirtyData = {...dirtyData, type: element.type};
-        dirtyData.statusType = element.color;
+        dirtyData = {...dirtyData, type: node.type};
+        dirtyData.statusType = node.color;
       }
       const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
-      const url = require(`../../assets/${element.type}${ex}.png`);
-      const childLayer = new xCanvas.ImageLayer(url, position.x, position.y, size, size).addTo(this.stage);
-      childLayer.setDirtyData(dirtyData);
-      // const childLayer = new xCanvas.IText([position.x, position.y], id).addTo(this.stage);
+      const url = require(`../../assets/${node.type}${ex}.png`);
+      const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
+      if (dirtyData) {
+        childLayer.setDirtyData(dirtyData);
+      }
       bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
     }
     this.center = bound.getCenter();
-    this.stage.setView(this.center);
-    this.stage.endBatch();
+    stage.setView(this.center);
+    stage.endBatch();
     this.addEvents();
   }
   public reset() {
