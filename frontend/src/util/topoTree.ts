@@ -4,6 +4,7 @@ import { generateUUID } from './util';
 interface NeNode {
     name: string;
     type: string;
+    color: string;
 }
 interface TopoOptions {
     interval: number;
@@ -14,15 +15,17 @@ class Node {
     public id: string;
     public name: string;
     public type: string;
+    public color: string;
     public position: { x: number, y: number } = {x: 0, y: 0};
     public right: Node[] = [];
     public bottom: Node[] = [];
     public left: Node[] = [];
     public top: Node[] = [];
     public effectX: number[] = [];
-    constructor(name: string, type: string) {
+    constructor(name: string, type: string, color: string) {
         this.name = name;
         this.type = type;
+        this.color = color;
         this.id = generateUUID();
     }
     public setPosition(pos: { x: number, y: number }) {
@@ -48,7 +51,7 @@ export default class TopoTreeHelper {
         this.stage = stage;
         this.data = topoData;
         const defaultOptions: TopoOptions = {
-            step: 90,
+            step: 180,
             interval: 80,
             size: 20
         };
@@ -189,7 +192,7 @@ export default class TopoTreeHelper {
         let x = 0;
         for (const group of groupedNodes) {
             for (const node of group) {
-                x += this.options.interval;
+                x += this.options.interval * (1 + Math.random() * 0.5);
                 node.position.x = x;
                 node.position.y = (Math.random() - 0.5) * this.options.step / 3;
             }
@@ -251,7 +254,7 @@ export default class TopoTreeHelper {
         for (const neNodes of this.data) {
             let preNode!: Node;
             for (const neNode of neNodes) {
-                const node = this.nodes.get(neNode.name) || new Node(neNode.name, neNode.type);
+                const node = this.nodes.get(neNode.name) || new Node(neNode.name, neNode.type, neNode.color);
                 this.nodes.set(node.name, node);
                 if (preNode) {
                     const edge = new Edge(preNode, node);
