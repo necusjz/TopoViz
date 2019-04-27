@@ -1,6 +1,6 @@
 <template>
   <div class="app-importer-wrap">
-    <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics">
+    <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics" />
     <div class="app-importer-item app-back-wrap" v-if="isCheckStatics" @click="goBack">
       <i class="el-icon-back"></i>
       <span class="app-back">返回</span>

@@ -67,19 +67,19 @@ import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
 @Component
 export default class QueryTool extends Vue {
-  @Provide() private groupId: string = "";
-  @Provide() private regulationValue: (string | number)[] = [];
-  @Provide() private visibleErrorTip: boolean = false;
-  @Provide() private options: SelectOption[] = [];
-  @Provide() private startTime: number = 0;
-  @Provide() private endTime: number = 0;
-  @State((state) => state.project.groupIds) private groupIds!: string[];
-  @State((state) => state.app.isNonImported) private isNonImported!:boolean;
-  @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
-  @State((state) => state.app.groupId) private store_groupId!: string;
-  @State((state) => state.app.regValue) private store_regValue!: string;
-  @State((state) => state.app.defaultDate) private defaultDate!: number[];
-  @State((state) => state.app.needSave) private needSave!: boolean;
+  @Provide() public groupId: string = "";
+  @Provide() public regulationValue: (string | number)[] = [];
+  @Provide() public visibleErrorTip: boolean = false;
+  @Provide() public options: SelectOption[] = [];
+  @Provide() public startTime: number = 0;
+  @Provide() public endTime: number = 0;
+  @State((state) => state.project.groupIds) public groupIds!: string[];
+  @State((state) => state.app.isNonImported) public isNonImported!:boolean;
+  @State((state) => state.app.alarmDatas) public alarmDatas!: AlarmData[];
+  @State((state) => state.app.groupId) public store_groupId!: string;
+  @State((state) => state.app.regValue) public store_regValue!: string;
+  @State((state) => state.app.defaultDate) public defaultDate!: number[];
+  @State((state) => state.app.needSave) public needSave!: boolean;
 
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
@@ -190,7 +190,11 @@ export default class QueryTool extends Vue {
         this.$store.commit('SET_ISNONETOPODATA', false);
         const topoTreeData = data.topo.map((path: any) => {
           return path.reverse().map((node: any) => {
-            return { name: node.NEName, type: node.NEType };
+            let color = '';
+            if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === node.NEName)) {
+              color = 'Warning';
+            }
+            return { name: node.NEName, type: node.NEType, color };
           });
         });
         this.$store.commit('SET_TOPODATA', topoTreeData);

@@ -80,6 +80,7 @@ export enum Rules {
 export interface NodeData {
     name: string;
     type: string;
+    color: string;
 }
 export interface StaticsRes {
     c_count: number;
