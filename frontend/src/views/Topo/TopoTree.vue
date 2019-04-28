@@ -1,6 +1,6 @@
 <template>
   <div class="app-stage" @mouseleave="leaveContainer">
-    <div class="stage-wrap" id="stage">
+    <div class="stage-wrap" id="stage" ref="stage">
       <div class="none-topoTree" v-if="isNoneTopoData">
         <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据展示哦，导入 RCA 结果试试。</p>
         <p class="none-topoTree-label" v-else>暂无 TOPO 数据图哦，选择一个 Group ID 试试。</p>
@@ -52,7 +52,6 @@ export default class TopoTree extends Vue {
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
   public watchTopoDatas(val: NodeData[][]) {
-    console.log('topoData change', val);
     this.buildTopoTree();
   }
   @Watch('selectAlarm')
@@ -150,77 +149,21 @@ export default class TopoTree extends Vue {
   public leaveContainer() {
     bus.$emit(EventType.TIPVISIBLE, false);
   }
-  // public buildTopoTree() {
-  //   const graph = new ht.graph.GraphView();
-  //   const dm = graph.dm();
-  //   const nodes: Map<string, Node> = new Map();
-  //   const edges: any = [];
-  //   for (const element of this.topoDatas.elements) {
-  //     const node = new ht.Node();
-  //     nodes.set(element.name, {...element, data: node});
-  //     dm.add(node);
-  //   }
-  //   for (const edg of this.topoDatas.edges) {
-  //     const from = nodes.get(edg.from);
-  //     const to = nodes.get(edg.to);
-  //     if (from && to) {
-  //       const edge = new ht.Edge(from.data, to.data);
-  //       dm.add(edge);
-  //       edges.push(edge);
-  //     }
-  //   }
-  //   const autoLayout = new ht.layout.AutoLayout(graph);
-  //   autoLayout.setRepulsion(1);
-  //   autoLayout.layout("symmetric", () => { // symmetric 、 circular
-  //     graph.fitContent();
-  //     this.drawTopoTree(nodes, edges);
-  //   });
-  // }
-  // public drawTopoTree(nodes: any, edges: any) {
-  //   if (!this.stage) {
-  //     this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
-  //   }
-  //   const size: number = 20;
-  //   this.stage.startBatch();
-  //   this.stage.clearAllLayers();
-  //   let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
-  //   for (const edge of edges) {
-  //     const from = edge.getSource().getPosition();
-  //     const to = edge.getTarget().getPosition();
-  //     const leader = new xCanvas.Polyline([[from.x, from.y], [to.x, to.y]], {color: '#0276F7'});
-  //     this.stage.addLayer(leader);
-  //   }
-  //   for (const [id, element] of nodes) {
-  //     const node = element.data;
-  //     const position = node.getPosition();
-  //     let dirtyData = this.getDataByAlarmSourceName(element.name);
-  //     if (dirtyData) {
-  //       dirtyData = {...dirtyData, type: element.type};
-  //       dirtyData.statusType = element.color;
-  //     }
-  //     const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
-  //     const url = require(`../../assets/${element.type}${ex}.png`);
-  //     const childLayer = new xCanvas.ImageLayer(url, position.x, position.y, size, size).addTo(this.stage);
-  //     childLayer.setDirtyData(dirtyData);
-  //     // const childLayer = new xCanvas.IText([position.x, position.y], id).addTo(this.stage);
-  //     bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
-  //   }
-  //   this.center = bound.getCenter();
-  //   this.stage.setView(this.center);
-  //   this.stage.endBatch();
-  //   this.addEvents();
-  // }
   public buildTopoTree() {
     if (!this.stage) {
       this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1, zoom: 1});
     }
+    console.log(this.$refs.stage);
     this.stage.clearAllLayers();
     if (!this.topoDatas) {
       return;
     }
     const size: number = 40;
     const step: number = 200;
-    const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size, step});
+    const stageDom: any = this.$refs.stage;
+    const width: number = stageDom.offsetWidth;
+    const height: number = stageDom.offsetHeight;
+    const helper = new TopoTreeHelper(this.topoDatas, {size, step, width, height});
     helper.run();
     const stage: xCanvas.Stage = this.stage;
     stage.startBatch();
@@ -256,6 +199,7 @@ export default class TopoTree extends Vue {
         dirtyData = {...dirtyData, type: node.type};
         dirtyData.statusType = node.color;
       }
+      console.log(node.position);
       const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
       const url = require(`../../assets/${node.type}${ex}.png`);
       const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
