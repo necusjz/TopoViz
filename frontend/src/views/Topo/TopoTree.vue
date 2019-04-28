@@ -2,8 +2,8 @@
   <div class="app-stage" @mouseleave="leaveContainer">
     <div class="stage-wrap" id="stage">
       <div class="none-topoTree" v-if="isNoneTopoData">
-        <p class="none-topoTree-label" v-if="isNonImported">暂无任何数据展示哦，导入 RCA 结果试试。</p>
-        <p class="none-topoTree-label" v-else>暂无 TOPO 数据图哦，选择一个 Group ID 试试。</p>
+        <p class="none-topoTree-label" v-if="isNonImported">暂无任何拓扑展示哦，导入 RCA 结果试试。</p>
+        <p class="none-topoTree-label" v-else>暂无 TOPO 图哦，选择一个 Group ID 试试。</p>
       </div>
     </div>
     <div class="stage-toolbar">

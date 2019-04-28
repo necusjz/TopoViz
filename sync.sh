@@ -5,4 +5,3 @@ rm -fr backend/templates/*
 
 mv frontend/dist/*.html backend/templates/
 mv frontend/dist/* backend/static/
-
