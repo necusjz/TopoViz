@@ -42,6 +42,7 @@
       </div>
       <div class="app-query-tool-item app-query-tool-regulation">
         <el-cascader
+          placeholder="请按照条件定位"
           :options="options"
           v-model="regulationValue"
           :clearable="true"
