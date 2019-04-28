@@ -1,6 +1,6 @@
 <template>
   <el-dialog :visible="dialogVisible" custom-class="error-dialog" width="380px" :show-close="false">
-    <div class="dialog-title" slot="title">
+    <div class="dialog-title" slot="title" :class="type === 'error' ? 'dialog-error' : ''">
       <div class="title-label">
         <i class="el-icon-warning"></i>
         <span class="label">{{errorTitle}}</span>
@@ -12,7 +12,7 @@
     <div class="dialog-content">
       <div class="error-content-box" v-html="errorHtml"></div>
       <el-button size="small" class="save-btn" v-if="showSaveBtn" @click="save">保存</el-button>
-      <el-button size="small" type="primary" class="confirm-btn" @click="confirm">确定</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" :class="{error: type === 'error'}" @click="confirm">确定</el-button>
     </div>
   </el-dialog>
 </template>
@@ -24,6 +24,7 @@ import bus from "../../util/bus";
 interface RecieveData {
   title: string;
   content: string;
+  type?: string;
   saveCallback?: any;
   confirmCallback?: any;
   cancelCallback?: any;
@@ -31,6 +32,7 @@ interface RecieveData {
 @Component
 export default class ErrorDialog extends Vue {
   @Provide() private dialogVisible: boolean = false;
+  @Provide() private type: string = 'info';
   @Provide() private errorHtml: string = "";
   @Provide() private errorTitle: string = "错误提示";
   @Provide() private showSaveBtn: boolean = false;
@@ -44,6 +46,7 @@ export default class ErrorDialog extends Vue {
         this.errorHtml = obj;
         this.showSaveBtn = false;
       } else {
+        this.type = obj.type || 'info';
         this.errorTitle = obj.title;
         this.errorHtml = obj.content;
         this.saveCallback = obj.saveCallback;
@@ -89,6 +92,7 @@ export default class ErrorDialog extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
+$Error-color: #F56C6C;
 .error-dialog {
   .el-dialog__header {
     padding: 0;
@@ -105,6 +109,9 @@ export default class ErrorDialog extends Vue {
   display: flex;
   justify-content: space-between;
   padding: 0 15px;
+  &.dialog-error {
+    background: $Error-color;
+  }
   .title-label {
     font-size: 20px;
     .label {
@@ -117,6 +124,10 @@ export default class ErrorDialog extends Vue {
       opacity: 0.6;
     }
   }
+}
+.confirm-btn.error {
+  background-color: $Error-color;
+  border-color: $Error-color;
 }
 .error-content-box {
   padding-bottom: 20px;
