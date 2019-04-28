@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="topo-board-right">
-      <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand"></el-switch>
+      <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
       <span class="timer-hint" :class="{active: status}">当前状态下{{status ? '已' : '未'}}显示 P 告警前后 5 min 告警数据</span>
     </div>
   </div>

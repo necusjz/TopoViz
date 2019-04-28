@@ -10,6 +10,14 @@ interface TopoOptions {
     interval: number;
     step: number;
     size: number;
+    width?: number;
+    height?: number;
+}
+interface GroupData {
+    type: string;
+    nodes: Node[];
+    groupedNodes: Node[][];
+    relatedNodes: Node[][]
 }
 class Node {
     public id: string;
@@ -44,14 +52,12 @@ export default class TopoTreeHelper {
     public nodes: Map<string, Node> = new Map();
     public edges: Edge[] = [];
     public options: TopoOptions;
-    private stage!: xCanvas.Stage;
     private data: NeNode[][] = [];
     private levelY: {[k: string]: number} = {};
-    constructor(stage: xCanvas.Stage, topoData: NeNode[][], options = {}) {
-        this.stage = stage;
+    constructor(topoData: NeNode[][], options = {}) {
         this.data = topoData;
         const defaultOptions: TopoOptions = {
-            step: 180,
+            step: 60,
             interval: 80,
             size: 20
         };
@@ -63,7 +69,7 @@ export default class TopoTreeHelper {
         const parts: any = this.data.map((part) => {
             return part.map((ne) => this.nodes.get(ne.name));
         });
-        const groupData: {type: string, nodes: Node[], groupedNodes: Node[][], relatedNodes: Node[][]}[] = [];
+        const groupData: GroupData[] = [];
         for (const node of this.nodes.values()) {
             let group = groupData.find((g) => g.type === node.type);
             if (!group) {
@@ -107,6 +113,7 @@ export default class TopoTreeHelper {
         // 同层节点位置排序结束, todo: 相邻层连接
         this.updateParentPostionX(groupData[0].nodes);
         this.updateChildrenPositionX(groupData[0].nodes);
+        this.autoFixLayout(groupData);
     }
     public isHasIntersect(souce: Node[], target: Node[]): boolean {
         for (let i = 0; i < souce.length; i++) {
@@ -192,9 +199,9 @@ export default class TopoTreeHelper {
         let x = 0;
         for (const group of groupedNodes) {
             for (const node of group) {
-                x += this.options.interval * (1 + Math.random() * 0.5);
+                x += this.options.interval;
                 node.position.x = x;
-                node.position.y = (Math.random() - 0.5) * this.options.step / 3;
+                node.position.y = 0;
             }
         }
     }
@@ -214,7 +221,7 @@ export default class TopoTreeHelper {
                         return pre + cur;
                     });
                     parentNode.position.x /= parentNode.effectX.length;
-                    parentNode.position.y += node.position.y + this.options.step + Math.random()* this.options.step / 2;
+                    parentNode.position.y += node.position.y + this.options.step;
                     parentNode.effectX = [];
                 }
             }
@@ -240,7 +247,7 @@ export default class TopoTreeHelper {
                         return pre + cur;
                     });
                     childNode.position.x /= childNode.effectX.length;
-                    childNode.position.y -= this.options.step - Math.random()* this.options.step / 2;
+                    childNode.position.y -= this.options.step;
                     childNode.effectX = [];
                 }
             }
@@ -288,5 +295,29 @@ export default class TopoTreeHelper {
         }
         return res; 
     }
-
+    private autoFixLayout(groupData: GroupData[]) {
+        const w = this.options.width;
+        const h = this.options.height;
+        if (w && h) {
+            groupData.sort((a, b) => {
+                if (a.nodes.length > 0 && b.nodes.length > 0) {
+                    return a.nodes[0].position.y - b.nodes[0].position.y;
+                } else {
+                    return 0;
+                }
+            });
+            const step = h / groupData.length;
+            for (let k = 0; k < groupData.length; k++) {
+                const group = groupData[k];
+                const interval = w / group.nodes.length;
+                const nodes = group.nodes.sort((a, b) => a.position.x - b.position.x);
+                for (let i = 0; i < nodes.length; i++) {
+                    const node = nodes[i];
+                    const x: number = interval * i + interval * (0.25 + Math.random() * 0.5);
+                    const y: number = step * k + step * (0.25 + Math.random() * 0.5);
+                    node.setPosition({x, y});
+                }
+            }
+        }
+    }
 }
