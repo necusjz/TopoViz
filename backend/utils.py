@@ -6,11 +6,6 @@ from flask import Flask, request
 app = Flask(__name__, static_folder='static', static_url_path='')
 
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1] in \
-           app.config['ALLOWED_EXTENSIONS']
-
-
 def format_data(df):
     if df.shape[1] > app.config['DISTINCT_NUM']:
         # format raw data and map column name

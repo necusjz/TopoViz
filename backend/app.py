@@ -31,24 +31,23 @@ def upload():
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
     f_type = []
     for file in [file1, file2]:
-        if allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            # convert excel to dataframe
-            if filename.endswith('.xlsx') or filename.endswith('xls'):
-                dataframe = pd.read_excel(file)
-            else:
-                dataframe = pd.read_csv(file)
-            # handling column name exception
-            if check_column(dataframe):
-                error = check_column(dataframe)
-                return jsonify(error), 400
-            # save formatted dataframe
-            if 'Confirmed' not in dataframe.columns:
-                dataframe = format_data(dataframe)
-            save_data(dataframe, client_id)
-            # store file types by flag
-            f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
-            f_type.append(f_flag)
+        filename = secure_filename(file.filename)
+        # convert excel to dataframe
+        if filename.endswith('.xlsx') or filename.endswith('xls'):
+            dataframe = pd.read_excel(file)
+        else:
+            dataframe = pd.read_csv(file)
+        # handling column name exception
+        if check_column(dataframe):
+            error = check_column(dataframe)
+            return jsonify(error), 400
+        # save formatted dataframe
+        if 'Confirmed' not in dataframe.columns:
+            dataframe = format_data(dataframe)
+        save_data(dataframe, client_id)
+        # store file types by flag
+        f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
+        f_type.append(f_flag)
     # handling file type exception
     if check_type(f_type):
         error = check_type(f_type)
@@ -197,15 +196,6 @@ def clean():
         diff = time.time() - os.path.getmtime(dirpath)
         if diff > 7 * 24 * 60 * 60:
             shutil.rmtree(dirpath)
-
-
-@app.errorhandler(404)
-def error_404(exception):
-    # construct json for frontend
-    error = dict()
-    error['code'] = 404
-    error['message'] = '400 NOT FOUND'
-    return jsonify(error), 404
 
 
 @app.errorhandler(500)
