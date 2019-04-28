@@ -121,7 +121,7 @@
             <p class="gray-text">修改后：</p>
             <p>{{scope.row.rcaReg_edit}}</p>
           </div>
-          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row)"> 
+          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row)">
             <span :title="scope.row.rcaReg_edit" class="rcaReg-label edit-label">{{scope.row.rcaReg_edit}}</span>
             <i class="el-icon-edit"></i>
           </div>
@@ -138,7 +138,7 @@
     <div slot="empty" class="none-tableData-wrap">
       <span class="none-table-label">
         <i class="el-icon-warning"></i>
-        {{ isunConfirmed ? '无数据' : '您还没有确认过的数据哦，去未确认里看看吧'}}
+        {{ isunConfirmed ? '无数据' : '您还没有确认过的数据哦，去“未确认”里看看吧。'}}
       </span>
     </div>
   </el-table>
