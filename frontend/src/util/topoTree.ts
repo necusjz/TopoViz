@@ -51,7 +51,7 @@ export default class TopoTreeHelper {
         this.stage = stage;
         this.data = topoData;
         const defaultOptions: TopoOptions = {
-            step: 180,
+            step: 600,
             interval: 80,
             size: 20
         };
