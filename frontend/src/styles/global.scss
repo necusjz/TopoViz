@@ -51,6 +51,9 @@ ul, li, p {
     background: #ffb46a!important;
     height: 5px!important;
 }
+#nprogress .peg {
+    box-shadow: none!important;
+}
 .fade-enter-active, .fade-leave-active {
     transition: opacity .3s;
 }
