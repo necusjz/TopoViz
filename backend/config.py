@@ -1,5 +1,4 @@
 UPLOAD_FOLDER = 'temp'
-ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'xls'}
 
 TOPO_FILE = 'topo_format.csv'
 ALARM_FILE = 'alarm_format.csv'
