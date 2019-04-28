@@ -91,6 +91,7 @@ def analyze():
     res = dict()
     res['topo'] = topo_tree
     res['table'] = json.loads(alarm.to_json(orient='records'))
+    print(json.loads(alarm.to_json(orient='records')))
     res['orange'] = list(set(alarm['AlarmSource']))
     return jsonify(res)
 
