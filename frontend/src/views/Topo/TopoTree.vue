@@ -52,6 +52,7 @@ export default class TopoTree extends Vue {
   @State((state) => state.app.selectAlarm) private selectAlarm!: string;
   @Watch('topoDatas')
   public watchTopoDatas(val: NodeData[][]) {
+    console.log('topoData change', val);
     this.buildTopoTree();
   }
   @Watch('selectAlarm')
@@ -211,15 +212,18 @@ export default class TopoTree extends Vue {
   // }
   public buildTopoTree() {
     if (!this.stage) {
-      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1});
+      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1, zoom: 1});
+    }
+    this.stage.clearAllLayers();
+    if (!this.topoDatas) {
+      return;
     }
     const size: number = 40;
-    const step: number = 80;
+    const step: number = 200;
     const helper = new TopoTreeHelper(this.stage, this.topoDatas, {size, step});
     helper.run();
     const stage: xCanvas.Stage = this.stage;
     stage.startBatch();
-    this.stage.clearAllLayers();
     for (const edge of helper.edges) {
       const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
       const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
