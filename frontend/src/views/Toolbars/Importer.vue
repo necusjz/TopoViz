@@ -52,6 +52,7 @@ export default class Importer extends Vue {
   @Provide() private available: boolean = false;
   @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
   @State((state) => state.app.clientId) private clientId!: string;
+  @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
       if (type === 'target') {
@@ -77,6 +78,9 @@ export default class Importer extends Vue {
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
     NProgress.start();
+    if (!this.isNonImported) {
+      this.clearAllData();
+    }
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
       const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
@@ -85,7 +89,11 @@ export default class Importer extends Vue {
       this.$store.commit('SET_ISNOEIMPORTED', false);
       NProgress.done();
     }).catch((e) => {
-      bus.$emit(EventType.ERRORVISIBLE, `<p>${e.message}</p>`);
+      bus.$emit(EventType.ERRORVISIBLE, {
+        title: '错误提示',
+        type: 'error',
+        content: `<p>${e.message}</p>`
+      });
       NProgress.done();
     })
   }
@@ -97,10 +105,25 @@ export default class Importer extends Vue {
       this.autoUpload();
     }
   }
+  public clearAllData() {
+    this.$store.commit('SET_CLIENTID', '');
+    this.$store.commit('SET_DEFAULTDATE', []);
+    this.$store.commit("SET_REGVALUE", '');
+    this.$store.commit("SET_REGTYPE", '');
+    this.$store.commit('SET_GROUPID', '');
+    this.$store.commit('SET_GROUPIDS', []);
+    this.$store.commit('SET_ALARMDATAS', []);
+    this.$store.commit('SET_TOPODATA', '');
+    bus.$emit(EventType.CLEAREXPAN);
+  }
   public goBack() {
     this.$store.commit('SET_ISCHECKSTATICS', false);
   }
   public exportData() {
+    if (!this.clientId) {
+      bus.$emit(EventType.ERRORVISIBLE, '<p>请上传文件后再导出数据</p>');
+      return;
+    }
     downLoad(`download?clientId=${this.clientId}&t=${Date.now()}`);
   }
 }
