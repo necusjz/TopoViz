@@ -153,7 +153,6 @@ export default class TopoTree extends Vue {
     if (!this.stage) {
       this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1, zoom: 1});
     }
-    console.log(this.$refs.stage);
     this.stage.clearAllLayers();
     if (!this.topoDatas) {
       return;
@@ -199,7 +198,6 @@ export default class TopoTree extends Vue {
         dirtyData = {...dirtyData, type: node.type};
         dirtyData.statusType = node.color;
       }
-      console.log(node.position);
       const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
       const url = require(`../../assets/${node.type}${ex}.png`);
       const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
