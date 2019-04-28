@@ -99,9 +99,9 @@ def find_path(alarms):
 
 
 def build_tree(paths):
+    # combine paths into trees
     topo_tree = []
     for path in paths:
-        # get elements for per path
         client_id = request.headers.get('Client-Id')
         topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                         app.config['TOPO_FILE']))
