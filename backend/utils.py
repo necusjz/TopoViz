@@ -82,6 +82,14 @@ def group_filter(group_id):
     return alarm
 
 
+def path_filter(path):
+    client_id = request.headers.get('Client-Id')
+    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                    app.config['TOPO_FILE']))
+    topo = topo.loc[topo['PathId'] == path]
+    return topo
+
+
 def find_path(alarms):
     # get paths for each network element
     ne_path = []
@@ -98,15 +106,20 @@ def find_path(alarms):
     return topo_path
 
 
+def path2ne(paths):
+    ne_set = set()
+    for path in paths:
+        topo = path_filter(path)
+        ne_set = ne_set | set(topo['NEName'])
+    return ne_set
+
+
 def build_tree(paths):
-    # combine paths into trees
+    # combine paths into tree
     topo_tree = []
     for path in paths:
-        client_id = request.headers.get('Client-Id')
-        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                        app.config['TOPO_FILE']))
         # unified format for per path
-        topo = topo.loc[topo['PathId'] == path]
+        topo = path_filter(path)
         per_path = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             per_path.append({'NEName': ne_name, 'NEType': ne_type})
