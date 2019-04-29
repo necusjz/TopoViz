@@ -62,6 +62,7 @@ def upload():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
+    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == ''].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
@@ -91,7 +92,6 @@ def analyze():
     res = dict()
     res['topo'] = topo_tree
     res['table'] = json.loads(alarm.to_json(orient='records'))
-    print(json.loads(alarm.to_json(orient='records')))
     res['orange'] = list(set(alarm['AlarmSource']))
     return jsonify(res)
 
@@ -100,17 +100,23 @@ def analyze():
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
+    add_time = int(request.args.get('extraTime'))
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
+    topo_ne = path2ne(topo_path)
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
-                                    .timestamp() - 5 * 60 - 8 * 60 * 60)
+                                    .timestamp() - add_time * 60 - 8 * 60 * 60)
     z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
-                                    .timestamp() + 5 * 60 - 8 * 60 * 60)
+                                    .timestamp() + add_time * 60 - 8 * 60 * 60)
     alarm = interval_limit(a_time, z_time)
-    # generate topo tree
+    # check intersection and join the tree
+    alarm = alarm.loc[alarm['GroupId'] == '']
     extra_path = find_path(set(alarm['AlarmSource']))
-    topo_path = topo_path | extra_path
+    for path in extra_path:
+        extra_ne = path2ne(path)
+        if extra_ne & topo_ne:
+            topo_path = topo_path | path
     topo_tree = build_tree(topo_path)
     # construct json for frontend
     res = dict()
@@ -150,6 +156,7 @@ def confirm():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
+    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == ''].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
