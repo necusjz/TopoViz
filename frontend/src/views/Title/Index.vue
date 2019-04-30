@@ -1,6 +1,5 @@
 <template>
   <div class="app-title-wrap">
-    <!-- <img src="../../assets/logo.png" class="app-logo" v-show="!isCheckStatics"> -->
     <div class="app-top-right">
       <!-- <i class="app-help app-icon"></i> -->
       <!-- <i class="app-account app-icon"></i> -->
@@ -20,18 +19,23 @@
           {{userName}}
         </span>
       </div> -->
+      <span @click="switchLang" class="lang-type">{{lang}}</span>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Provide } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 
 @Component
 export default class Title extends Vue {
-  @State((state) => state.user.userName) private userName: any;
-  @State((state) => state.app.isCheckStatics) private isCheckStatics: any;
+  @Provide() private lang: string = 'cn';
+  @State((state) => state.user.userName) private userName!: string;
+  public switchLang() {
+    this.lang = this.lang === 'en' ? 'cn' : 'en';
+    this.$i18n.locale = this.lang;
+  }
 }
 </script>
 <style lang="scss" scoped>
@@ -58,6 +62,12 @@ export default class Title extends Vue {
       justify-content: flex-end;
       align-items: center;
       cursor: pointer;
+      .lang-type {
+        margin-right: 40px;
+        font-size: 20px;
+        color: #FFFFFF;
+        font-weight: 500;
+      }
       .app-icon {
         width: 20px;
         height: 20px;
