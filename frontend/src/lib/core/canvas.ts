@@ -54,8 +54,8 @@ export default class CanvasHelper {
    * 返回画布可视区域的世界坐标Bound
    */
   public getViewBound(): math.Bound {
-    const leftBottom = this.screenToWorldCoordinate([0, this.h]);
-    const rightTop = this.screenToWorldCoordinate([this.w, 0]);
+    const leftBottom = this.screenToWorldCoordinate([0, this.h / this.retina]);
+    const rightTop = this.screenToWorldCoordinate([this.w / this.retina, 0]);
     return new math.Bound(leftBottom[0], leftBottom[1], rightTop[0] - leftBottom[0], rightTop[1] - leftBottom[1]);
   }
   /**
