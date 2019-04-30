@@ -3,6 +3,7 @@
     size="mini"
     v-model="inputValue"
     ref="editInput"
+    :clearable="true"
     @blur="emitData"
     @keyup.enter.native="enter"
   ></el-input>
