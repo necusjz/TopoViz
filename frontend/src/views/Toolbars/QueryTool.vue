@@ -1,56 +1,61 @@
 <template>
-  <div class="app-query-wrap">
-    <div class="app-query-title">查询条件</div>
-    <div class="app-query-tool">
-      <div class="app-query-tool-item app-query-date-wrap">
-        <el-date-picker
-          type="datetime"
-          v-model="startTime"
-          class="app-query-date"
-          value-format="timestamp"
-          :clearable="false"
-          :disabled="isNonImported"
-          @change="dateChange"
-          placeholder="选择开始时间"
-          size="small"
-        ></el-date-picker>
-        <span style="padding-right: 5px;color:#C0C4CC">—</span>
-        <el-date-picker
-          type="datetime"
-          v-model="endTime"
-          class="app-query-date"
-          value-format="timestamp"
-          :clearable="false"
-          :disabled="isNonImported"
-          @change="dateChange"
-          placeholder="选择截止时间"
-          size="small"
-        ></el-date-picker>
-      </div>
-      <div class="app-query-tool-item app-query-tool-group-wrap">
-        <el-autocomplete
-          placeholder="请输入 Group ID"
-          v-model="groupId"
-          size="small"
-          class="app-query-tool-group"
-          :class="{'error-border-input': visibleErrorTip}"
-          :fetch-suggestions="suggestion"
-          @keyup.enter.native="queryTopoData">
-          <el-button slot="append" class="query-btn" icon="el-icon-search" size="small" @click="queryTopoData"></el-button>
-        </el-autocomplete>
-        <span class="query-none-groupId" v-show="visibleErrorTip">该时间段内没有分组数据</span>
-      </div>
-      <div class="app-query-tool-item app-query-tool-regulation">
-        <el-cascader
-          placeholder="请按照条件定位"
-          :options="options"
-          v-model="regulationValue"
-          :clearable="true"
-          popper-class="select-popper"
-          @change="locateNetWork"
-          size="small"
-        ></el-cascader>
-      </div>
+  <div class="app-query-tool">
+    <div class="app-query-tool-item app-query-date-wrap">
+      <el-date-picker
+        type="datetime"
+        v-model="startTime"
+        class="app-query-date"
+        value-format="timestamp"
+        :clearable="false"
+        :disabled="isNonImported"
+        @change="dateChange"
+        placeholder="选择开始时间"
+        size="mini"
+      ></el-date-picker>
+      <span style="padding-right: 5px;color:#C0C4CC">—</span>
+      <el-date-picker
+        type="datetime"
+        v-model="endTime"
+        class="app-query-date"
+        value-format="timestamp"
+        :clearable="false"
+        :disabled="isNonImported"
+        @change="dateChange"
+        placeholder="选择截止时间"
+        size="mini"
+      ></el-date-picker>
+    </div>
+    <div class="app-query-tool-item app-query-tool-group-wrap">
+      <el-autocomplete
+        placeholder="请输入 Group ID"
+        v-model="groupId"
+        size="mini"
+        :disabled="isNonImported"
+        class="app-query-tool-group"
+        :class="{'error-border-input': visibleErrorTip}"
+        :fetch-suggestions="suggestion"
+        @keyup.enter.native="queryTopoData">
+        <el-button slot="append" class="query-btn" icon="el-icon-search" size="mini" @click="queryTopoData"></el-button>
+      </el-autocomplete>
+      <span class="query-none-groupId" v-show="visibleErrorTip">该时间段内没有分组数据</span>
+    </div>
+    <div class="app-query-tool-item app-query-tool-regulation">
+      <el-cascader
+        placeholder="请按照条件定位"
+        :options="options"
+        v-model="regulationValue"
+        :clearable="true"
+        popper-class="select-popper"
+        @change="locateNetWork"
+        :disabled="isNonImported"
+        size="mini"
+      ></el-cascader>
+    </div>
+    <div class="query-expand">
+      <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
+      显示前后
+      <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="10"></el-input-number>
+      分钟告警
     </div>
   </div>
 </template>
@@ -60,9 +65,9 @@ import { Component, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
-import { EventType, AlarmData, Rules, AnalyzeRes, SelectOption, RCAResult} from '@/types/type';
+import { EventType, AlarmData, Rules, AnalyzeRes, SelectOption, RCAResult, Node, Edge} from '@/types/type';
 import TableData from "@/util/tableData.json";
-import { getAlarmDatas, getGroupIdsDataByInterval } from '@/api/request';
+import { getAlarmDatas, getGroupIdsDataByInterval, getExpandAlarmDatas } from '@/api/request';
 import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
 
@@ -74,9 +79,15 @@ export default class QueryTool extends Vue {
   @Provide() public options: SelectOption[] = [];
   @Provide() public startTime: number = 0;
   @Provide() public endTime: number = 0;
+  @Provide() public status: boolean = false;
+  @Provide() public interval: number = 5;
+  @Provide() private oldAlarmDatas!: AlarmData[];
+  @Provide() private oldTopoDatas!: {elements: Node[], edges: Edge[]};
+  @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.project.groupIds) public groupIds!: string[];
   @State((state) => state.app.isNonImported) public isNonImported!:boolean;
   @State((state) => state.app.alarmDatas) public alarmDatas!: AlarmData[];
+  @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
   @State((state) => state.app.groupId) public store_groupId!: string;
   @State((state) => state.app.regValue) public store_regValue!: string;
   @State((state) => state.app.defaultDate) public defaultDate!: number[];
@@ -108,9 +119,6 @@ export default class QueryTool extends Vue {
       this.$store.commit("SET_REGVALUE", '');
       this.$store.commit("SET_REGTYPE", '');
     });
-    bus.$on(EventType.QUERY, () => {
-      this.queryTopoData();
-    });
   }
   public suggestion(val: string, cb: any) {
     const suggestions = this.groupIds.filter((id: string) => val ? id.toLowerCase().includes(val.toLowerCase()) : true)
@@ -121,6 +129,10 @@ export default class QueryTool extends Vue {
   }
   public dateChange(value: number[]) {
     if (this.startTime && this.endTime) {
+      if (this.endTime < this.startTime) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
+        return;
+      }
       getGroupIdsDataByInterval({start: (this.startTime / 1000).toString(), end: (this.endTime / 1000).toString()}).then((res) => {
         if (res) {
           this.$store.commit('SET_GROUPIDS', res['group_id']);
@@ -167,32 +179,54 @@ export default class QueryTool extends Vue {
     this.regulationValue = [];
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');
+    this.status = false;
     bus.$emit(EventType.CLEAREXPAN);
     getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
-      const table = data.table;
-      if (table) {
-        this.$store.commit('SET_ISNONETABLEDATA', false);
-        const alarmDatas: AlarmData[] = table.map((item: any) => {
-          return this.formatData(item);
-        })
-        this.$store.commit('SET_ALARMDATAS', alarmDatas);
-      }
-      if (data.topo) {
-        this.$store.commit('SET_ISNONETOPODATA', false);
-        const topoTreeData = data.topo.map((path: any) => {
-          return path.reverse().map((node: any) => {
-            let color = '';
-            if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === node.NEName)) {
-              color = 'Warning';
-            }
-            return { name: node.NEName, type: node.NEType, color };
-          });
-        });
-        this.$store.commit('SET_TOPODATA', topoTreeData);
-      }
+      this.setData(data);
     });
     this.$store.commit("SET_GROUPID", this.groupId);
     this.visibleErrorTip = !this.groupId;
+  }
+  public expand(val: boolean) {
+    bus.$emit(EventType.FILTERRESET);
+    if (val) {
+      getExpandAlarmDatas({groupId: this.groupId, addTime: this.interval * 60}).then((res: AnalyzeRes) => {
+        this.oldAlarmDatas = this.alarmDatas;
+        this.oldTopoDatas = this.topoDatas;
+        this.setData(res);
+      });
+    } else {
+      this.queryTopoData();
+    }
+  }
+  public setData(res: AnalyzeRes) {
+    if (res.table) {
+      this.$store.commit('SET_ISNONETABLEDATA', false);
+      const alarmDatas = res.table.map((item: any) => this.formatData(item));
+      this.$store.commit('SET_ALARMDATAS', alarmDatas);
+    }
+    if (res.topo) {
+      this.$store.commit('SET_ISNONETOPODATA', false);
+      const topoTreeData = res.topo.map((path: any) => {
+        return path.reverse().map((node: any) => {
+          const color = this.getElementColor(node.NEName, res.yellow);
+          return { name: node.NEName, type: node.NEType, color };
+        });
+      });
+      this.$store.commit('SET_TOPODATA', topoTreeData);
+    }
+  }
+  public handleChange() {
+
+  }
+  public getElementColor(name: string, yellow: string[] = []): string {
+    if (yellow.includes(name)) {
+      return 'Yellow';
+    } else if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === name)) {
+      return 'Warning';
+    } else {
+      return '';
+    }
   }
   public locateNetWork() {
     if (this.groupId !== this.store_groupId) {
@@ -277,74 +311,83 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
 .query-item {
   padding-left: 20px;
 }
-.app-query-wrap {
-  background: #fff;
-  box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
-  border-radius: 8px;
-  .app-query-title {
-    text-align: left;
-    font-size: 16px;
-    color: #282828;
-    line-height: 40px;
-    border-bottom: 1px solid #dfdfdf;
-    @extend .query-item;
+.app-query-tool {
+  position: absolute;
+  display: flex;
+  width: 100%;
+  padding: 20px;
+  padding-right: 0;
+  align-items: center;
+  z-index: 5;
+  .app-query-tool-group-wrap {
+    .query-btn {
+      color: #FFF;
+      background-color: #409EFF;
+      border-color: #409EFF;
+      border-radius: 0;
+      &:active {
+        color: #ddd;
+        border-color: #399bff;
+        background-color: #399bff;
+      }
+    }
+    .el-input-group__append {
+      border: 1px solid #409EFF;
+      .el-input__inner {
+        border-right: none;
+      }
+    }
   }
-  .app-query-tool {
+  .app-query-tool-group {
+    width: 220px;
+  }
+  .app-query-tool-item {
+    position: relative;
+    &:not(:last-child) {
+      padding-right: 20px;
+    }
+    .query-none-groupId {
+      position: absolute;
+      left: 20px;
+      top: 28px;
+      font-size: 12px;
+      color: #e40303;
+    }
+  }
+  .app-query-date-wrap {
     display: flex;
-    padding: 20px;
-    padding-right: 0;
-    .app-query-tool-group-wrap {
-      padding-left: 20px;
-      .query-btn:active {
-        color: #b3d8ff;
+    .app-query-date {
+      width: 165px;
+      height: 30px;
+      color: #778296;
+      padding-right: 5px;
+      .el-input__inner {
+        padding-right: 0;
+      }
+      .el-range__close-icon {
+        display: none;
       }
     }
-    .app-query-tool-group {
-      width: 220px;
-    }
-    .app-query-tool-item {
-      position: relative;
-      line-height: 30px;
-      &:not(:last-child) {
-        padding-right: 20px;
-      }
-      .query-none-groupId {
-        position: absolute;
-        left: 20px;
-        top: 28px;
-        font-size: 12px;
-        color: #e40303;
+  }
+  .app-query-tool-regulation {
+    display: flex;
+    justify-content: space-between;
+    .query-tool-reg-select {
+      .el-input__inner {
+        background-image: linear-gradient(to top, #f2f2f2, #f7faff);
       }
     }
-    .app-query-date-wrap {
-      border-right: 1px solid #dfdfdf;
-      display: flex;
-      .app-query-date {
-        width: 200px;
-        height: 30px;
-        color: #778296;
-        padding-right: 5px;
-        .el-range-input {
-          background-image: $Btn_Background;
-          cursor: pointer;
-        }
-        .el-range__close-icon {
-          display: none;
-        }
-      }
+    .app-query-tool-reg {
+      margin-left: 10px;
+      width: 170px;
     }
-    .app-query-tool-regulation {
-      display: flex;
-      justify-content: space-between;
-      .query-tool-reg-select {
-        .el-input__inner {
-          background-image: linear-gradient(to top, #f2f2f2, #f7faff);
-        }
-      }
-      .app-query-tool-reg {
-        margin-left: 10px;
-        width: 170px;
-      }
+  }
+  .query-expand {
+    position: absolute;
+    right: 40px;
+    font-size: 14px;
+    .expand-input {
+      width: 80px;
     }
   }
 }

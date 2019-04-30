@@ -5,7 +5,7 @@
       <span class="rca-waring-dec">提示：只有当前数据的所有 Group ID 都确认过时才可得出 RCA 准确率哦</span>
     </div>
     <div class="statics-board" v-else>
-      <p class="statics-title">RCA 结果汇总</p>
+      <p class="statics-title">{{$t('lang.rcaResultStatics')}}</p>
       <el-row class="statics-board-row">
         <el-col :span="11" class="board-col board-left">
           <div class="board-col-item">
@@ -19,6 +19,10 @@
           <div class="board-col-item">
             <span class="board-count">{{c_count}}</span>
             <span>C 告警</span>
+          </div>
+          <div class="board-col-item">
+            <span class="board-count">{{x_count}}</span>
+            <span>未知告警</span>
           </div>
         </el-col>
         <el-col :span="13" class="board-col">
@@ -72,6 +76,7 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.project.confirmed_count) private confirmed_count!: number;
   @State((state) => state.project.unconfirmed_count) private unconfirmed_count!: number;
   @State((state) => state.project.accuracy) private accuracy!: string;
+  @State((state) => state.project.x_count) private x_count!: number;
   public checkStatics() {
     this.$store.commit('SET_ISCHECKSTATICS', true);
   }
