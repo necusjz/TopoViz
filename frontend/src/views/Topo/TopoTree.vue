@@ -1,5 +1,6 @@
 <template>
   <div class="app-stage" @mouseleave="leaveContainer">
+    <QueryTool></QueryTool>
     <div class="stage-wrap" id="stage" ref="stage">
       <div class="none-topoTree" v-if="isNoneTopoData">
         <p class="none-topoTree-label" v-if="isNonImported">暂无任何拓扑展示哦，导入 RCA 结果试试。</p>
@@ -30,6 +31,7 @@ import { Node, Edge, EventType, AlarmData, NodeData } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
+import QueryTool from '../Toolbars/QueryTool.vue';
 import TopoTreeHelper from '@/util/topoTree';
 import topoData from './data.json';
 
@@ -38,6 +40,7 @@ declare const ht: any;
 @Component({
   components: {
     TipDialog,
+    QueryTool,
   },
 })
 export default class TopoTree extends Vue {
@@ -81,7 +84,7 @@ export default class TopoTree extends Vue {
     }
   }
   public fullScreen() {
-    if (this.center) {
+    if (this.stage && this.center) {
       this.stage.setView(this.center, 1);
     }
   }
@@ -132,7 +135,9 @@ export default class TopoTree extends Vue {
       if (this.borderLayer) {
         this.stage.removeLayer(this.borderLayer);
       }
+      this.center = bound.getCenter();
       this.borderLayer = new xCanvas.Rectangle(bound.getSouthWest(), bound.getNorthEast(), {fill: false, color: '#4a96ff'}).addTo(this.stage);
+      this.stage.setView(this.center);
     }
   }
   public getArrowData(v1: Vertex, v2: Vertex): Vertex[] {
@@ -309,7 +314,7 @@ export default class TopoTree extends Vue {
   }
   .stage-toolbar {
     position: absolute;
-    top: 40px;
+    top: 60px;
     right: 20px;
     height: 120px;
     display: flex;
