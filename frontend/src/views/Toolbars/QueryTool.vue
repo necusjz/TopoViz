@@ -66,7 +66,6 @@ import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
 import { EventType, AlarmData, Rules, AnalyzeRes, SelectOption, RCAResult, Node, Edge} from '@/types/type';
-import TableData from "@/util/tableData.json";
 import { getAlarmDatas, getGroupIdsDataByInterval, getExpandAlarmDatas } from '@/api/request';
 import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
@@ -135,7 +134,8 @@ export default class QueryTool extends Vue {
       }
       getGroupIdsDataByInterval({start: (this.startTime / 1000).toString(), end: (this.endTime / 1000).toString()}).then((res) => {
         if (res) {
-          this.$store.commit('SET_GROUPIDS', res['group_id']);
+          const groupIds = res['group_id'].filter((groupId: string) => !!groupId);
+          this.$store.commit('SET_GROUPIDS', groupIds);
           if (res['group_id'].length > 0) {
             this.visibleErrorTip = false;
             if (!this.store_groupId) {

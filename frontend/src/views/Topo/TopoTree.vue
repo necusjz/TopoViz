@@ -33,7 +33,6 @@ import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
 import QueryTool from '../Toolbars/QueryTool.vue';
 import TopoTreeHelper from '@/util/topoTree';
-import topoData from './data.json';
 
 declare const ht: any;
 
@@ -71,6 +70,11 @@ export default class TopoTree extends Vue {
     bus.$on(EventType.CLEARALARMNET, (noGroupAlarmsSet: Set<string>) => {
       this.clearAlarmNet(noGroupAlarmsSet);
     });
+    window.addEventListener('resize', util.throttle(() => {
+      if (this.stage) {
+        this.stage.setView(this.center);
+      }
+    }, 300, true));
   }
   public zoom(step: number) {
     if (this.isNoneTopoData) {
@@ -146,7 +150,7 @@ export default class TopoTree extends Vue {
     const dir = new xCanvas.Math.Vector2(q.x - p.x, q.y - p.y);
     const oppositDir = dir.clone().rotate(180).normalize();
     const angle = 60;
-    const len = 3;
+    const len = 10;
     const p1 = q.clone().add(oppositDir.clone().rotate(angle / 2).scale(len));
     const p2 = q.clone().add(oppositDir.clone().rotate(-angle / 2).scale(len));
     return [v2, [p1.x, p1.y], [p2.x, p2.y]];
@@ -162,12 +166,11 @@ export default class TopoTree extends Vue {
     if (!this.topoDatas) {
       return;
     }
-    const size: number = 40;
     const step: number = 200;
     const stageDom: any = this.$refs.stage;
     const width: number = stageDom.offsetWidth;
     const height: number = stageDom.offsetHeight;
-    const helper = new TopoTreeHelper(this.topoDatas, {size, step, width, height});
+    const helper = new TopoTreeHelper(this.topoDatas, {size: this.size, width, height});
     helper.run();
     const stage: xCanvas.Stage = this.stage;
     stage.startBatch();
@@ -177,8 +180,8 @@ export default class TopoTree extends Vue {
       const path = [];
       if (edge.source.type ===  edge.target.type && helper.isStraight(source.x, target.x, edge.source.type)) {
         const ydir = new xCanvas.Math.Vector2(0, -1);
-        const p1 = source.clone().add(ydir.clone().scale(size / 1.8));
-        const p2 = target.clone().add(ydir.clone().scale(size / 1.8));
+        const p1 = source.clone().add(ydir.clone().scale(this.size / 1.8));
+        const p2 = target.clone().add(ydir.clone().scale(this.size / 1.8));
         const p3 = p1.clone().add(ydir.clone().scale(step / 3));
         const p4 = p2.clone().add(ydir.clone().scale(step / 3));
         path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
@@ -187,8 +190,8 @@ export default class TopoTree extends Vue {
         stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
       } else {
         const dir = target.clone().substract(source.clone()).normalize();
-        const p1 = source.clone().add(dir.clone().scale(size / 1.5));
-        const p2 = target.clone().substract(dir.clone().scale(size / 1.5));
+        const p1 = source.clone().add(dir.clone().scale(this.size / 1.5));
+        const p2 = target.clone().substract(dir.clone().scale(this.size / 1.5));
         const pts: Vertex[] = [];
         pts.push([p1.x, p1.y], [p2.x, p2.y]);
         const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
@@ -205,16 +208,25 @@ export default class TopoTree extends Vue {
       }
       const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
       const url = require(`../../assets/${node.type}${ex}.png`);
-      const childLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, size, size).addTo(stage);
+      const nodeLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, this.size, this.size).addTo(stage);
       if (dirtyData) {
-        childLayer.setDirtyData(dirtyData);
+        nodeLayer.setDirtyData(dirtyData);
+        this.addAlarmCountTag(nodeLayer, node.name);
       }
-      bound = bound ? bound.union(childLayer.getBound()) : childLayer.getBound();
+      bound = bound ? bound.union(nodeLayer.getBound()) : nodeLayer.getBound();
     }
     this.center = bound.getCenter();
     stage.setView(this.center);
     stage.endBatch();
     this.addEvents();
+  }
+  public addAlarmCountTag(nodeLayer: xCanvas.Layer, alarmSourceName: string) {
+    const bound = nodeLayer.getBound().expand(4);
+    const base: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(bound.getCenter());
+    const vec: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(-1, 1).normalize().scale(this.size);
+    const pos = base.clone().add(vec).toArray();
+    const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
+    const tag = new xCanvas.IText(pos, count.toString()).addTo(this.stage);
   }
   public reset() {
     this.stage.startBatch();
