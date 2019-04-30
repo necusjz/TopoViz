@@ -100,7 +100,7 @@ def analyze():
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
-    add_time = int(request.args.get('extraTime'))
+    add_time = int(request.args.get('addTime'))
     alarm = group_filter(group_id)
     topo_path = find_path(set(alarm['AlarmSource']))
     topo_ne = path2ne(topo_path)
@@ -111,7 +111,7 @@ def expand():
                                     .timestamp() + add_time * 60 - 8 * 60 * 60)
     alarm = interval_limit(a_time, z_time)
     # check intersection and join the tree
-    alarm = alarm.loc[alarm['GroupId'] == '']
+    alarm = alarm.loc[alarm['GroupId_Edited'] == '']
     extra_path = find_path(set(alarm['AlarmSource']))
     for path in extra_path:
         extra_ne = path2ne(path)
