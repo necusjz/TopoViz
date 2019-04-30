@@ -90,13 +90,11 @@ export default class AppMain extends Vue {
   }
   .app-rca-body {
     position: relative;
-    height: calc(100% - 100px);
     padding: 0 20px;
     background: #f8f9ff;
     .app-topo-tree {
       position: relative;
       height: 650px;
-      // max-height: 80%;
       margin-top: 20px;
       @extend .box-border;
     }
