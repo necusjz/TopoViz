@@ -44,18 +44,18 @@ def result_monitor(client_id):
     accuracy = 0
     confirmed_num = 0
     correct_num = 0
-    total_num = len(set(alarm['GroupId']))
+    total_num = len(set(alarm['GroupId_Edited']))
     # count the number of confirmed groups
-    for group_id in set(alarm['GroupId']):
+    for group_id in set(alarm['GroupId_Edited']):
         mask = alarm['GroupId_Edited'] == group_id
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_num += 1
             # count the number of correct groups
             pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-            pst_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
+            cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
                                                  app.config['EDITED_COLUMNS']))]
-            pst_alarm.columns = app.config['EDITED_COLUMNS']
-            if pre_alarm.equals(pst_alarm):
+            cur_alarm.columns = app.config['EDITED_COLUMNS']
+            if pre_alarm.equals(cur_alarm):
                 correct_num += 1
     # calculate global accuracy
     if confirmed_num == total_num:
@@ -90,7 +90,7 @@ def path_filter(path):
     return topo
 
 
-def find_path(alarms):
+def ne2path(alarms):
     # get paths for each network element
     ne_path = []
     for alarm in alarms:
