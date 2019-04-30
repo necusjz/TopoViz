@@ -7,21 +7,21 @@
     </div>
     <div class="app-importer-item app-importer-excel">
       <el-upload action :before-upload="beforeUpload.bind(null, 'target')" :show-file-list="false">
-        <el-button size="small" class="upload-btn">{{targetName || '导入 TOPO 数据'}}
+        <el-button size="small" class="upload-btn">{{targetName || $t('lang.importTopoData')}}
           <i class="upload-icon"></i>
         </el-button>
       </el-upload>
       <el-upload class="upload-format" action :before-upload="beforeUpload.bind(null, 'format')" :show-file-list="false">
-        <el-button size="small" class="upload-btn">{{formatName || '导入 RCA 结果'}}
+        <el-button size="small" class="upload-btn">{{formatName || $t('lang.importRCAData')}}
           <i class="upload-icon"></i>
         </el-button>
       </el-upload>
     </div>
     <div class="app-importer-item">
-      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !available}" @click="submitData">上传</el-button>
+      <el-button size="small" type="primary" class="confirm-btn" :class="{'none-status': !available}" @click="submitData">{{$t('lang.upload')}}</el-button>
     </div>
     <div class="app-export-item">
-      <el-button size="small" plain class="export-btn" @click="exportData">导出数据</el-button>
+      <el-button size="small" plain class="export-btn" @click="exportData">{{$t('lang.export')}}</el-button>
     </div>
   </div>
 </template>
@@ -166,7 +166,7 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       margin-left: 20px;
     }
     .upload-btn {
-      width: 180px;
+      width: 200px;
       position: relative;
       background-image: $Btn_Background;
       border: 1px solid #bdc8d1;

@@ -15,10 +15,6 @@
         <span class="tag-label">{{conditionLabel}}: {{regValue}}</span>
       </div>
     </div>
-    <div class="topo-board-right">
-      <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
-      <span class="timer-hint" :class="{active: status}">当前状态下{{status ? '已' : '未'}}显示 P 告警前后 5 min 告警数据</span>
-    </div>
   </div>
 </template>
 
@@ -26,7 +22,6 @@
 import { Component, Prop, Vue, Provide, Watch, Mixins } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import { Rules, AlarmData, Node, Edge, EventType } from '@/types/type';
-import { getExpandAlarmDatas } from '@/api/request';
 import CommonMixin from '@/components/mixins/commonMixin.vue';
 import bus from '@/util/bus';
 
@@ -35,13 +30,11 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
   @State((state) => state.app.groupId) private groupId: any;
   @State((state) => state.app.regValue) private regValue: any;
   @State((state) => state.app.regType) private regType: any;
-  @State((state) => state.app.isNoneTopoData) private isNoneTopoData: any;
+  @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
-  @Provide() private status: boolean = false;
   @Provide() private conditionLabel: string = '';
-  @Provide() private oldAlarmDatas!: AlarmData[];
-  @Provide() private oldTopoDatas!: {elements: Node[], edges: Edge[]};
+
   @Watch('regType')
   public watchRegType(val: string) {
     if (val) {
@@ -50,52 +43,6 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
         rcaReg: 'RCA 规则'
       };
       this.conditionLabel = temp[val] || '告警名称';
-    }
-  }
-  mounted() {
-    bus.$on(EventType.CLEAREXPAN, () => {
-      this.status = false;
-    });
-  }
-  public expand(val: boolean) {
-    bus.$emit(EventType.FILTERRESET);
-    if (val) {
-      getExpandAlarmDatas({groupId: this.groupId}).then((res) => {
-        this.oldAlarmDatas = this.alarmDatas;
-        this.oldTopoDatas = this.topoDatas;
-        if (res.table) {
-          const alarmDatas = res.table.map((item: any) => this.formatData(item));
-          this.$store.commit('SET_ALARMDATAS', alarmDatas);
-        }
-        if (res.topo) {
-          const topoTreeData = res.topo.map((path: any) => {
-            return path.reverse().map((node: any) => {
-              const color = this.getElementColor(node.NEName, res.yellow);
-              return { name: node.NEName, type: node.NEType, color };
-            });
-          });
-          this.$store.commit('SET_TOPODATA', topoTreeData);
-        }
-        // if (res.elements.length > 0 && res.edges.length > 0) {
-        //   this.$store.commit('SET_ISNONETOPODATA', false);
-        //   const elements = res.elements.map((ele: Node) => {
-        //     const color = this.getElementColor(ele.NEName, res.yellow);
-        //     return {name: ele.NEName, type: ele.NEType, color};
-        //   });
-        //   const edges = res.edges;
-        //   this.$store.commit('SET_TOPODATA', {elements, edges});
-        //   // bus.$emit('NETWORKFILTER', res.yellow || [], 'Yellow');
-        // }
-      });
-    } else {
-      bus.$emit(EventType.QUERY);
-    }
-  }
-  public getElementColor(name: string, yellow: string[] = []) {
-    if (yellow.includes(name)) {
-      return 'Yellow';
-    } else if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === name)) {
-      return 'Warning';
     }
   }
 }
@@ -114,6 +61,8 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
     display: flex;
     color: #55657E;
     .topo-board-item {
+      display: flex;
+      align-items: center;
       padding-left: 5px;
     }
   }
