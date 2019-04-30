@@ -6,6 +6,7 @@ interface ProjectState {
     total_count: string | number;
     p_count: string | number;
     c_count: string | number;
+    x_count: string | number;
     group_count: string | number;
     confirmed_count: string | number;
     unconfirmed_count: string | number;
@@ -16,6 +17,7 @@ const state = {
     total_count: '--',
     p_count: '--',
     c_count: '--',
+    x_count: '--',
     group_count: '--',
     confirmed_count: '--',
     unconfirmed_count: '--',
@@ -31,6 +33,7 @@ const mutations: MutationTree<ProjectState> = {
         state.group_count = data.group_count;
         state.confirmed_count = data.confirmed;
         state.unconfirmed_count = data.unconfirmed;
+        state.x_count = data.x_count;
         state.accuracy = decimalToPercentage(data.accuracy);
     },
     SET_TOTALALARM: (state: ProjectState, count: number) => {

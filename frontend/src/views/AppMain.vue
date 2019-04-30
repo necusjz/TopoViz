@@ -7,7 +7,6 @@
         <StaticsBoard class="app-item"></StaticsBoard>
         <transition name="fade">
           <div v-show="!isCheckStatics">
-            <QueryTool class="app-item"></QueryTool>
             <div class="app-topo-tree">
               <TopoBoard></TopoBoard>
               <TopoTree></TopoTree>
@@ -33,7 +32,6 @@ import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
 import Title from "@/views/Title/Index.vue";
 import Importer from "@/views/Toolbars/Importer.vue";
-import QueryTool from "@/views/Toolbars/QueryTool.vue";
 import StaticsBoard from "./Board/Statics.vue";
 import TopoBoard from "./Board/TopoBoard.vue";
 import TopoTree from "./Topo/TopoTree.vue";
@@ -46,7 +44,6 @@ import StaticsTable from './Table/StaticsTable.vue';
   components: {
     Title,
     Importer,
-    QueryTool,
     StaticsBoard,
     TopoBoard,
     TopoTree,
@@ -99,6 +96,7 @@ export default class AppMain extends Vue {
     .app-topo-tree {
       position: relative;
       height: 650px;
+      // max-height: 80%;
       margin-top: 20px;
       @extend .box-border;
     }

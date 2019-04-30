@@ -19,8 +19,8 @@ import bus from '@/util/bus';
 @Component
 export default class TopoTablePagination extends Vue {
     @Provide() public currentPage: number = 1;
-    @Provide() public pageSize: number = 5;
-    @Provide() public pageSizes: number[] = [5, 10, 15];
+    @Provide() public pageSize: number = 10;
+    @Provide() public pageSizes: number[] = [10, 20, 30];
     @Provide() public totalSize: number = 0;
     @State((state) => state.app.tableData) public tableData!: AlarmData[];
     @State((state) => state.app.selectAlarm) public selectAlarm!: string;

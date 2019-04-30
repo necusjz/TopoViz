@@ -91,6 +91,7 @@ export interface StaticsRes {
     p_count: number;
     total_alarm: number;
     unconfirmed: number;
+    x_count: number;
     start: number;
     end: number;
     client_id: string;
@@ -100,6 +101,7 @@ export interface StaticsRes {
 export interface AnalyzeRes {
     table: any;
     topo: any;
+    yellow?: string[];
     elements: {NEName: string, NEType: string}[];
     edges: {from: string, to: string}[];
 }
