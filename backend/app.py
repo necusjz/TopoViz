@@ -86,7 +86,7 @@ def analyze():
     # generate topo tree
     group_id = request.args.get('groupId')
     alarm = group_filter(group_id)
-    topo_path = find_path(set(alarm['AlarmSource']))
+    topo_path = ne2path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
     # construct json for frontend
     res = dict()
@@ -101,29 +101,34 @@ def expand():
     # generate topo path
     group_id = request.args.get('groupId')
     add_time = int(request.args.get('addTime'))
-    alarm = group_filter(group_id)
-    topo_path = find_path(set(alarm['AlarmSource']))
+    pre_alarm = group_filter(group_id)
+    topo_path = ne2path(set(pre_alarm['AlarmSource']))
     topo_ne = path2ne(topo_path)
     # get interval filtered dataframe
-    a_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].min())
+    a_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].min())
                                     .timestamp() - add_time * 60 - 8 * 60 * 60)
-    z_time = datetime.fromtimestamp(pd.to_datetime(alarm['First'].max())
+    z_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].max())
                                     .timestamp() + add_time * 60 - 8 * 60 * 60)
     alarm = interval_limit(a_time, z_time)
-    # check intersection and join the tree
-    alarm = alarm.loc[alarm['GroupId_Edited'] == '']
-    extra_path = find_path(set(alarm['AlarmSource']))
-    for path in extra_path:
-        extra_ne = path2ne(path)
-        if extra_ne & topo_ne:
-            topo_path = topo_path | path
+    # check intersection and update topo, table
+    res = dict()
+    res['yellow'] = []
+    if not alarm.loc[alarm['GroupId_Edited'] != group_id].empty:
+        alarm = alarm.loc[alarm['GroupId_Edited'] != group_id]
+        add_path = ne2path(set(alarm['AlarmSource']))
+        add_alarm = set()
+        for path in add_path:
+            add_ne = path2ne(path)
+            if add_ne & topo_ne:
+                topo_path = topo_path | path
+                add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
+        res['yellow'] = list(add_alarm)
+        for ne in add_alarm:
+            pre_alarm.append(alarm.loc[alarm['AlarmSource'] == ne])
     topo_tree = build_tree(topo_path)
     # construct json for frontend
-    res = dict()
     res['topo'] = topo_tree
-    res['table'] = json.loads(alarm.to_json(orient='records'))
-    alarm = alarm.loc[alarm['GroupId'] != group_id]
-    res['yellow'] = list(set(alarm['AlarmSource']))
+    res['table'] = json.loads(pre_alarm.to_json(orient='records'))
     return jsonify(res)
 
 
