@@ -190,7 +190,7 @@ def download():
     client_id = request.args.get('clientId')
     dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
     # generate file name
-    filename = 'verified_alarm_' + str(int(time.time())) + '.csv'
+    filename = 'alarm-verified-' + str(int(time.time())) + '.csv'
     return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
                                attachment_filename=filename)
 
