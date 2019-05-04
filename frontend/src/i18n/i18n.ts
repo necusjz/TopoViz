@@ -5,7 +5,7 @@ import VueI18n from 'vue-i18n';
 import messages from './langs';
 Vue.use(VueI18n)
 const i18n = new VueI18n({
-    locale: 'cn', //初始未选择默认 cn 中文
+    locale: 'Languages', //初始未选择默认 Languages 中文
     messages,
 })
 locale.i18n((key: string, value: any) => i18n.t(key, value)) //兼容element
