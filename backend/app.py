@@ -62,7 +62,7 @@ def upload():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == ''].shape[0]
+    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == nan].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
@@ -77,7 +77,7 @@ def interval():
     alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
-    res['group_id'] = list(set(alarm['GroupId']))
+    res['group_id'] = list(set(alarm['GroupId'].dropna()))
     return jsonify(res)
 
 
@@ -152,7 +152,7 @@ def confirm():
         if alarm.loc[mask, 'GroupId_Edited'].any():
             alarm.loc[mask, 'Confirmed'] = '1'
         else:
-            alarm.loc[mask, 'Confirmed'] = ''
+            alarm.loc[mask, 'Confirmed'] = nan
     save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
@@ -161,7 +161,7 @@ def confirm():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == ''].shape[0]
+    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == nan].shape[0]
     res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
