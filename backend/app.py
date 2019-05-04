@@ -176,7 +176,7 @@ def detail():
     # get confirmed/unconfirmed groups
     confirmed_group = []
     unconfirmed_group = []
-    for group_id in set(alarm['GroupId']):
+    for group_id in set(alarm['GroupId_Edited'].dropna()):
         mask = alarm['GroupId_Edited'] == group_id
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_group.append(group_id)
