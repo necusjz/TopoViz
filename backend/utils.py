@@ -1,7 +1,8 @@
-import os
 import pandas as pd
+import os
 
 from flask import Flask, request
+from numpy import nan
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 
@@ -18,7 +19,7 @@ def format_data(df):
         df.insert(df.shape[1], 'GroupId_Edited', df['GroupId'])
         df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
-        df['Confirmed'] = ''
+        df['Confirmed'] = nan
         # sort by first occurrence
         df = df.sort_values('First')
     else:
