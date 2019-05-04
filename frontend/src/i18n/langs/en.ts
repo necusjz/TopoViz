@@ -2,11 +2,11 @@ import zhLocale from 'element-ui/lib/locale/lang/en';
 
 const en = {
   lang: {
-    upload: 'UPLOAD',
+    upload: 'Upload',
     export: 'Export Data',
-    importTopoData: 'IMPORT TOPO DATA',
-    importRCAData: 'IMPORT RCA RESULT',
-    rcaResultStatics: 'RCA Results Summary',
+    importTopoData: 'Import TOPO Data',
+    importRCAData: 'Import RCA Result',
+    rcaResultStatics: 'Summary of RCA Result',
   },
   ...zhLocale
 }
