@@ -55,7 +55,7 @@ def result_monitor(client_id):
             cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
                                                  app.config['EDITED_COLUMNS']))]
             cur_alarm.columns = app.config['EDITED_COLUMNS']
-            if pre_alarm.equals(cur_alarm):
+            if not pre_alarm.equals(cur_alarm):
                 error_num += 1
     # calculate global accuracy
     accuracy = 1 - (error_num / total_num)
