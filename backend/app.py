@@ -189,6 +189,11 @@ def detail():
     return jsonify(res)
 
 
+@app.route('/remain', methods=['GET'])
+def remain():
+    pass
+
+
 @app.route('/download', methods=['GET'])
 def download():
     # get directory path
