@@ -113,6 +113,25 @@ def path2ne(paths):
     return ne_set
 
 
+def path_sort(paths):
+    total_ne = []
+    for path in paths:
+        topo = path_filter(path)
+        total_ne.extend(list(topo['NEName']))
+    count_res = pd.value_counts(total_ne)
+
+    path_res = dict()
+    for path in paths:
+        complexity = 0
+        topo = path_filter(path)
+        for ne in list(topo['NEName']):
+            complexity += count_res.loc[ne]
+        path_res[path] = complexity
+    res = sorted(path_res.items(), key=lambda item: item[1], reverse=True)
+    res = map(lambda x: x[0], res)
+    return res
+
+
 def build_tree(paths):
     # combine paths into tree
     topo_tree = []
