@@ -110,7 +110,6 @@ def expand():
     z_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].max())
                                     .timestamp() + add_time * 60 - 8 * 60 * 60)
     alarm = interval_limit(a_time, z_time)
-    print(alarm['First'])
     # check intersection and update topo, table
     res = dict()
     res['yellow'] = []
@@ -119,9 +118,9 @@ def expand():
         add_path = ne2path(set(alarm['AlarmSource']))
         add_alarm = set()
         for path in add_path:
-            add_ne = path2ne(path)
+            add_ne = path2ne({path})
             if add_ne & topo_ne:
-                topo_path = topo_path | path
+                topo_path = topo_path | {path}
                 add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
         res['yellow'] = list(add_alarm)
         for ne in add_alarm:
