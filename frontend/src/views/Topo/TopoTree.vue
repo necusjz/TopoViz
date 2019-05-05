@@ -27,7 +27,7 @@ import { Component, Prop, Vue, Provide, Watch } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
 import { Vertex } from '@/lib/typeof/typeof';
-import { Node, Edge, EventType, AlarmData, NodeData } from '../../types/type';
+import { Node, Edge, EventType, AlarmData, NodeData, RCAResult } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
@@ -46,7 +46,7 @@ export default class TopoTree extends Vue {
   @Provide() private stage!: xCanvas.Stage;
   @Provide() private center: Vertex = [0, 0];
   @Provide() private borderLayer!: xCanvas.Layer;
-  @Provide() private size: number = 40;
+  @Provide() private size: number = 60;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -97,7 +97,7 @@ export default class TopoTree extends Vue {
     stage.clearAllEvents();
     stage.on('mousemove', util.throttle((e: any) => {
       const layers = stage.getLayersByPosition(e.pos);
-      const layer = layers.find((layer: xCanvas.Layer) => layer.getLayerType() === 'IMAGE');
+      const layer = layers.find((layer: xCanvas.Layer) => layer.options.layerType === 'node');
       if (layer) {
         stage.clearHighLightLayer();
         stage.addHighLightLayer(layer);
@@ -113,7 +113,7 @@ export default class TopoTree extends Vue {
     }, 100));
     stage.on('click', (e: any) => {
       const layers = stage.getLayersByPosition(e.pos);
-      const layer = layers.find((layer: xCanvas.Layer) => layer.getLayerType() === 'IMAGE');
+      const layer = layers.find((layer: xCanvas.Layer) => layer.options.layerType === 'node');
       if (layer) {
         const dirtyData = layer.getDirtyData();
         if (dirtyData) {
@@ -199,7 +199,7 @@ export default class TopoTree extends Vue {
         stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
       }
     }
-    let bound: xCanvas.Math.Bound = new xCanvas.Math.Bound(0, 0, 0, 0);
+    let bound;
     for (const node of helper.nodes.values()) {
       let dirtyData = this.getDataByAlarmSourceName(node.name);
       if (dirtyData) {
@@ -208,25 +208,40 @@ export default class TopoTree extends Vue {
       }
       const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
       const url = require(`../../assets/${node.type}${ex}.png`);
-      const nodeLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, this.size, this.size).addTo(stage);
+      const nodeLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, this.size, this.size, {layerType: 'node'}).addTo(stage);
       if (dirtyData) {
         nodeLayer.setDirtyData(dirtyData);
         this.addAlarmCountTag(nodeLayer, node.name);
       }
       bound = bound ? bound.union(nodeLayer.getBound()) : nodeLayer.getBound();
     }
-    this.center = bound.getCenter();
+    if (bound) {
+      this.center = bound.getCenter();
+    }
     stage.setView(this.center);
     stage.endBatch();
     this.addEvents();
   }
   public addAlarmCountTag(nodeLayer: xCanvas.Layer, alarmSourceName: string) {
+    const tagUrl = require('../../assets/tag.jpg');
     const bound = nodeLayer.getBound().expand(4);
     const base: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(bound.getCenter());
-    const vec: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(-1, 1).normalize().scale(this.size);
-    const pos = base.clone().add(vec).toArray();
+    const vec: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(1, 1).normalize().scale(this.size);
+    const tagPos = base.clone().add(vec).toArray();
+    const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
     const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
-    const tag = new xCanvas.IText(pos, count.toString()).addTo(this.stage);
+    // 添加告警数量tag
+    this.stage.addLayer(new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20));
+    if (this.isPAlarm(alarmSourceName)) {
+      const alarmUrl = require('../../assets/alarm.jpg');
+      const alarmTagPos = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 1.2)).toArray();
+      // 添加报警标志
+      this.stage.addLayer(new xCanvas.ImageLayer(alarmUrl, alarmTagPos[0], alarmTagPos[1] + 5, 28, 28));
+    }
+    this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
+    const maxLength = 150;
+    this.stage.addLayer(new xCanvas.IText([textPos[0] - maxLength / 2, textPos[1]], alarmSourceName, 
+      {color: '#282828', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12}));
   }
   public reset() {
     this.stage.startBatch();
@@ -282,10 +297,10 @@ export default class TopoTree extends Vue {
     });
     return alarmItem;
   }
-  public isAlarmNetWork(name: string) {
-    return this.alarmDatas.find((alarmData: AlarmData) => {
-      return alarmData.alarmName === name;
-    });
+  public isPAlarm(name: string): boolean {
+    return !!this.alarmDatas.filter((alarmData: AlarmData) => {
+      return alarmData.alarmSourceName === name;
+    }).find((alarmData: AlarmData) => alarmData.rcaResult_edit === RCAResult.P);
   }
 }
 </script>
