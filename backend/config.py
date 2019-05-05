@@ -14,4 +14,7 @@ ALARM_MAPPING = ['AlarmName', 'AlarmSource', 'Vendor', 'First', 'Last',
 
 EDITED_COLUMNS = ['GroupId', 'RcaResult', 'RuleName']
 
+TOPO_LAYER = {'nodeB': '0', 'BTS': '0', 'E Node': '0', 'MicroWave': '1',
+              'ATN': '2', 'Router': '2', 'BSC': '3', 'RNC': '3'}
+
 DISTINCT_NUM = 8
