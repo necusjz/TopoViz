@@ -119,6 +119,7 @@ def build_tree(paths):
     for path in paths:
         # unified format for per path
         topo = path_filter(path)
+        topo = topo.sort_values('PathHop', ascending=False)
         per_path = []
         for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
             per_path.append({'NEName': ne_name, 'NEType': ne_type,
