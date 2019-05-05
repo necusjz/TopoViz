@@ -314,7 +314,7 @@ export default class TopoTable extends Vue {
   public setSelectedRow(row: AlarmData) {
     const table: any = this.$refs.table;
     table.toggleRowSelection(row, true);
-    this.editRows.push(row);
+    // this.editRows.push(row);
     this.$store.commit('SET_NEEDSAVE', true);
   }
   // 提交确认的数据
@@ -348,7 +348,7 @@ export default class TopoTable extends Vue {
       for (const key of Object.keys(propsMapping)) {
         if (grow[key] !== grow[`${key}_edit`]) {
           columns.push(propsMapping[key]);
-          const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`];
+          const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`] || NaN;
           values.push(value);
         }
       }
@@ -357,6 +357,7 @@ export default class TopoTable extends Vue {
       } else {
         grow.isConfirmed = true;
       }
+      console.log(grow.index);
       data.row.push(grow.index);
       data.columns.push(columns);
       data.values.push(values);
