@@ -62,7 +62,7 @@ def upload():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == nan].shape[0]
+    res['x_count'] = res['total_alarm'] - res['p_count'] - res['c_count']
     res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
@@ -77,7 +77,7 @@ def interval():
     alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
-    res['group_id'] = list(set(alarm['GroupId'].dropna()))
+    res['group_id'] = list(alarm['GroupId'].drop_duplicates().dropna())
     return jsonify(res)
 
 
@@ -110,6 +110,7 @@ def expand():
     z_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].max())
                                     .timestamp() + add_time * 60 - 8 * 60 * 60)
     alarm = interval_limit(a_time, z_time)
+    print(alarm['First'])
     # check intersection and update topo, table
     res = dict()
     res['yellow'] = []
@@ -161,7 +162,7 @@ def confirm():
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
     res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['x_count'] = alarm.loc[alarm['RcaResult_Edited'] == nan].shape[0]
+    res['x_count'] = res['total_alarm'] - res['p_count'] - res['c_count']
     res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = res['group_count'] - res['confirmed']
