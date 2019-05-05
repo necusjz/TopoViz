@@ -132,6 +132,23 @@ def expand():
     return jsonify(res)
 
 
+@app.route('/remain', methods=['GET'])
+def remain():
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+    mask = pd.isnull(alarm['GroupId'])
+    alarm = alarm.loc[mask]
+    topo_path = ne2path(set(alarm['AlarmSource']))
+    topo_tree = build_tree(topo_path)
+    # construct json for frontend
+    res = dict()
+    res['topo'] = topo_tree
+    res['table'] = json.loads(alarm.to_json(orient='records'))
+    res['orange'] = list(set(alarm['AlarmSource']))
+    return jsonify(res)
+
+
 @app.route('/confirm', methods=['POST'])
 def confirm():
     client_id = request.headers.get('Client-Id')
@@ -187,11 +204,6 @@ def detail():
     res['confirmed'] = confirmed_group
     res['unconfirmed'] = unconfirmed_group
     return jsonify(res)
-
-
-@app.route('/remain', methods=['GET'])
-def remain():
-    pass
 
 
 @app.route('/download', methods=['GET'])
