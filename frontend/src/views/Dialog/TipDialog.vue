@@ -55,7 +55,7 @@ export default class TipDialog extends Vue {
       this.sortClass = '';
       if (this.tipVisible && loc) {
         this.top = loc.top - 60;
-        this.left = loc.left + 15;
+        this.left = loc.left + 30;
       }
     });
   }
