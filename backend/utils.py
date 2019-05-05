@@ -113,13 +113,14 @@ def path2ne(paths):
     return ne_set
 
 
-def path_sort(paths):
+def sort_path(paths):
+    # count the number of each network element
     total_ne = []
     for path in paths:
         topo = path_filter(path)
         total_ne.extend(list(topo['NEName']))
     count_res = pd.value_counts(total_ne)
-
+    # sort by complexity
     path_res = dict()
     for path in paths:
         complexity = 0
@@ -128,8 +129,26 @@ def path_sort(paths):
             complexity += count_res.loc[ne]
         path_res[path] = complexity
     res = sorted(path_res.items(), key=lambda item: item[1], reverse=True)
-    res = map(lambda x: x[0], res)
+    res = list(map(lambda x: [x[0]], res))
     return res
+
+
+def merge_path(paths, merge_res):
+    if len(paths) == 1:
+        # exit
+        return merge_res.append(paths)
+    else:
+        # recursive merge path
+        ne_set = path2ne(paths[0])
+        for i in range(1, len(paths)):
+            if ne_set & path2ne(paths[i]):
+                paths[0].append(paths[i])
+                ne_set = ne_set | path2ne(paths[i])
+                paths.remove(paths[i])
+                merge_path(paths, merge_res)
+        merge_res.append(paths[0])
+        paths.remove(paths[0])
+        return merge_path(paths, merge_res)
 
 
 def build_tree(paths):
