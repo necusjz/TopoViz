@@ -31,6 +31,7 @@ export interface AppState {
     isNoneTopoData: boolean;
     isNoneTableData: boolean;
     isCheckStatics: boolean;
+    isCheckNone: boolean;
     alarmDatas: AlarmData[];
     tableData: AlarmData[];
     pageData: AlarmData[];
