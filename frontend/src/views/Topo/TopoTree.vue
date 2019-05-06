@@ -166,11 +166,11 @@ export default class TopoTree extends Vue {
     if (!this.topoDatas) {
       return;
     }
-    const step: number = 200;
+    const step: number = 250;
     const stageDom: any = this.$refs.stage;
     const width: number = stageDom.offsetWidth;
     const height: number = stageDom.offsetHeight;
-    const helper = new TopoTreeHelper(this.topoDatas, {size: this.size, width, height});
+    const helper = new TopoTreeHelper(this.topoDatas, {size: this.size, width, height, step});
     helper.run();
     const stage: xCanvas.Stage = this.stage;
     stage.startBatch();
@@ -212,6 +212,7 @@ export default class TopoTree extends Vue {
         nodeLayer.setDirtyData(dirtyData);
         this.addAlarmCountTag(nodeLayer, node.name);
       }
+      // this.addAlarmCountTag(nodeLayer, node.name);
       this.bound = this.bound ? this.bound.union(nodeLayer.getBound()) : nodeLayer.getBound();
     }
     if (this.bound) {
@@ -238,8 +239,8 @@ export default class TopoTree extends Vue {
     }
     this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
     const maxLength = 150;
-    const iText = new xCanvas.IText([textPos[0] - maxLength / 2, textPos[1]], alarmSourceName, 
-      {color: '#282828', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12})
+    const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName, 
+      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12})
     this.stage.addLayer(iText);
     if (this.bound) {
       this.bound = this.bound.union(iText.getBound());
