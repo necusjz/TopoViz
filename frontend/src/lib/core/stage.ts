@@ -303,6 +303,24 @@ export default class Stage extends Evt {
     this.fire('moveend', {target: this, sourceTarget: event});
   }
   /**
+   * 缩放视图窗口至目标Bound
+   * @param bound 缩放的Bound
+   */
+  public fitBound(bound: math.Bound) {
+    this.center = bound.getCenter();
+    const {width, height} = this.getBound();
+    let zoom_w = width * this.zoom / bound.width;
+    let zoom_h = height * this.zoom / bound.height;
+    zoom_w = Math.floor(zoom_w / this.zoomChange) * this.zoomChange;
+    zoom_h = Math.floor(zoom_h / this.zoomChange) * this.zoomChange;
+    const zoom_min = Math.min(zoom_w, zoom_h);
+    this.zoom = Math.max(zoom_min, this.minZoom);
+    this.zoom = Math.min(this.zoom, this.maxZoom);
+    this.render.setCenter(this.center, this.zoom);
+    this.render.redraw();
+    this.fire('moveend', {target: this, sourceTarget: event});
+  }
+  /**
    * 开启pan功能
    */
   public enableDrag() {
