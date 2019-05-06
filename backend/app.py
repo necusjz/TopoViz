@@ -191,16 +191,25 @@ def detail():
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     # get confirmed/unconfirmed groups
+    wrong_group = []
     confirmed_group = []
     unconfirmed_group = []
     for group_id in set(alarm['GroupId_Edited'].dropna()):
         mask = alarm['GroupId_Edited'] == group_id
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_group.append(group_id)
+            # get wrong groups
+            pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
+            cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
+                                                 app.config['EDITED_COLUMNS']))]
+            cur_alarm.columns = app.config['EDITED_COLUMNS']
+            if not pre_alarm.equals(cur_alarm):
+                wrong_group.append(group_id)
         else:
             unconfirmed_group.append(group_id)
     # construct json for frontend
     res = dict()
+    res['wrong'] = wrong_group
     res['confirmed'] = confirmed_group
     res['unconfirmed'] = unconfirmed_group
     return jsonify(res)
