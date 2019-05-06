@@ -125,7 +125,8 @@ def expand():
         # construct json for frontend
         res['yellow'] = list(add_alarm)
         for ne in add_alarm:
-            pre_alarm.append(alarm.loc[alarm['AlarmSource'] == ne])
+            cur_alarm = alarm.loc[alarm['AlarmSource'] == ne]
+            pre_alarm = pre_alarm.append(cur_alarm, ignore_index=True)
     topo_tree = build_tree(topo_path)
     res['topo'] = topo_tree
     res['table'] = json.loads(pre_alarm.to_json(orient='records'))
