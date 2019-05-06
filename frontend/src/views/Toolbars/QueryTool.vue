@@ -80,8 +80,6 @@ export default class QueryTool extends Vue {
   @Provide() public endTime: number = 0;
   @Provide() public status: boolean = false;
   @Provide() public interval: number = 5;
-  @Provide() private oldAlarmDatas!: AlarmData[];
-  @Provide() private oldTopoDatas!: {elements: Node[], edges: Edge[]};
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.project.groupIds) public groupIds!: string[];
   @State((state) => state.app.isNonImported) public isNonImported!:boolean;
@@ -191,8 +189,6 @@ export default class QueryTool extends Vue {
     bus.$emit(EventType.FILTERRESET);
     if (val) {
       getExpandAlarmDatas({groupId: this.groupId, addTime: this.interval * 60}).then((res: AnalyzeRes) => {
-        this.oldAlarmDatas = this.alarmDatas;
-        this.oldTopoDatas = this.topoDatas;
         this.setData(res);
       });
     } else {

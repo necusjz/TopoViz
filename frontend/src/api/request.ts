@@ -54,3 +54,10 @@ export function exportAlarmData() {
         method: 'get'
     })
 }
+
+export function getNoneGroupAlarmData() {
+    return service({
+        url: `remain?${Date.now()}`,
+        method: 'get'
+    })
+}
