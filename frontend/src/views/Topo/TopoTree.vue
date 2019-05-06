@@ -44,9 +44,9 @@ declare const ht: any;
 })
 export default class TopoTree extends Vue {
   @Provide() private stage!: xCanvas.Stage;
-  @Provide() private center: Vertex = [0, 0];
   @Provide() private borderLayer!: xCanvas.Layer;
   @Provide() private size: number = 60;
+  @Provide() private bound?: xCanvas.Math.Bound | undefined;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -71,8 +71,8 @@ export default class TopoTree extends Vue {
       this.clearAlarmNet(noGroupAlarmsSet);
     });
     window.addEventListener('resize', util.throttle(() => {
-      if (this.stage) {
-        this.stage.setView(this.center);
+      if (this.stage && this.bound) {
+        this.stage.fitBound(this.bound);
       }
     }, 300, true));
   }
@@ -88,8 +88,8 @@ export default class TopoTree extends Vue {
     }
   }
   public fullScreen() {
-    if (this.stage && this.center) {
-      this.stage.setView(this.center, 1);
+    if (this.stage && this.bound) {
+      this.stage.fitBound(this.bound);
     }
   }
   public addEvents() {
@@ -139,9 +139,8 @@ export default class TopoTree extends Vue {
       if (this.borderLayer) {
         this.stage.removeLayer(this.borderLayer);
       }
-      this.center = bound.getCenter();
       this.borderLayer = new xCanvas.Rectangle(bound.getSouthWest(), bound.getNorthEast(), {fill: false, color: '#4a96ff'}).addTo(this.stage);
-      this.stage.setView(this.center);
+      this.stage.setView(bound.getCenter());
     }
   }
   public getArrowData(v1: Vertex, v2: Vertex): Vertex[] {
@@ -159,6 +158,7 @@ export default class TopoTree extends Vue {
     bus.$emit(EventType.TIPVISIBLE, false);
   }
   public buildTopoTree() {
+    this.bound = undefined;
     if (!this.stage) {
       this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1, zoom: 1});
     }
@@ -199,7 +199,6 @@ export default class TopoTree extends Vue {
         stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
       }
     }
-    let bound;
     for (const node of helper.nodes.values()) {
       let dirtyData = this.getDataByAlarmSourceName(node.name);
       if (dirtyData) {
@@ -213,12 +212,11 @@ export default class TopoTree extends Vue {
         nodeLayer.setDirtyData(dirtyData);
         this.addAlarmCountTag(nodeLayer, node.name);
       }
-      bound = bound ? bound.union(nodeLayer.getBound()) : nodeLayer.getBound();
+      this.bound = this.bound ? this.bound.union(nodeLayer.getBound()) : nodeLayer.getBound();
     }
-    if (bound) {
-      this.center = bound.getCenter();
+    if (this.bound) {
+      stage.fitBound(this.bound);
     }
-    stage.setView(this.center);
     stage.endBatch();
     this.addEvents();
   }
@@ -240,8 +238,12 @@ export default class TopoTree extends Vue {
     }
     this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
     const maxLength = 150;
-    this.stage.addLayer(new xCanvas.IText([textPos[0] - maxLength / 2, textPos[1]], alarmSourceName, 
-      {color: '#282828', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12}));
+    const iText = new xCanvas.IText([textPos[0] - maxLength / 2, textPos[1]], alarmSourceName, 
+      {color: '#282828', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12})
+    this.stage.addLayer(iText);
+    if (this.bound) {
+      this.bound = this.bound.union(iText.getBound());
+    }
   }
   public reset() {
     this.stage.startBatch();
