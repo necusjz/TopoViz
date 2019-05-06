@@ -124,7 +124,7 @@ export default class TopoTreeHelper {
     }
     // 同层节点调整位置
     public adjustSameLevel(levelNodes: GroupData) {
-        const relatedNodes: Node[][] = levelNodes.relatedNodes;
+        const relatedNodes: Node[][] = levelNodes.relatedNodes.sort((a, b) => b.length - a.length);
         for (const pathNode of relatedNodes) {
             const root = pathNode.find((node: Node) => node.left.length === 0);
             // 头节点(左侧无节点)
@@ -223,10 +223,10 @@ export default class TopoTreeHelper {
         for (const node of nodes) {
             for (const parentNode of node.top) {
                 if (parentNode.effectX.length > 0) {
-                    // parentNode.position.x = parentNode.effectX.reduce((pre, cur) => {
-                    //     return pre + cur;
-                    // });
-                    // parentNode.position.x /= parentNode.effectX.length;
+                    parentNode.position.x = parentNode.effectX.reduce((pre, cur) => {
+                        return pre + cur;
+                    });
+                    parentNode.position.x /= parentNode.effectX.length;
                     parentNode.position.y = node.position.y + this.options.step;
                     parentNode.effectX = [];
                 }
