@@ -52,6 +52,7 @@ export default class TopoTreeHelper {
     public edges: Edge[] = [];
     public options: TopoOptions;
     private data: NodeData[][] = [];
+    private groupData: GroupData[] = [];
     private levelY: {[k: string]: number} = {};
     constructor(topoData: NodeData[][], options = {}) {
         this.data = topoData;
@@ -68,16 +69,15 @@ export default class TopoTreeHelper {
         const parts: any = this.data.map((part) => {
             return part.map((ne) => this.nodes.get(ne.name));
         });
-        const groupData: GroupData[] = [];
         for (const node of this.nodes.values()) {
-            let group = groupData.find((g) => g.level === node.level);
+            let group = this.groupData.find((g) => g.level === node.level);
             if (!group) {
                 group = {type: node.type, level: node.level, nodes: [], groupedNodes: [], relatedNodes: []};
-                groupData.push(group);
+                this.groupData.push(group);
             }
             group.nodes.push(node);
         }
-        for (const group of groupData) {
+        for (const group of this.groupData) {
             const gparts: Node[][] = parts.map((part: Node[]) => {
                 return part.filter((ne: Node) => ne && ne.level === group.level);
             }).filter((part: Node[]) => part.length > 0);
@@ -101,18 +101,18 @@ export default class TopoTreeHelper {
                 group.relatedNodes.push([...related_set]);
             }
         }
-        groupData.sort((pre, next) => next.nodes.length - pre.nodes.length);
-        for (let i = 0; i < groupData.length; i++) {
-            const group = groupData[i];
+        this.groupData.sort((pre, next) => next.nodes.length - pre.nodes.length);
+        for (let i = 0; i < this.groupData.length; i++) {
+            const group = this.groupData[i];
             if (i === 0) {
                 this.levelY[group.level] = 0;
             }
             this.adjustSameLevel(group);
         }
         // 同层节点位置排序结束, todo: 相邻层连接
-        this.updateParentPostionX(groupData[0].nodes);
-        this.updateChildrenPositionX(groupData[0].nodes);
-        this.autoFixLayout(groupData);
+        this.updateParentPostionX(this.groupData[0].nodes);
+        this.updateChildrenPositionX(this.groupData[0].nodes);
+        this.autoFixLayout(this.groupData);
     }
     public isHasIntersect(souce: Node[], target: Node[]): boolean {
         for (let i = 0; i < souce.length; i++) {
@@ -210,17 +210,24 @@ export default class TopoTreeHelper {
         for (const node of nodes) {
             for (const parentNode of node.top) {
                 parentNode.effectX.push(node.position.x);
-                parentNodes_set.add(parentNode);
+            }
+        }
+        if (nodes.length > 0) {
+            const levelDatas = this.groupData.find((groupData: GroupData) => groupData.level === nodes[0].level - 1);
+            if (levelDatas) {
+                for (const ng of levelDatas.nodes) {
+                    parentNodes_set.add(ng);
+                }
             }
         }
         for (const node of nodes) {
             for (const parentNode of node.top) {
                 if (parentNode.effectX.length > 0) {
-                    parentNode.position.x = parentNode.effectX.reduce((pre, cur) => {
-                        return pre + cur;
-                    });
-                    parentNode.position.x /= parentNode.effectX.length;
-                    parentNode.position.y += node.position.y + this.options.step;
+                    // parentNode.position.x = parentNode.effectX.reduce((pre, cur) => {
+                    //     return pre + cur;
+                    // });
+                    // parentNode.position.x /= parentNode.effectX.length;
+                    parentNode.position.y = node.position.y + this.options.step;
                     parentNode.effectX = [];
                 }
             }
@@ -236,17 +243,24 @@ export default class TopoTreeHelper {
         for (const node of nodes) {
             for (const childNode of node.bottom) {
                 childNode.effectX.push(node.position.x);
-                childNodes_set.add(childNode);
+            }
+        }
+        if (nodes.length > 0) {
+            const levelDatas = this.groupData.find((groupData: GroupData) => groupData.level === nodes[0].level + 1);
+            if (levelDatas) {
+                for (const ng of levelDatas.nodes) {
+                    childNodes_set.add(ng);
+                }
             }
         }
         for (const node of nodes) {
             for (const childNode of node.bottom) {
                 if (childNode.effectX.length > 0) {
-                    childNode.position.x = childNode.effectX.reduce((pre, cur) => {
-                        return pre + cur;
-                    });
-                    childNode.position.x /= childNode.effectX.length;
-                    childNode.position.y -= this.options.step;
+                    // childNode.position.x = childNode.effectX.reduce((pre, cur) => {
+                    //     return pre + cur;
+                    // });
+                    // childNode.position.x /= childNode.effectX.length;
+                    childNode.position.y = node.position.y - this.options.step;
                     childNode.effectX = [];
                 }
             }
@@ -259,9 +273,16 @@ export default class TopoTreeHelper {
     private initializeData() {
         for (const NodeDatas of this.data) {
             let preNode!: Node;
-            for (const NodeData of NodeDatas) {
+            for (let i = 0; i < NodeDatas.length; i++) {
+                const NodeData = NodeDatas[i];
                 const node = this.nodes.get(NodeData.name) || new Node(NodeData.name, NodeData.type, NodeData.level, NodeData.color);
-                node.level = NodeData.level === null ? preNode.level : NodeData.level;
+                if (node.level === null) {
+                    if (i < NodeDatas.length - 1) {
+                        node.level = Math.round((NodeDatas[i + 1].level + NodeDatas[i - 1].level) / 2);
+                    } else {
+                        node.level = NodeDatas[i - 1].level;
+                    }
+                }
                 this.nodes.set(node.name, node);
                 if (preNode) {
                     const edge = new Edge(preNode, node);
@@ -276,6 +297,9 @@ export default class TopoTreeHelper {
                     } else if (node.level - preNode.level === 1) {
                         if (!preNode.bottom.find((nd) => nd === node)) {
                             preNode.bottom.push(node);
+                        }
+                        if (!node.top.find((nd) => nd === node)) {
+                            node.top.push(preNode);
                         }
                     } else if (node.level - preNode.level === -1) {
                         if (!node.top.find((nd) => nd === node)) {
@@ -301,21 +325,17 @@ export default class TopoTreeHelper {
         const h = this.options.height;
         if (w && h) {
             groupData.sort((a, b) => {
-                if (a.nodes.length > 0 && b.nodes.length > 0) {
-                    return a.nodes[0].position.y - b.nodes[0].position.y;
-                } else {
-                    return 0;
-                }
+                return b.level - a.level;
             });
-            const step = h / groupData.length;
+            const step = Math.max(this.options.step, h / groupData.length);
             for (let k = 0; k < groupData.length; k++) {
                 const group = groupData[k];
                 const interval = w / group.nodes.length;
                 const nodes = group.nodes.sort((a, b) => a.position.x - b.position.x);
                 for (let i = 0; i < nodes.length; i++) {
                     const node = nodes[i];
-                    const x: number = interval * i + interval * (0.25 + Math.random() * 0.5);
-                    const y: number = step * k + step * (0.25 + Math.random() * 0.5);
+                    const x: number = interval * i + interval * (0.25 + Math.random() * 0.3);
+                    const y: number = step * k + step * (0.25 + Math.random() * 0.25);
                     node.setPosition({x, y});
                 }
             }
