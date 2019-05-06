@@ -20,7 +20,7 @@
             <span class="board-count">{{c_count}}</span>
             <span>C 告警</span>
           </div>
-          <div class="board-col-item">
+          <div class="board-col-item statics-none-item" @click="viewNoneGroupData">
             <span class="board-count">{{x_count}}</span>
             <span>未知告警</span>
           </div>
@@ -66,6 +66,10 @@
 <script lang="ts">
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
+import { getNoneGroupAlarmData } from '@/api/request';
+import { AnalyzeRes, AlarmData } from '@/types/type';
+import { generateUUID, generateDateByTimestamp } from '@/util/util';
+
 @Component
 export default class StaticsBoard extends Vue {
   @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
@@ -77,8 +81,59 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.project.unconfirmed_count) private unconfirmed_count!: number;
   @State((state) => state.project.accuracy) private accuracy!: string;
   @State((state) => state.project.x_count) private x_count!: number;
+  @State((state) => state.app.alarmDatas) public alarmDatas!: AlarmData[];
   public checkStatics() {
     this.$store.commit('SET_ISCHECKSTATICS', true);
+  }
+  public viewNoneGroupData() {
+    getNoneGroupAlarmData().then((res: AnalyzeRes) => {
+      this.setData(res);
+    });
+  }
+  public setData(res: AnalyzeRes) {
+    if (res.table) {
+      const alarmDatas = res.table.map((item: any) => this.formatData(item));
+      this.$store.commit('SET_ALARMDATAS', alarmDatas);
+    }
+    if (res.topo) {
+      const topoTreeData = res.topo.map((path: any) => {
+        return path.map((node: any) => {
+          const color = this.getElementColor(node.NEName, res.yellow);
+          return { name: node.NEName, type: node.NEType, color, level: node.Layer };
+        });
+      });
+      this.$store.commit('SET_TOPODATA', topoTreeData);
+    }
+  }
+  public getElementColor(name: string, yellow: string[] = []): string {
+    if (yellow.includes(name)) {
+      return 'Yellow';
+    } else if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === name)) {
+      return 'Warning';
+    } else {
+      return '';
+    }
+  }
+  public formatData(item: any): AlarmData {
+    return {
+      uid: generateUUID(),
+      index: item['Index'],
+      alarmName: item['AlarmName'],
+      alarmSourceName: item['AlarmSource'],
+      company: item['Vendor'],
+      firstTime: generateDateByTimestamp(item['First']),
+      lastTime: item['Last'],
+      level: item['Level'],
+      clearTime: item['Clear'],
+      domain: item['Domain'],
+      groupId: item['GroupId'],
+      groupId_edit: item['GroupId_Edited'] || '空',
+      rcaResult: item['RcaResult'],
+      rcaResult_edit: item['RcaResult_Edited'],
+      rcaReg: item['RuleName'],
+      rcaReg_edit: item['RuleName_Edited'],
+      isConfirmed: !!item['Confirmed']
+    };
   }
 }
 </script>
@@ -116,6 +171,12 @@ export default class StaticsBoard extends Vue {
           display: flex;
           flex-direction: column;
           text-align: center;
+        }
+        .statics-none-item {
+          cursor: pointer;
+          &:hover {
+            color: #338AFF;
+          }
         }
         .board-precision {
           cursor: pointer;
