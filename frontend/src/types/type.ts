@@ -81,6 +81,7 @@ export enum Rules {
 export interface NodeData {
     name: string;
     type: string;
+    level: number;
     color: string;
 }
 export interface StaticsRes {
@@ -113,4 +114,11 @@ export interface SelectOption {
 export enum RCAResult {
     P = 'P',
     C = 'C',
+}
+
+export enum NetWorkLevel {
+    nodeB,
+    MicroWave,
+    ATN,
+    BSC
 }
