@@ -208,9 +208,9 @@ export default class QueryTool extends Vue {
     if (res.topo) {
       this.$store.commit('SET_ISNONETOPODATA', false);
       const topoTreeData = res.topo.map((path: any) => {
-        return path.reverse().map((node: any) => {
+        return path.map((node: any) => {
           const color = this.getElementColor(node.NEName, res.yellow);
-          return { name: node.NEName, type: node.NEType, color };
+          return { name: node.NEName, type: node.NEType, color, level: node.Layer };
         });
       });
       this.$store.commit('SET_TOPODATA', topoTreeData);
