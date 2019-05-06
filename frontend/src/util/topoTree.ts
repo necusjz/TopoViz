@@ -132,9 +132,6 @@ export default class TopoTreeHelper {
             if (root) {
                 this.findMaxLengthPath(root, [], maxPath);
             } else {
-                if (pathNode.length === 0) {
-                    debugger;
-                }
                 this.findMaxLengthPath(pathNode[0], [], maxPath);
             }
             const insertNodes: {node: Node, weight: number}[] = [];
