@@ -122,11 +122,11 @@ def expand():
             if add_ne & topo_ne:
                 topo_path = topo_path | {path}
                 add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
+        # construct json for frontend
         res['yellow'] = list(add_alarm)
         for ne in add_alarm:
             pre_alarm.append(alarm.loc[alarm['AlarmSource'] == ne])
     topo_tree = build_tree(topo_path)
-    # construct json for frontend
     res['topo'] = topo_tree
     res['table'] = json.loads(pre_alarm.to_json(orient='records'))
     return jsonify(res)
@@ -137,15 +137,27 @@ def remain():
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    mask = pd.isnull(alarm['GroupId'])
+    mask = pd.isnull(alarm['GroupId_Edited'])
     alarm = alarm.loc[mask]
     topo_path = ne2path(set(alarm['AlarmSource']))
-    topo_tree = build_tree(topo_path)
-    # construct json for frontend
+    # get merged paths result
     res = dict()
-    res['topo'] = topo_tree
-    res['table'] = json.loads(alarm.to_json(orient='records'))
-    res['orange'] = list(set(alarm['AlarmSource']))
+    merge_res = []
+    serial_path = sort_path(topo_path)
+    merge_res = merge_path(serial_path, merge_res)
+    # construct json for frontend
+    for i, paths in enumerate(merge_res):
+        tree = dict()
+        topo_tree = build_tree(paths)
+        add_alarm = list(path2ne(paths) & set(alarm['AlarmSource']))
+        cur_alarm = alarm.loc[alarm['AlarmSource'] == add_alarm[0]]
+        for j in range(1, len(add_alarm)):
+            cur_alarm.append(alarm.loc[alarm['AlarmSource'] == add_alarm[j]])
+        tree['topo'] = topo_tree
+        tree['table'] = json.loads(cur_alarm.to_json(orient='records'))
+        tree['orange'] = list(set(cur_alarm['AlarmSource']))
+        tree_name = 'TOPO_TREE_' + str(i).zfill(3)
+        res[tree_name] = tree
     return jsonify(res)
 
 
