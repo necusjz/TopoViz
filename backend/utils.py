@@ -159,11 +159,10 @@ def build_tree(paths):
         topo = path_filter(path)
         topo = topo.sort_values('PathHop', ascending=False)
         per_path = []
-        for ne_name, ne_type in zip(topo['NEName'], topo['NEType']):
-            per_path.append({'NEName': ne_name,
-                             'NEType': app.config['NE_ICON'].get(ne_type,
-                                                                 'OTHER'),
-                             'Layer': app.config['TOPO_LAYER'].get(ne_type)})
+        for name, kind in zip(topo['NEName'], topo['NEType']):
+            per_path.append({'NEName': name,
+                             'NEType': app.config['NE_ICON'].get(kind, 'OTHER'),
+                             'Layer': app.config['TOPO_LAYER'].get(kind)})
         topo_tree.append(per_path)
     return topo_tree
 
