@@ -322,6 +322,10 @@ export default class CanvasHelper {
     const len: number = layer.content.length;
     for (let i = 0; i < len; i++) {
       let y: number = 0;
+      if (i === 1) {
+        this.context.textAlign = 'left';
+        localPt[0] -= layer.options.maxLength;
+      }
       if (layer.options.baseLine === 'bottom') {
         y = localPt[1] - (len - i - 1) * (fontSize + space);
       } else if (layer.options.baseLine === 'middle') {
