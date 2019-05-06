@@ -1,11 +1,7 @@
 import * as xCanvas from '@/lib';
 import { generateUUID } from './util';
+import { NetWorkLevel, NodeData } from '@/types/type'
 
-interface NeNode {
-    name: string;
-    type: string;
-    color: string;
-}
 interface TopoOptions {
     interval: number;
     step: number;
@@ -15,6 +11,7 @@ interface TopoOptions {
 }
 interface GroupData {
     type: string;
+    level: number;
     nodes: Node[];
     groupedNodes: Node[][];
     relatedNodes: Node[][]
@@ -22,6 +19,7 @@ interface GroupData {
 class Node {
     public id: string;
     public name: string;
+    public level: number;
     public type: string;
     public color: string;
     public position: { x: number, y: number } = {x: 0, y: 0};
@@ -30,9 +28,10 @@ class Node {
     public left: Node[] = [];
     public top: Node[] = [];
     public effectX: number[] = [];
-    constructor(name: string, type: string, color: string) {
+    constructor(name: string, type: string, level: number, color: string) {
         this.name = name;
         this.type = type;
+        this.level = level;
         this.color = color;
         this.id = generateUUID();
     }
@@ -52,9 +51,9 @@ export default class TopoTreeHelper {
     public nodes: Map<string, Node> = new Map();
     public edges: Edge[] = [];
     public options: TopoOptions;
-    private data: NeNode[][] = [];
+    private data: NodeData[][] = [];
     private levelY: {[k: string]: number} = {};
-    constructor(topoData: NeNode[][], options = {}) {
+    constructor(topoData: NodeData[][], options = {}) {
         this.data = topoData;
         const defaultOptions: TopoOptions = {
             step: 60,
@@ -71,17 +70,17 @@ export default class TopoTreeHelper {
         });
         const groupData: GroupData[] = [];
         for (const node of this.nodes.values()) {
-            let group = groupData.find((g) => g.type === node.type);
+            let group = groupData.find((g) => g.level === node.level);
             if (!group) {
-                group = {type: node.type, nodes: [], groupedNodes: [], relatedNodes: []};
+                group = {type: node.type, level: node.level, nodes: [], groupedNodes: [], relatedNodes: []};
                 groupData.push(group);
             }
             group.nodes.push(node);
         }
         for (const group of groupData) {
             const gparts: Node[][] = parts.map((part: Node[]) => {
-                return part.filter((ne: Node) => ne && ne.type === group.type);
-            });
+                return part.filter((ne: Node) => ne && ne.level === group.level);
+            }).filter((part: Node[]) => part.length > 0);
             const cloneParts = [...gparts];
             const checkedNodes = new Set();
             for (let i = 0; i < gparts.length; i++) {
@@ -106,7 +105,7 @@ export default class TopoTreeHelper {
         for (let i = 0; i < groupData.length; i++) {
             const group = groupData[i];
             if (i === 0) {
-                this.levelY[group.type] = 0;
+                this.levelY[group.level] = 0;
             }
             this.adjustSameLevel(group);
         }
@@ -124,7 +123,7 @@ export default class TopoTreeHelper {
         return false;
     }
     // 同层节点调整位置
-    public adjustSameLevel(levelNodes: {type: string, nodes: Node[], groupedNodes: Node[][], relatedNodes: Node[][]}) {
+    public adjustSameLevel(levelNodes: GroupData) {
         const relatedNodes: Node[][] = levelNodes.relatedNodes;
         for (const pathNode of relatedNodes) {
             const root = pathNode.find((node: Node) => node.left.length === 0);
@@ -133,6 +132,9 @@ export default class TopoTreeHelper {
             if (root) {
                 this.findMaxLengthPath(root, [], maxPath);
             } else {
+                if (pathNode.length === 0) {
+                    debugger;
+                }
                 this.findMaxLengthPath(pathNode[0], [], maxPath);
             }
             const insertNodes: {node: Node, weight: number}[] = [];
@@ -258,25 +260,27 @@ export default class TopoTreeHelper {
         }
     }
     private initializeData() {
-        for (const neNodes of this.data) {
+        for (const NodeDatas of this.data) {
             let preNode!: Node;
-            for (const neNode of neNodes) {
-                const node = this.nodes.get(neNode.name) || new Node(neNode.name, neNode.type, neNode.color);
+            for (const NodeData of NodeDatas) {
+                const node = this.nodes.get(NodeData.name) || new Node(NodeData.name, NodeData.type, NodeData.level, NodeData.color);
+                node.level = NodeData.level === null ? preNode.level : NodeData.level;
                 this.nodes.set(node.name, node);
                 if (preNode) {
                     const edge = new Edge(preNode, node);
                     this.edges.push(edge);
-                    if (preNode.type === node.type) {
+                    if (preNode.level === node.level) {
                         if (!preNode.right.find((nd) => nd === node)) {
                             preNode.right.push(node);
                         }
                         if (!node.left.find((nd) => nd === preNode)) {
                             node.left.push(preNode);
                         }
-                    } else {
+                    } else if (node.level - preNode.level === 1) {
                         if (!preNode.bottom.find((nd) => nd === node)) {
                             preNode.bottom.push(node);
                         }
+                    } else if (node.level - preNode.level === -1) {
                         if (!node.top.find((nd) => nd === node)) {
                             node.top.push(preNode);
                         }
