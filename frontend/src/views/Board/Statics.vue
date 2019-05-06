@@ -38,19 +38,7 @@
             <span class="board-count" style="color: #ff686f">{{unconfirmed_count}}</span>
             <span>未确认组</span>
           </div>
-          <el-popover
-            placement="top"
-            width="120"
-            trigger="hover"
-            v-if="unconfirmed_count > 0">
-            <span class="blue-text">提示：</span>
-            <span>只有当前数据的所有 Group ID 都处理过时才可得出 RCA 准确率哦</span>
-            <div class="board-col-item board-precision" slot="reference">
-              <span class="board-count">{{accuracy}}</span>
-              <span>RCA 准确率</span>
-            </div>
-          </el-popover>
-          <div class="board-col-item" v-else>
+          <div class="board-col-item board-precision">
             <span class="board-count">{{accuracy}}</span>
             <span>RCA 准确率</span>
           </div>
@@ -86,6 +74,7 @@ export default class StaticsBoard extends Vue {
     this.$store.commit('SET_ISCHECKSTATICS', true);
   }
   public viewNoneGroupData() {
+    this.$store.commit('SET_ISCHECKNONE', true);
     getNoneGroupAlarmData().then((res: AnalyzeRes) => {
       this.setData(res);
     });

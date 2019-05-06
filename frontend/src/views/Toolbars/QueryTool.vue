@@ -1,5 +1,19 @@
 <template>
-  <div class="app-query-tool">
+  <div class="app-query-tool" v-if="isCheckNone">
+    <div class="app-query-tool-item app-query-tool-regulation">
+      <el-cascader
+        placeholder="请按照条件定位"
+        :options="options"
+        v-model="regulationValue"
+        :clearable="true"
+        popper-class="select-popper"
+        @change="locateNetWork"
+        :disabled="isNonImported"
+        size="mini"
+      ></el-cascader>
+    </div>
+  </div>
+  <div class="app-query-tool" v-else>
     <div class="app-query-tool-item app-query-date-wrap">
       <el-date-picker
         type="datetime"
@@ -89,12 +103,13 @@ export default class QueryTool extends Vue {
   @State((state) => state.app.regValue) public store_regValue!: string;
   @State((state) => state.app.defaultDate) public defaultDate!: number[];
   @State((state) => state.app.needSave) public needSave!: boolean;
+  @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
 
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
     this.startTime = val[0];
     this.endTime = val[1];
-    this.dateChange(val);
+    this.dateChange();
   }
   @Watch('store_groupId')
   public watchStoreGroupId(val: string) {
@@ -108,6 +123,34 @@ export default class QueryTool extends Vue {
   @Watch('alarmDatas')
   public watchAlarmDatas() {
     this.formatSelectOption();
+  }
+  @Watch('startTime')
+  public watchStartTime(val: number, oval: number) {
+    if (val && this.endTime) {
+      if (val > this.endTime) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
+        this.startTime = oval;
+      } else {
+        this.dateChange();
+      }
+    }
+  }
+  @Watch('endTime')
+  public watchEndTime(val: number, oval: number) {
+    if (val && this.startTime) {
+      if (val < this.startTime) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
+        this.endTime = oval;
+      } else {
+        this.dateChange();
+      }
+    }
+  }
+  @Watch('isCheckNone')
+  public watchIsCheckNone(val: boolean) {
+    if (!val) {
+      this.queryTopoData();
+    }
   }
   mounted() {
     this.options = ruleOptions;
@@ -124,7 +167,7 @@ export default class QueryTool extends Vue {
       });
     cb(suggestions);
   }
-  public dateChange(value: number[]) {
+  public dateChange() {
     if (this.startTime && this.endTime) {
       if (this.endTime < this.startTime) {
         bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
@@ -311,10 +354,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   position: absolute;
   display: flex;
   width: 100%;
-  padding: 20px;
-  padding-right: 0;
+  margin: 20px 0 0 20px;
   align-items: center;
   z-index: 5;
+  user-select: none;
   .app-query-tool-group-wrap {
     .query-btn {
       color: #FFF;
