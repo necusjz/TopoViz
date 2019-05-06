@@ -84,7 +84,8 @@ export default class TopoTablePagination extends Vue {
           }
         });
       } else {
-
+        this.currentPage = page;
+        this.submitPageData();
       }
     }
     public submitPageData() {
