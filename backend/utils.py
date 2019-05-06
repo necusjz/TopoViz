@@ -42,7 +42,7 @@ def result_monitor(client_id):
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     # initialize variables
-    error_num = 0
+    wrong_num = 0
     confirmed_num = 0
     total_num = len(set(alarm['GroupId_Edited'].dropna()))
     # count the number of confirmed groups
@@ -50,15 +50,15 @@ def result_monitor(client_id):
         mask = alarm['GroupId_Edited'] == group_id
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
             confirmed_num += 1
-            # count the number of correct groups
+            # count the number of wrong groups
             pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
             cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
                                                  app.config['EDITED_COLUMNS']))]
             cur_alarm.columns = app.config['EDITED_COLUMNS']
             if not pre_alarm.equals(cur_alarm):
-                error_num += 1
+                wrong_num += 1
     # calculate global accuracy
-    accuracy = 1 - (error_num / total_num)
+    accuracy = 1 - (wrong_num / total_num)
     return alarm, confirmed_num, accuracy
 
 
