@@ -134,21 +134,20 @@ def sort_path(paths):
 
 
 def merge_path(paths, merge_res):
+    # exit
     if len(paths) == 1:
-        # exit
-        return merge_res.append(paths)
-    else:
-        # recursive merge path
-        ne_set = path2ne(paths[0])
-        for i in range(1, len(paths)):
-            if ne_set & path2ne(paths[i]):
-                paths[0].append(paths[i])
-                ne_set = ne_set | path2ne(paths[i])
-                paths.remove(paths[i])
-                merge_path(paths, merge_res)
         merge_res.append(paths[0])
-        paths.remove(paths[0])
-        return merge_path(paths, merge_res)
+        return merge_res
+    # recursive merge path
+    ne_set = path2ne(paths[0])
+    for i in range(1, len(paths)):
+        if ne_set & path2ne(paths[i]):
+            paths[0].extend(paths[i])
+            paths.remove(paths[i])
+            return merge_path(paths, merge_res)
+    merge_res.append(paths[0])
+    paths.remove(paths[0])
+    return merge_path(paths, merge_res)
 
 
 def build_tree(paths):
