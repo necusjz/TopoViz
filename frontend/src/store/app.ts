@@ -9,6 +9,7 @@ const state: AppState = {
     isNoneTopoData: true, // 查询数据是否为空
     isNoneTableData: true, // 告警数据是否为空
     isCheckStatics: false, // 是否查看已确认未确认数据
+    isCheckNone: false, // 是否查看没有标记的数据
     alarmDatas: [], // 查询得到的数据
     tableData: [], // 当前table(待确认|已处理)的总数据
     pageData: [], // 当前page页的数据
@@ -44,6 +45,9 @@ const mutations: MutationTree<AppState> = {
     },
     SET_ISCHECKSTATICS: (state: AppState, check: boolean) => {
         state.isCheckStatics = check;
+    },
+    SET_ISCHECKNONE: (state: AppState, bool: boolean) => {
+        state.isCheckNone = bool;
     },
     SET_ALARMDATAS: (state: AppState, data: AlarmData[]) => {
         state.alarmDatas = data;

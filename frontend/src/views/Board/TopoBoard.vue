@@ -4,6 +4,10 @@
       <i class="el-icon-warning"></i>
       无数据
     </div>
+    <div class="topo-board-item topo-back" @click="goBack" v-else-if="isCheckNone">
+      <i class="el-icon-back"></i>
+      <span class="app-back">返回</span>
+    </div>
     <div class="topo-board-left" v-else>
       <div class="topo-board-item" v-show="groupId">
         <span class="tag-square tag-orange"></span>
@@ -33,6 +37,7 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
+  @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
   @Provide() private conditionLabel: string = '';
 
   @Watch('regType')
@@ -44,6 +49,9 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
       };
       this.conditionLabel = temp[val] || '告警名称';
     }
+  }
+  public goBack() {
+    this.$store.commit('SET_ISCHECKNONE', false);
   }
 }
 </script>
@@ -64,6 +72,15 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
       display: flex;
       align-items: center;
       padding-left: 5px;
+    }
+  }
+  .topo-back {
+    cursor: pointer;
+    &:hover {
+      color: #338AFF;
+    }
+    .app-back {
+      padding-left: 10px;
     }
   }
   .tag-square {
