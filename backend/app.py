@@ -78,10 +78,10 @@ def interval():
     alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
-    if x_alarm == '1':
+    if x_alarm == 'true':
         mask = alarm['X_ALARM'].str.contains('TOPO_TREE_', na=False)
         res['group_id'] = list(set(alarm.loc[mask]))
-    elif x_alarm == '0':
+    elif x_alarm == 'false':
         res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
     return jsonify(res)
 
@@ -203,6 +203,7 @@ def confirm():
 
 @app.route('/detail', methods=['GET'])
 def detail():
+    x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
