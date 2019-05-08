@@ -68,7 +68,7 @@
     <div class="query-expand">
       <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
       显示前后
-      <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="10"></el-input-number>
+      <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="10" :disabled="!status"></el-input-number>
       分钟告警
     </div>
   </div>
@@ -123,28 +123,6 @@ export default class QueryTool extends Vue {
   @Watch('alarmDatas')
   public watchAlarmDatas() {
     this.formatSelectOption();
-  }
-  @Watch('startTime')
-  public watchStartTime(val: number, oval: number) {
-    if (val && this.endTime) {
-      if (val > this.endTime) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
-        this.startTime = oval;
-      } else {
-        this.dateChange();
-      }
-    }
-  }
-  @Watch('endTime')
-  public watchEndTime(val: number, oval: number) {
-    if (val && this.startTime) {
-      if (val < this.startTime) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
-        this.endTime = oval;
-      } else {
-        this.dateChange();
-      }
-    }
   }
   @Watch('isCheckNone')
   public watchIsCheckNone(val: boolean) {
@@ -220,6 +198,7 @@ export default class QueryTool extends Vue {
     this.regulationValue = [];
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');
+    bus.$emit(EventType.CLEARALL);
     this.status = false;
     bus.$emit(EventType.CLEAREXPAN);
     getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
@@ -256,7 +235,7 @@ export default class QueryTool extends Vue {
     }
   }
   public handleChange() {
-
+    this.expand(true);
   }
   public getElementColor(name: string, yellow: string[] = []): string {
     if (yellow.includes(name)) {

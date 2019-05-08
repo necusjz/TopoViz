@@ -1,8 +1,7 @@
 <template>
   <div class="rca-statics-board" :class="{'rca-statics-view': isCheckStatics}">
     <div class="rca-dec blue-text" v-if="isCheckStatics">
-      <i class="el-icon-warning"></i>
-      <span class="rca-waring-dec">提示：只有当前数据的所有 Group ID 都确认过时才可得出 RCA 准确率哦</span>
+      <span class="rca-waring-dec">查看未知告警</span>
     </div>
     <div class="statics-board" v-else>
       <p class="statics-title">{{$t('lang.rcaResultStatics')}}</p>
@@ -20,7 +19,7 @@
             <span class="board-count">{{c_count}}</span>
             <span>C 告警</span>
           </div>
-          <div class="board-col-item statics-none-item" @click="viewNoneGroupData">
+          <div class="board-col-item statics-none-item">
             <span class="board-count">{{x_count}}</span>
             <span>未知告警</span>
           </div>
@@ -42,7 +41,7 @@
             <span class="board-count">{{accuracy}}</span>
             <span>RCA 准确率</span>
           </div>
-          <div class="board-col-item" v-if="unconfirmed_count > 0 && unconfirmed_count !== group_count" @click="checkStatics">
+          <div class="board-col-item" @click="checkStatics">
             <i class="el-icon-arrow-right board-viewer-icon"></i>
           </div>
         </el-col>
@@ -139,6 +138,10 @@ export default class StaticsBoard extends Vue {
   border-radius: 8px;
   box-shadow: 0 4px 6px 0 rgba(186, 186, 186, 0.5);
   background-color: #ffffff;
+  .rca-dec {
+    cursor: pointer;
+    padding: 0 15px;
+  }
   .statics-board {
     width: 100%;
     .statics-title {
@@ -161,12 +164,6 @@ export default class StaticsBoard extends Vue {
           flex-direction: column;
           text-align: center;
         }
-        .statics-none-item {
-          cursor: pointer;
-          &:hover {
-            color: #338AFF;
-          }
-        }
         .board-precision {
           cursor: pointer;
         }
@@ -186,7 +183,7 @@ export default class StaticsBoard extends Vue {
   }
 }
 .rca-waring-dec {
-  padding-left: 15px;
+  border-bottom: 1px solid #338AFF;
 }
 .rca-statics {
   display: inline-block;
@@ -204,6 +201,7 @@ export default class StaticsBoard extends Vue {
   color: #282828;
 }
 .rca-statics-view {
+  margin-top: 10px!important;
   line-height: 40px;
   background-color: transparent;
   box-shadow: none;
