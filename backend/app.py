@@ -241,6 +241,25 @@ def detail():
     return jsonify(res)
 
 
+@app.route('/oneClick', methods=['POST'])
+def one_click():
+    x_alarm = request.args.get('xAlarm')
+    if x_alarm == 'false':
+        pass
+    elif:
+
+
+@app.route('/cleanUp', methods=['POST'])
+def clean_up():
+    for dirname in os.listdir(app.config['UPLOAD_FOLDER']):
+        # get directory path
+        dirpath = os.path.join(app.config['UPLOAD_FOLDER'], dirname)
+        # clean up cache regularly
+        diff = time.time() - os.path.getmtime(dirpath)
+        if diff > 7 * 24 * 60 * 60:
+            shutil.rmtree(dirpath)
+
+
 @app.route('/download', methods=['GET'])
 def download():
     # get directory path
@@ -250,17 +269,6 @@ def download():
     filename = 'alarm-verified-' + str(int(time.time())) + '.csv'
     return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
                                attachment_filename=filename)
-
-
-@app.route('/clean', methods=['POST'])
-def clean():
-    for dirname in os.listdir(app.config['UPLOAD_FOLDER']):
-        # get directory path
-        dirpath = os.path.join(app.config['UPLOAD_FOLDER'], dirname)
-        # clean up cache regularly
-        diff = time.time() - os.path.getmtime(dirpath)
-        if diff > 7 * 24 * 60 * 60:
-            shutil.rmtree(dirpath)
 
 
 @app.errorhandler(500)
