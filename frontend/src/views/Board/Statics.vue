@@ -1,9 +1,6 @@
 <template>
-  <div class="rca-statics-board" :class="{'rca-statics-view': isCheckStatics}">
-    <div class="rca-dec blue-text" v-if="isCheckStatics" @click="switchStaticsType">
-      <span class="rca-waring-dec">{{isCheckNone ? '查看已知告警' : '查看未知告警'}}</span>
-    </div>
-    <div class="statics-board" v-else>
+  <div class="rca-statics-board" :class="{'rca-statics-view': isCheckStatics}" v-show="!isCheckStatics">
+    <div class="statics-board">
       <p class="statics-title">{{$t('lang.rcaResultStatics')}}</p>
       <el-row class="statics-board-row">
         <el-col :span="11" class="board-col board-left">
@@ -71,9 +68,6 @@ export default class StaticsBoard extends Vue {
   @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
   public checkStatics() {
     this.$store.commit('SET_ISCHECKSTATICS', true);
-  }
-  public switchStaticsType() {
-    this.$store.commit('SET_ISCHECKNONE', !this.isCheckNone);
   }
 }
 </script>
