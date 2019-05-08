@@ -20,7 +20,7 @@ def format_data(df):
         df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
         df['Confirmed'] = nan
-        df['XAlarm'] = nan
+        df['X_Alarm'] = nan
         # sort by first occurrence
         df = df.sort_values('First')
     else:
@@ -82,7 +82,7 @@ def group_filter(group_id):
     if x_alarm == 'false':
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     elif x_alarm == 'true':
-        alarm = alarm.loc[alarm['XAlarm'] == group_id]
+        alarm = alarm.loc[alarm['X_Alarm'] == group_id]
     return alarm
 
 
@@ -178,13 +178,14 @@ def update_tree(alarm):
     serial_path = sort_path(topo_path)
     merge_res = merge_path(serial_path, merge_res)
 
-    alarm.drop(columns='XAlarm')
-    alarm['XAlarm'] = nan
+    alarm.drop(columns='X_Alarm')
+    alarm['X_Alarm'] = nan
     for i, paths in enumerate(merge_res):
         tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
         add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
         for ne in add_alarm:
-            alarm.loc[alarm['AlarmSource'] == ne]['XAlarm'] = tree
+            mask = alarm['AlarmSource'] == ne
+            alarm.loc[mask, 'X_Alarm'] = tree
         save_data(alarm, client_id)
 
 
