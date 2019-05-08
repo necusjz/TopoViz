@@ -25,7 +25,7 @@
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { postTopoData, exportAlarmData } from '@/api/request';
+import { postTopoData, getInterval, exportAlarmData } from '@/api/request';
 import bus from '@/util/bus';
 import { EventType, StaticsRes } from '@/types/type';
 import NProgress from 'nprogress';
@@ -49,6 +49,8 @@ export default class Importer extends Vue {
   @State((state) => state.app.isCheckStatics) private isCheckStatics!: boolean;
   @State((state) => state.app.clientId) private clientId!: string;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
+  @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
+
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
       if (type === 'target') {
@@ -79,8 +81,7 @@ export default class Importer extends Vue {
     }
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
-      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
-      this.$store.commit('SET_DEFAULTDATE', dateValue);
+      this.setDefaultDate();
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
       NProgress.done();
@@ -92,6 +93,12 @@ export default class Importer extends Vue {
       });
       NProgress.done();
     })
+  }
+  public setDefaultDate() {
+    getInterval({xAlarm: this.isCheckNone}).then((res: {start: number, end: number}) => {
+      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
+      this.$store.commit('SET_DEFAULTDATE', dateValue);
+    });
   }
   public submitData() {
     if (this.available) {
