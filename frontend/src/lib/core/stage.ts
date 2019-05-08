@@ -24,6 +24,7 @@ export default class Stage extends Evt {
   private minZoom: number = 0.1;
   private maxZoom: number = 30;
   private zoomChange: number = 0.1;
+  private amination!: number;
   private readonly layers: Map <string, Layer>;
   private readonly highLightLayers: Map <string, Layer>;
   constructor(id: string, options: Options = {}) {
@@ -274,9 +275,8 @@ export default class Stage extends Evt {
   public setZoom(zoom: number) {
     const nzoom = this._getValidateZoom(zoom);
     if (nzoom) {
-      this.zoom = nzoom;
+      this.setView(this.center, nzoom);
     }
-    this.setView(this.center, this.zoom);
   }
   /**
    * 放大
@@ -296,29 +296,35 @@ export default class Stage extends Evt {
    * @param zoom 缩放级别
    */
   public setView(center: Vertex, zoom?: number) {
-    this.center = center;
-    this.zoom = zoom || this.zoom;
-    this.render.setCenter(center, this.zoom);
-    this.render.redraw();
-    this.fire('moveend', {target: this, sourceTarget: event});
+    // this.center = center;
+    // this.zoom = zoom || this.zoom;
+    // this.render.setCenter(center, this.zoom);
+    // this.render.redraw();
+    // this.fire('moveend', {target: this, sourceTarget: event});
+    this._render(center, zoom || this.zoom);
   }
   /**
    * 缩放视图窗口至目标Bound
    * @param bound 缩放的Bound
    */
   public fitBound(bound: math.Bound) {
-    this.center = bound.getCenter();
+    const center = bound.getCenter();
     const {width, height} = this.getBound();
     let zoom_w = width * this.zoom / bound.width;
     let zoom_h = height * this.zoom / bound.height;
     zoom_w = Math.floor(zoom_w / this.zoomChange) * this.zoomChange;
     zoom_h = Math.floor(zoom_h / this.zoomChange) * this.zoomChange;
     const zoom_min = Math.min(zoom_w, zoom_h);
-    this.zoom = Math.max(zoom_min, this.minZoom);
-    this.zoom = Math.min(this.zoom, this.maxZoom);
-    this.render.setCenter(this.center, this.zoom);
+    let zoom = Math.max(zoom_min, this.minZoom);
+    zoom = Math.min(zoom, this.maxZoom);
+    this._render(center, zoom);
+  }
+  /**
+   * 强制重新渲染
+   */
+  public forceRender(center?: Vertex) {
+    this.render.setCenter(center || this.center, this.zoom);
     this.render.redraw();
-    this.fire('moveend', {target: this, sourceTarget: event});
   }
   /**
    * 开启pan功能
@@ -350,6 +356,44 @@ export default class Stage extends Evt {
   public endBatch() {
     this.render.setBatch(false);
     this.render.redraw();
+  }
+  /**
+   * 移动画布到新的位置
+   * @param targetCenter 新的中心点
+   * @param targetZoom 新的缩放等级
+   */
+  private _render(targetCenter: Vertex, targetZoom: number) {
+    const stepX: number = (targetCenter[0] - this.center[0]) / 16;
+    const stepY: number = (targetCenter[1] - this.center[1]) / 16;
+    const zoomChange: number = (targetZoom - this.zoom) / 16;
+    const filter = () => {
+      return math.Base.isSamePoint(this.center, targetCenter) && math.Base.isZero(this.zoom - targetZoom);
+    }
+    if (this.amination) {
+      cancelAnimationFrame(this.amination);
+    }
+    this._amination(stepX, stepY, zoomChange, filter);
+  }
+  /**
+   * 开启动画移动
+   * @param stepX x步距
+   * @param stepY y步距
+   * @param zoomChange zoom步距
+   * @param filter 停止动画函数
+   */
+  private _amination(stepX: number, stepY: number, zoomChange: number, filter: Function) {
+    if (filter()) {
+      this.fire('moveend', {target: this, sourceTarget: event});
+      return;
+    }
+    this.center[0] += stepX;
+    this.center[1] += stepY;
+    this.zoom += zoomChange;
+    this.amination = requestAnimationFrame(() => {
+      this.render.setCenter(this.center, this.zoom);
+      this.render.redraw();
+      this._amination(stepX, stepY, zoomChange, filter);
+    });
   }
   /**
    * 设置stage初始化参数
@@ -420,6 +464,13 @@ export default class Stage extends Evt {
     }
     this.zoom += delta;
     const offset = canvasHelper.getOffset(e);
+    // const c = this.render.getCenter();
+    // const offset = canvasHelper.screenToWorldCoordinate([e.offsetX, e.offsetY]);
+    // this.center = [c[0] + (offset[0] - c[0]) * delta, c[1] + (offset[1] - c[1]) * delta];
+    // console.log('center1', this.center);
+    // this.render.setCenter(this.center, this.zoom);
+    // this.render.redraw();
+    // this.setView(, this.zoom);
     canvasHelper.setScale(this.zoom);
     const center = canvasHelper.getOriginCenter();
     canvasHelper.setCenter([center[0] - offset[0] * delta, center[1] + offset[1] * delta]);
