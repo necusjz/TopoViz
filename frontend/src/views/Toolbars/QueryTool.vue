@@ -143,10 +143,10 @@ export default class QueryTool extends Vue {
           this.$store.commit('SET_GROUPIDS', groupIds);
           if (res['group_id'].length > 0) {
             this.visibleErrorTip = false;
-            if (!this.store_groupId) {
+            // if (!this.store_groupId) {
               // 初始化groupId
               this.$store.commit('SET_GROUPID', res['group_id'][0]);
-            }
+            // }
           } else {
             this.visibleErrorTip = true;
           }
