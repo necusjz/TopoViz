@@ -78,9 +78,9 @@ def group_filter(group_id, x_alarm):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    if x_alarm:
+    if x_alarm == '1':
         alarm = alarm.loc[alarm['X_ALARM'] == group_id]
-    else:
+    elif x_alarm == '0':
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     return alarm
 
