@@ -155,8 +155,8 @@ def remain():
     for i, paths in enumerate(merge_res):
         tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
         add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
-        for alarm in add_alarm:
-            alarm.loc[alarm['AlarmSource'] == alarm]['X_ALARM'] = tree
+        for ne in add_alarm:
+            alarm.loc[alarm['AlarmSource'] == ne]['X_ALARM'] = tree
         save_data(alarm, client_id)
 
     res = dict()
