@@ -1,7 +1,7 @@
 <template>
   <div class="app-query-tool">
     <div class="app-query-tool-item app-query-type-wrap">
-      <el-radio v-model="radioType" label="1" :disabled="isNonImported">已知告警</el-radio>
+      <el-radio v-model="radioType" label="1" :disabled="isNonImported" text-color="">已知告警</el-radio>
       <el-radio v-model="radioType" label="2" :disabled="isNonImported">未知告警</el-radio>
     </div>
     <div class="app-query-tool-item app-query-date-wrap">
