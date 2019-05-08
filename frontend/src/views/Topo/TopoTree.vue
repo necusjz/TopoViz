@@ -70,9 +70,14 @@ export default class TopoTree extends Vue {
     bus.$on(EventType.CLEARALARMNET, (noGroupAlarmsSet: Set<string>) => {
       this.clearAlarmNet(noGroupAlarmsSet);
     });
+    bus.$on(EventType.CLEARALL, () => {
+      if (this.stage) {
+        this.stage.clearAllLayers();
+      }
+    });
     window.addEventListener('resize', util.throttle(() => {
       if (this.stage && this.bound) {
-        this.stage.fitBound(this.bound);
+        this.stage.forceRender(this.bound.getCenter());
       }
     }, 300, true));
   }
