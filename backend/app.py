@@ -76,11 +76,11 @@ def interval():
     alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
-    if x_alarm == 'true':
+    if x_alarm == 'false':
+        res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
+    elif x_alarm == 'true':
         mask = alarm['XAlarm'].str.contains('TOPO_TREE_', na=False)
         res['group_id'] = list(set(alarm.loc[mask]))
-    elif x_alarm == 'false':
-        res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
     return jsonify(res)
 
 
@@ -144,10 +144,10 @@ def switch():
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
 
-    mask = pd.notnull(alarm['GroupId_Edited'])
-    alarm = alarm.loc[mask]
-
-    if x_alarm == 'true':
+    if x_alarm == 'false':
+        mask = pd.notnull(alarm['GroupId_Edited'])
+        alarm = alarm.loc[mask]
+    elif x_alarm == 'true':
         mask = pd.isnull(alarm['GroupId_Edited'])
         alarm = alarm.loc[mask]
         update_tree(alarm)
