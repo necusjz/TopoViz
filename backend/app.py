@@ -78,10 +78,10 @@ def interval():
     alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
-    if x_alarm:
+    if x_alarm == '1':
         mask = alarm['X_ALARM'].str.contains('TOPO_TREE_', na=False)
         res['group_id'] = list(set(alarm.loc[mask]))
-    else:
+    elif x_alarm == '0':
         res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
     return jsonify(res)
 
