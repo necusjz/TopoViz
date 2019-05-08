@@ -1,7 +1,7 @@
 <template>
   <div class="statics-table">
     <el-row class="statics-table-row">
-      <div class="statics-table-tabs">
+      <div class="statics-table-tabs" v-show="!isCheckNone">
         <div class="statics-tab" :class="{active: activeType === 0}" @click="switchTab(0)">
           <span class="statics-tab-content">未确认 {{this.unconfirmData.length}}</span>
         </div>
@@ -45,7 +45,11 @@ export default class StaticsTable extends Vue {
           if (res) {
             this.confirmData = res.confirmed;
             this.unconfirmData = res.unconfirmed;
-            this.tableData = this.unconfirmData;
+            if (this.isCheckNone) {
+              this.tableData = res.alarm_tree;
+            } else {
+              this.tableData = this.unconfirmData;
+            }
           }
         });
       }
@@ -67,6 +71,7 @@ $Gray-border: 1px solid #f8f9ff;
   box-shadow: 0 4px 0 0 rgba(186, 186, 186, 0.5);
   background-color: #ffffff;
   .statics-table-row {
+    height: 60px;
     line-height: 60px;
     box-sizing: border-box;
     border-bottom: $Gray-border;
