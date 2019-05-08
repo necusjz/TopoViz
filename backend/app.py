@@ -87,9 +87,8 @@ def interval():
 @app.route('/analyze', methods=['GET'])
 def analyze():
     # generate topo tree
-    x_alarm = request.args.get('xAlarm')
     group_id = request.args.get('groupId')
-    alarm = group_filter(group_id, x_alarm)
+    alarm = group_filter(group_id)
     topo_path = ne2path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
     # construct json for frontend
@@ -196,6 +195,7 @@ def confirm():
 
 @app.route('/detail', methods=['GET'])
 def detail():
+    x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -203,25 +203,29 @@ def detail():
     wrong_group = []
     confirmed_group = []
     unconfirmed_group = []
-
-    for group_id in set(alarm['GroupId_Edited'].dropna()):
-        mask = alarm['GroupId_Edited'] == group_id
-        if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
-            confirmed_group.append(group_id)
-            # get wrong groups
-            pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-            cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
+    alarm_tree = []
+    if x_alarm == 'false':
+        for group_id in set(alarm['GroupId_Edited'].dropna()):
+            mask = alarm['GroupId_Edited'] == group_id
+            if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
+                confirmed_group.append(group_id)
+                # get wrong groups
+                pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
+                cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
                                                  app.config['EDITED_COLUMNS']))]
-            cur_alarm.columns = app.config['EDITED_COLUMNS']
-            if not pre_alarm.equals(cur_alarm):
-                wrong_group.append(group_id)
-        else:
-            unconfirmed_group.append(group_id)
+                cur_alarm.columns = app.config['EDITED_COLUMNS']
+                if not pre_alarm.equals(cur_alarm):
+                    wrong_group.append(group_id)
+            else:
+                unconfirmed_group.append(group_id)
+    elif x_alarm == 'true':
+        pass
     # construct json for frontend
     res = dict()
     res['wrong'] = wrong_group
     res['confirmed'] = confirmed_group
     res['unconfirmed'] = unconfirmed_group
+    res['alarm_tree'] = alarm_tree
     return jsonify(res)
 
 
