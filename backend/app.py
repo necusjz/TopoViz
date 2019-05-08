@@ -144,11 +144,10 @@ def switch():
 
     if x_alarm == 'false':
         mask = pd.notnull(alarm['GroupId_Edited'])
-        alarm = alarm.loc[mask]
     elif x_alarm == 'true':
         mask = pd.isnull(alarm['GroupId_Edited'])
-        alarm = alarm.loc[mask]
         update_tree(alarm)
+    alarm = alarm.loc[mask]
 
     res = dict()
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
