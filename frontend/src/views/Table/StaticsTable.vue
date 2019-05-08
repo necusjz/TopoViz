@@ -36,7 +36,8 @@ export default class StaticsTable extends Vue {
     @Provide() private unconfirmData: string[] = [];
     @Provide() private tableData: string[] = [];
     @Provide() private activeType: number = 0;
-    @State((state) => state.app.alarmDatas) private alarmDatas: any;
+    @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
+    @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
     created() {
       getStaticsGroupData().then((res) => {
         if (res) {
