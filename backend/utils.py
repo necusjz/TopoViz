@@ -20,7 +20,7 @@ def format_data(df):
         df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
         df['Confirmed'] = nan
-        df['X_ALARM'] = nan
+        df['XAlarm'] = nan
         # sort by first occurrence
         df = df.sort_values('First')
     else:
@@ -79,7 +79,7 @@ def group_filter(group_id, x_alarm):
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     if x_alarm == 'true':
-        alarm = alarm.loc[alarm['X_ALARM'] == group_id]
+        alarm = alarm.loc[alarm['XAlarm'] == group_id]
     elif x_alarm == 'false':
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     return alarm
@@ -168,6 +168,23 @@ def build_tree(paths):
                              'Layer': app.config['TOPO_LAYER'].get(kind)})
         topo_tree.append(per_path)
     return topo_tree
+
+
+def update_tree(alarm):
+    client_id = request.headers.get('Client-Id')
+    merge_res = []
+    topo_path = ne2path(set(alarm['AlarmSource']))
+    serial_path = sort_path(topo_path)
+    merge_res = merge_path(serial_path, merge_res)
+
+    alarm.drop(columns='XAlarm')
+    alarm['XAlarm'] = nan
+    for i, paths in enumerate(merge_res):
+        tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
+        add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
+        for ne in add_alarm:
+            alarm.loc[alarm['AlarmSource'] == ne]['XAlarm'] = tree
+        save_data(alarm, client_id)
 
 
 def check_column(df):
