@@ -43,7 +43,6 @@ export default class Title extends Vue {
   }
   public goBack() {
     this.$store.commit('SET_ISCHECKSTATICS', false);
-    this.$store.commit('SET_ISCHECKNONE', false);
   }
 }
 </script>

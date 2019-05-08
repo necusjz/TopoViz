@@ -38,14 +38,17 @@ export default class StaticsTable extends Vue {
     @Provide() private activeType: number = 0;
     @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
     @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
+    @State((state) => state.app.isNonImported) private isNonImported!: boolean;
     created() {
-      getStaticsGroupData().then((res) => {
-        if (res) {
-          this.confirmData = res.confirmed;
-          this.unconfirmData = res.unconfirmed;
-          this.tableData = this.unconfirmData;
-        }
-      });
+      if (!this.isNonImported) {
+        getStaticsGroupData({xAlarm: this.isCheckNone}).then((res) => {
+          if (res) {
+            this.confirmData = res.confirmed;
+            this.unconfirmData = res.unconfirmed;
+            this.tableData = this.unconfirmData;
+          }
+        });
+      }
     }
     public switchTab(type: number) {
       this.activeType = type;
