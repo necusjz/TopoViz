@@ -1,5 +1,9 @@
 <template>
   <div class="app-query-tool">
+    <div class="app-query-tool-item app-query-type-wrap">
+      <el-radio v-model="radioType" label="1" :disabled="isNonImported">已知告警</el-radio>
+      <el-radio v-model="radioType" label="2" :disabled="isNonImported">未知告警</el-radio>
+    </div>
     <div class="app-query-tool-item app-query-date-wrap">
       <el-date-picker
         type="datetime"
@@ -66,7 +70,7 @@ import { State } from 'vuex-class';
 import { ruleOptions } from '@/util/config';
 import bus from '@/util/bus';
 import { EventType, AlarmData, Rules, AnalyzeRes, SelectOption, RCAResult, Node, Edge} from '@/types/type';
-import { getAlarmDatas, getGroupIdsDataByInterval, getExpandAlarmDatas } from '@/api/request';
+import { getAlarmDatas, getGroupIdsDataByInterval, getExpandAlarmDatas, getInterval } from '@/api/request';
 import { generateUUID, generateDateByTimestamp } from '@/util/util';
 
 
@@ -80,6 +84,7 @@ export default class QueryTool extends Vue {
   @Provide() public endTime: number = 0;
   @Provide() public status: boolean = false;
   @Provide() public interval: number = 5;
+  @Provide() public radioType: string = '1';
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.project.groupIds) public groupIds!: string[];
   @State((state) => state.app.isNonImported) public isNonImported!:boolean;
@@ -110,11 +115,16 @@ export default class QueryTool extends Vue {
   public watchAlarmDatas() {
     this.formatSelectOption();
   }
+  @Watch('radioType')
+  public watchRadioType(val: string) {
+    this.$store.commit('SET_ISCHECKNONE', val === '2');
+  }
   @Watch('isCheckNone')
   public watchIsCheckNone(val: boolean) {
-    if (!val) {
-      this.queryTopoData();
-    }
+    getInterval({xAlarm: val}).then((res) => {
+      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
+      this.$store.commit('SET_DEFAULTDATE', dateValue);
+    })
   }
   mounted() {
     this.options = ruleOptions;
@@ -187,7 +197,7 @@ export default class QueryTool extends Vue {
     bus.$emit(EventType.CLEARALL);
     this.status = false;
     bus.$emit(EventType.CLEAREXPAN);
-    getAlarmDatas({groupId: this.groupId}).then((data: AnalyzeRes) => {
+    getAlarmDatas({groupId: this.groupId, xAlarm: this.isCheckNone}).then((data: AnalyzeRes) => {
       this.setData(data);
     });
     this.$store.commit("SET_GROUPID", this.groupId);
@@ -319,10 +329,12 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   position: absolute;
   display: flex;
   width: 100%;
-  margin: 20px 0 0 20px;
+  padding: 10px 0 10px 20px;
   align-items: center;
   z-index: 5;
   user-select: none;
+  background: #FFFFFF;
+  box-sizing: border-box;
   .app-query-tool-group-wrap {
     .query-btn {
       color: #FFF;
@@ -348,7 +360,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   .app-query-tool-item {
     position: relative;
     &:not(:last-child) {
-      padding-right: 20px;
+      padding-right: 10px;
+    }
+    &:not(:first-child) {
+      padding-left: 10px;
     }
     .query-none-groupId {
       position: absolute;
@@ -357,6 +372,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       font-size: 12px;
       color: #e40303;
     }
+  }
+  .app-query-type-wrap {
+    line-height: 30px;
+    border-right: 1px solid #DFDFDF;
   }
   .app-query-date-wrap {
     display: flex;
