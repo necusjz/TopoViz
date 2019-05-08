@@ -71,21 +71,27 @@ def upload():
 
 @app.route('/interval', methods=['GET'])
 def interval():
+    x_alarm = request.args.get('xAlarm')
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(int(request.args.get('start')))
     z_time = datetime.fromtimestamp(int(request.args.get('end')))
     alarm = interval_limit(a_time, z_time)
     # construct json for frontend
     res = dict()
-    res['group_id'] = list(alarm['GroupId'].drop_duplicates().dropna())
+    if x_alarm:
+        mask = alarm['X_ALARM'].str.contains('TOPO_TREE_', na=False)
+        res['group_id'] = list(set(alarm.loc[mask]))
+    else:
+        res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
     return jsonify(res)
 
 
 @app.route('/analyze', methods=['GET'])
 def analyze():
     # generate topo tree
+    x_alarm = request.args.get('xAlarm')
     group_id = request.args.get('groupId')
-    alarm = group_filter(group_id)
+    alarm = group_filter(group_id, x_alarm)
     topo_path = ne2path(set(alarm['AlarmSource']))
     topo_tree = build_tree(topo_path)
     # construct json for frontend
@@ -142,23 +148,20 @@ def remain():
     alarm = alarm.loc[mask]
     topo_path = ne2path(set(alarm['AlarmSource']))
     # get merged paths result
-    res = dict()
     merge_res = []
     serial_path = sort_path(topo_path)
     merge_res = merge_path(serial_path, merge_res)
-    # construct json for frontend
+
     for i, paths in enumerate(merge_res):
-        tree = dict()
-        topo_tree = build_tree(paths)
-        add_alarm = list(path2ne(paths) & set(alarm['AlarmSource']))
-        cur_alarm = alarm.loc[alarm['AlarmSource'] == add_alarm[0]]
-        for j in range(1, len(add_alarm)):
-            cur_alarm.append(alarm.loc[alarm['AlarmSource'] == add_alarm[j]])
-        tree['topo'] = topo_tree
-        tree['table'] = json.loads(cur_alarm.to_json(orient='records'))
-        tree['orange'] = list(set(cur_alarm['AlarmSource']))
-        tree_name = 'TOPO_TREE_' + str(i).zfill(3)
-        res[tree_name] = tree
+        tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
+        add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
+        for alarm in add_alarm:
+            alarm.loc[alarm['AlarmSource'] == alarm]['X_ALARM'] = tree
+        save_data(alarm, client_id)
+
+    res = dict()
+    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
+    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     return jsonify(res)
 
 
