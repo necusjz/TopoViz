@@ -13,7 +13,7 @@
     </el-row>
     <el-scrollbar :native="false" wrapClass="statics-table-scroll-wrap" viewClass="" :noresize="false" class="statics-table-scroll">
       <div class="statics-sub-table">
-        <SubTable :tableData="tableData"></SubTable>
+        <SubTable :tableData="tableData" :wrong="wrongData"></SubTable>
       </div>
     </el-scrollbar>
   </div>
@@ -36,6 +36,7 @@ export default class StaticsTable extends Vue {
     @Provide() private unconfirmData: string[] = [];
     @Provide() private tableData: string[] = [];
     @Provide() private activeType: number = 0;
+    @Provide() private wrongData: string[] = [];
     @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
     @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
     @State((state) => state.app.isNonImported) private isNonImported!: boolean;
@@ -45,6 +46,7 @@ export default class StaticsTable extends Vue {
           if (res) {
             this.confirmData = res.confirmed;
             this.unconfirmData = res.unconfirmed;
+            this.wrongData = res.wrong;
             if (this.isCheckNone) {
               this.tableData = res.alarm_tree;
             } else {

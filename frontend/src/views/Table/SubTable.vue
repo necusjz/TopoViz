@@ -1,7 +1,7 @@
 <template>
   <div class="sub-table">
     <el-row class="sub-table-row">
-      <el-col :span="12" class="leftAlign bottomBorder body-item" v-for="(groupId, index) in tableData" :key="index" @click.native="viewGroup(groupId)">{{groupId}}</el-col>
+      <el-col :span="12" class="leftAlign bottomBorder body-item" :class="getClass(groupId)" v-for="(groupId, index) in tableData" :key="index" @click.native="viewGroup(groupId)">{{groupId}}</el-col>
     </el-row>
   </div>
 </template>
@@ -13,9 +13,13 @@ import { State } from "vuex-class";
 @Component
 export default class SubTable extends Vue {
   @Prop() tableData!: string[];
+  @Prop() wrong!: string[];
   public viewGroup(groupId: string) {
     this.$store.commit('SET_ISCHECKSTATICS', false);
     this.$store.commit('SET_GROUPID', groupId);
+  }
+  public getClass(groupId: string) {
+    return this.wrong.includes(groupId) ? 'wrong' : '';
   }
 }
 </script>
@@ -44,6 +48,10 @@ $Gray-border: 1px solid #f8f9ff;
       &:nth-child(odd) {
         border-right: $Gray-border;
       }
+    }
+    .wrong {
+      background: #FFF5F5;
+      color: #FF8484;
     }
   }
 }

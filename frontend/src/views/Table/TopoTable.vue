@@ -356,7 +356,6 @@ export default class TopoTable extends Vue {
       } else {
         grow.isConfirmed = true;
       }
-      console.log(grow.index);
       data.row.push(grow.index);
       data.columns.push(columns);
       data.values.push(values);
@@ -480,6 +479,9 @@ export default class TopoTable extends Vue {
     background-position: center 40%;
     background-size: 290px 190px;
     background-repeat: no-repeat;
+  }
+  .el-icon-arrow-down {
+    color: #4a96ff;
   }
 }
 .drop-select {
