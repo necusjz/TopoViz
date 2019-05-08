@@ -48,10 +48,11 @@ export function confirmAlarmDatas(groupId: string, data: { row: number[], column
     })
 }
 
-export function getStaticsGroupData() {
+export function getStaticsGroupData(params: {xAlarm: boolean}) {
     return service({
         url: 'detail',
-        method: 'get'
+        method: 'get',
+        params
     })
 }
 

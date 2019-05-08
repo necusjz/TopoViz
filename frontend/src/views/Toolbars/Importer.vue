@@ -123,7 +123,7 @@ export default class Importer extends Vue {
     this.$store.commit('SET_ISCHECKSTATICS', false);
   }
   public exportData() {
-    if (!this.clientId) {
+    if (this.isNonImported) {
       bus.$emit(EventType.ERRORVISIBLE, '<p>请上传文件后再导出数据</p>');
       return;
     }

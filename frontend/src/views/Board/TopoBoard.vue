@@ -54,7 +54,7 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
   }
   @Watch('isCheckNone')
   public watchIsCheckNone(val: boolean) {
-    getInterval({xAlarm: this.isCheckNone}).then((res) => {
+    getInterval({xAlarm: val}).then((res) => {
       const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
       this.$store.commit('SET_DEFAULTDATE', dateValue);
     })
@@ -122,7 +122,7 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
     text-align: left;
     font-size: 14px;
     color: #778296;
-    &:active {
+    &.active {
       color: #55657e;
     }
   }
