@@ -23,7 +23,7 @@ export function getGroupIdsDataByInterval(params: { start: string, end: string, 
     })
 }
 
-export function getAlarmDatas(params: { groupId?: string, addCondition?: number, addValue?: string }) {
+export function getAlarmDatas(params: { groupId?: string, addCondition?: number, addValue?: string, xAlarm: boolean }) {
     return service({
         url: 'analyze',
         method: 'get',
