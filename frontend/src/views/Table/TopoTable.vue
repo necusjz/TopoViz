@@ -314,7 +314,6 @@ export default class TopoTable extends Vue {
   public setSelectedRow(row: AlarmData) {
     const table: any = this.$refs.table;
     table.toggleRowSelection(row, true);
-    // this.editRows.push(row);
     this.$store.commit('SET_NEEDSAVE', true);
   }
   // 提交确认的数据
