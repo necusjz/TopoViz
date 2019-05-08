@@ -8,7 +8,6 @@ import json
 
 from flask import render_template, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-from datetime import datetime
 from flask_cors import CORS
 from utils import *
 
@@ -67,6 +66,27 @@ def upload():
     return jsonify(res)
 
 
+@app.route('/switch', methods=['GET'])
+def switch():
+    x_alarm = request.args.get('xAlarm')
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+
+    mask = pd.notnull(alarm['GroupId_Edited'])
+
+    if x_alarm == 'true':
+        mask = pd.isnull(alarm['GroupId_Edited'])
+        update_tree(alarm)
+
+    alarm = alarm.loc[mask]
+
+    res = dict()
+    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
+    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
+    return jsonify(res)
+
+
 @app.route('/interval', methods=['GET'])
 def interval():
     x_alarm = request.args.get('xAlarm')
@@ -103,20 +123,29 @@ def analyze():
     return jsonify(res)
 
 
+@app.route('/confirm', methods=['POST'])
+def confirm():
+    # save confirmed data
+    client_id = request.headers.get('Client-Id')
+    save_edit(client_id)
+    # construct json for frontend
+    res = dict()
+    alarm, confirmed_num, accuracy = result_monitor(client_id)
+    res['accuracy'] = accuracy
+    res['total_alarm'] = alarm.shape[0]
+    res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
+    res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
+    res['x_count'] = res['total_alarm'] - res['p_count'] - res['c_count']
+    res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
+    res['confirmed'] = confirmed_num
+    res['unconfirmed'] = res['group_count'] - res['confirmed']
+    return jsonify(res)
+
+
 @app.route('/expand', methods=['GET'])
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
-    add_time = int(request.args.get('addTime'))
-    pre_alarm = group_filter(group_id)
-    topo_path = ne2path(set(pre_alarm['AlarmSource']))
-    topo_ne = path2ne(topo_path)
-    # get interval filtered dataframe
-    a_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].min())
-                                    .timestamp() - add_time * 60 - 8 * 60 * 60)
-    z_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].max())
-                                    .timestamp() + add_time * 60 - 8 * 60 * 60)
-    alarm = interval_limit(a_time, z_time)
     # check intersection and update topo, table
     res = dict()
     res['yellow'] = []
@@ -135,106 +164,21 @@ def expand():
             cur_alarm = alarm.loc[alarm['AlarmSource'] == ne]
             pre_alarm = pre_alarm.append(cur_alarm, ignore_index=True)
     topo_tree = build_tree(topo_path)
+    res = dict()
+    res['yellow'] = []
     res['topo'] = topo_tree
     res['table'] = json.loads(pre_alarm.to_json(orient='records'))
-    return jsonify(res)
-
-
-@app.route('/switch', methods=['GET'])
-def switch():
-    x_alarm = request.args.get('xAlarm')
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-
-    mask = pd.notnull(alarm['GroupId_Edited'])
-
-    if x_alarm == 'true':
-        mask = pd.isnull(alarm['GroupId_Edited'])
-        update_tree(alarm)
-
-    alarm = alarm.loc[mask]
-
-    res = dict()
-    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
-    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
-    return jsonify(res)
-
-
-@app.route('/confirm', methods=['POST'])
-def confirm():
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    # get edited information
-    req = request.get_json()
-    row_edited = req['row']
-    columns_edited = req['columns']
-    values_edited = req['values']
-    # save confirmed data
-    for row, columns, values in zip(row_edited, columns_edited, values_edited):
-        mask = alarm['Index'] == row
-        # edit each row
-        for column, value in zip(columns, values):
-            alarm.loc[mask, column] = value
-        # fill confirmed field
-        if alarm.loc[mask, 'GroupId_Edited'].any():
-            alarm.loc[mask, 'Confirmed'] = '1'
-        else:
-            alarm.loc[mask, 'Confirmed'] = nan
-    save_data(alarm, client_id)
-    # construct json for frontend
-    res = dict()
-    alarm, confirmed_num, accuracy = result_monitor(client_id)
-    res['accuracy'] = accuracy
-    res['total_alarm'] = alarm.shape[0]
-    res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
-    res['c_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'C'].shape[0]
-    res['x_count'] = res['total_alarm'] - res['p_count'] - res['c_count']
-    res['group_count'] = len(set(alarm['GroupId_Edited'].dropna()))
-    res['confirmed'] = confirmed_num
-    res['unconfirmed'] = res['group_count'] - res['confirmed']
     return jsonify(res)
 
 
 @app.route('/detail', methods=['GET'])
 def detail():
     x_alarm = request.args.get('xAlarm')
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    # get confirmed/unconfirmed groups
-    wrong = []
-    confirmed_group = []
-    unconfirmed_group = []
-    if x_alarm == 'false':
-        for group_id in set(alarm['GroupId_Edited'].dropna()):
-            mask = alarm['GroupId_Edited'] == group_id
-            if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
-                confirmed_group.append(group_id)
-                # get wrong groups
-                pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-                cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
-                                                 app.config['EDITED_COLUMNS']))]
-                cur_alarm.columns = app.config['EDITED_COLUMNS']
-                if not pre_alarm.equals(cur_alarm):
-                    wrong.append(group_id)
-            else:
-                unconfirmed_group.append(group_id)
-    elif x_alarm == 'true':
-        for tree_id in set(alarm['X_Alarm'].dropna()):
-            mask = alarm['X_Alarm'] == tree_id
-            if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
-                confirmed_group.append(tree_id)
-                # get wrong groups
-                pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
-                cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
-                                                 app.config['EDITED_COLUMNS']))]
-                cur_alarm.columns = app.config['EDITED_COLUMNS']
-                if not pre_alarm.equals(cur_alarm):
-                    wrong.append(tree_id)
-            else:
-                unconfirmed_group.append(tree_id)
+    # get wrong and confirmed/unconfirmed groups
+    column = 'Group_Edited'
+    if x_alarm == 'true':
+        column = 'X_Alarm'
+    wrong, confirmed_group, unconfirmed_group = get_detail(column)
     # construct json for frontend
     res = dict()
     res['wrong'] = wrong
@@ -243,18 +187,27 @@ def detail():
     return jsonify(res)
 
 
+@app.route('/download', methods=['GET'])
+def download():
+    # get directory path
+    client_id = request.args.get('clientId')
+    dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
+    # generate file name
+    filename = 'alarm-verified-' + str(int(time.time())) + '.csv'
+    return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
+                               attachment_filename=filename)
+
+
 @app.route('/oneClick', methods=['POST'])
 def one_click():
     x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-
+    # confirm masked alarms
     mask = pd.notnull(alarm['GroupId_Edited'])
-
     if x_alarm == 'true':
         mask = pd.notnull(alarm['X_Alarm'])
-
     alarm.loc[mask, 'Confirmed'] = '1'
     # construct json for frontend
     res = dict()
@@ -275,17 +228,6 @@ def clean_up():
         diff = time.time() - os.path.getmtime(dirpath)
         if diff > 7 * 24 * 60 * 60:
             shutil.rmtree(dirpath)
-
-
-@app.route('/download', methods=['GET'])
-def download():
-    # get directory path
-    client_id = request.args.get('clientId')
-    dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
-    # generate file name
-    filename = 'alarm-verified-' + str(int(time.time())) + '.csv'
-    return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
-                               attachment_filename=filename)
 
 
 @app.errorhandler(500)
