@@ -8,7 +8,14 @@ export function postTopoData(data: FormData) {
     })
 }
 
-export function getGroupIdsDataByInterval(params: { start: string, end: string }) {
+export function getInterval(params: {xAlarm: boolean}) {
+    return service({
+        url: 'switch',
+        method: 'get',
+        params: {...params, t: Date.now()}
+    })
+}
+export function getGroupIdsDataByInterval(params: { start: string, end: string, xAlarm: boolean }) {
     return service({
         url: 'interval',
         method: 'get',
@@ -24,7 +31,7 @@ export function getAlarmDatas(params: { groupId?: string, addCondition?: number,
     })
 }
 
-export function getExpandAlarmDatas(params: { groupId: string, addTime: number }) {
+export function getExpandAlarmDatas(params: { groupId: string, addTime: number, xAlarm: boolean }) {
     return service({
         url: 'expand',
         method: 'get',
@@ -51,13 +58,6 @@ export function getStaticsGroupData() {
 export function exportAlarmData() {
     return service({
         url: `download?${Date.now()}`,
-        method: 'get'
-    })
-}
-
-export function getNoneGroupAlarmData() {
-    return service({
-        url: `remain?${Date.now()}`,
         method: 'get'
     })
 }
