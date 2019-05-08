@@ -20,6 +20,7 @@ def format_data(df):
         df.insert(df.shape[1], 'RcaResult_Edited', df['RcaResult'])
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
         df['Confirmed'] = nan
+        df['X_ALARM'] = nan
         # sort by first occurrence
         df = df.sort_values('First')
     else:
@@ -73,11 +74,14 @@ def interval_limit(start, end):
     return alarm
 
 
-def group_filter(group_id):
+def group_filter(group_id, x_alarm):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
+    if x_alarm:
+        alarm = alarm.loc[alarm['X_ALARM'] == group_id]
+    else:
+        alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     return alarm
 
 
