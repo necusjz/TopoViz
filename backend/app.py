@@ -77,9 +77,14 @@ def interval():
     # construct json for frontend
     res = dict()
     if x_alarm == 'false':
-        res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
+        res['group_id'] = list(alarm['GroupId_Edited']
+                               .drop_duplicates()
+                               .dropna())
     elif x_alarm == 'true':
-        res['group_id'] = list(set(alarm['X_Alarm'].dropna()))
+        alarm = alarm.sort_values('X_Alarm')
+        res['group_id'] = list(alarm['X_Alarm']
+                               .drop_duplicates()
+                               .dropna())
     return jsonify(res)
 
 
@@ -202,7 +207,6 @@ def detail():
     wrong = []
     confirmed_group = []
     unconfirmed_group = []
-    alarm_tree = []
     if x_alarm == 'false':
         for group_id in set(alarm['GroupId_Edited'].dropna()):
             mask = alarm['GroupId_Edited'] == group_id
@@ -218,9 +222,8 @@ def detail():
             else:
                 unconfirmed_group.append(group_id)
     elif x_alarm == 'true':
-        alarm_tree = list(set(alarm['X_Alarm'].dropna()))
         for tree_id in set(alarm['X_Alarm'].dropna()):
-            mask = alarm['GroupId_Edited'] == tree_id
+            mask = alarm['X_Alarm'] == tree_id
             if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
                 confirmed_group.append(tree_id)
                 # get wrong groups
@@ -237,16 +240,30 @@ def detail():
     res['wrong'] = wrong
     res['confirmed'] = confirmed_group
     res['unconfirmed'] = unconfirmed_group
-    res['alarm_tree'] = alarm_tree
     return jsonify(res)
 
 
 @app.route('/oneClick', methods=['POST'])
 def one_click():
     x_alarm = request.args.get('xAlarm')
-    if x_alarm == 'false':
-        pass
-    elif:
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+
+    mask = pd.notnull(alarm['GroupId_Edited'])
+
+    if x_alarm == 'true':
+        mask = pd.notnull(alarm['X_Alarm'])
+
+    alarm.loc[mask, 'Confirmed'] = '1'
+    # construct json for frontend
+    res = dict()
+    alarm, confirmed_num, accuracy = result_monitor(client_id)
+    group_count = len(set(alarm['GroupId_Edited'].dropna()))
+    res['accuracy'] = accuracy
+    res['confirmed'] = confirmed_num
+    res['unconfirmed'] = group_count - confirmed_num
+    return jsonify(res)
 
 
 @app.route('/cleanUp', methods=['POST'])
