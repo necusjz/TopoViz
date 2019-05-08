@@ -56,8 +56,6 @@ def upload():
     res = dict()
     res['client_id'] = client_id
     alarm, confirmed_num, accuracy = result_monitor(client_id)
-    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
-    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     res['accuracy'] = accuracy
     res['total_alarm'] = alarm.shape[0]
     res['p_count'] = alarm.loc[alarm['RcaResult_Edited'] == 'P'].shape[0]
@@ -79,7 +77,7 @@ def interval():
     # construct json for frontend
     res = dict()
     if x_alarm == 'true':
-        mask = alarm['X_ALARM'].str.contains('TOPO_TREE_', na=False)
+        mask = alarm['XAlarm'].str.contains('TOPO_TREE_', na=False)
         res['group_id'] = list(set(alarm.loc[mask]))
     elif x_alarm == 'false':
         res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
@@ -139,25 +137,20 @@ def expand():
     return jsonify(res)
 
 
-@app.route('/remain', methods=['GET'])
-def remain():
+@app.route('/switch', methods=['GET'])
+def switch():
+    x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    mask = pd.isnull(alarm['GroupId_Edited'])
-    alarm = alarm.loc[mask]
-    topo_path = ne2path(set(alarm['AlarmSource']))
-    # get merged paths result
-    merge_res = []
-    serial_path = sort_path(topo_path)
-    merge_res = merge_path(serial_path, merge_res)
 
-    for i, paths in enumerate(merge_res):
-        tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
-        add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
-        for ne in add_alarm:
-            alarm.loc[alarm['AlarmSource'] == ne]['X_ALARM'] = tree
-        save_data(alarm, client_id)
+    mask = pd.notnull(alarm['GroupId_Edited'])
+    alarm = alarm.loc[mask]
+
+    if x_alarm == 'true':
+        mask = pd.isnull(alarm['GroupId_Edited'])
+        alarm = alarm.loc[mask]
+        update_tree(alarm)
 
     res = dict()
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
@@ -203,7 +196,6 @@ def confirm():
 
 @app.route('/detail', methods=['GET'])
 def detail():
-    x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -211,6 +203,7 @@ def detail():
     wrong_group = []
     confirmed_group = []
     unconfirmed_group = []
+
     for group_id in set(alarm['GroupId_Edited'].dropna()):
         mask = alarm['GroupId_Edited'] == group_id
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
