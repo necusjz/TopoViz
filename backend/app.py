@@ -142,11 +142,12 @@ def switch():
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
 
-    if x_alarm == 'false':
-        mask = pd.notnull(alarm['GroupId_Edited'])
-    elif x_alarm == 'true':
+    mask = pd.notnull(alarm['GroupId_Edited'])
+
+    if x_alarm == 'true':
         mask = pd.isnull(alarm['GroupId_Edited'])
         update_tree(alarm)
+
     alarm = alarm.loc[mask]
 
     res = dict()
@@ -219,7 +220,18 @@ def detail():
     elif x_alarm == 'true':
         alarm_tree = list(set(alarm['X_Alarm'].dropna()))
         for tree_id in set(alarm['X_Alarm'].dropna()):
-            pass
+            mask = alarm['GroupId_Edited'] == tree_id
+            if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
+                confirmed_group.append(tree_id)
+                # get wrong groups
+                pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
+                cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
+                                                 app.config['EDITED_COLUMNS']))]
+                cur_alarm.columns = app.config['EDITED_COLUMNS']
+                if not pre_alarm.equals(cur_alarm):
+                    wrong.append(tree_id)
+            else:
+                unconfirmed_group.append(tree_id)
     # construct json for frontend
     res = dict()
     res['wrong'] = wrong
