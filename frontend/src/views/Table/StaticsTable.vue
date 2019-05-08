@@ -1,21 +1,19 @@
 <template>
   <div class="statics-table">
     <el-row class="statics-table-row">
-      <el-col :span="12" class="rightBorder">未确认</el-col>
-      <el-col :span="12">已确认</el-col>
-    </el-row>
-    <el-row class="statics-table-row">
-      <el-col :span="12" class="leftAlign rightBorder">Group ID</el-col>
-      <el-col :span="12" class="leftAlign">Group ID</el-col>
+      <div class="statics-table-tabs">
+        <div class="statics-tab" :class="{active: activeType === 0}" @click="switchTab(0)">
+          <span class="statics-tab-content">未确认 {{this.unconfirmData.length}}</span>
+        </div>
+        <div class="statics-tab" :class="{active: activeType === 1}" @click="switchTab(1)">
+          <span class="statics-tab-content">已确认 {{this.confirmData.length}}</span>
+        </div>
+      </div>
+      <el-button type="primary" size="mini" class="statics-confirm-btn">一键确认</el-button>
     </el-row>
     <el-scrollbar :native="false" wrapClass="statics-table-scroll-wrap" viewClass="" :noresize="false" class="statics-table-scroll">
       <div class="statics-sub-table">
-        <div class="statics-left-subtable sub">
-          <SubTable :tableData="unconfirmData"></SubTable>
-        </div>
-        <div class="statics-right-subtable sub">
-          <SubTable :tableData="confirmData"></SubTable>
-        </div>
+        <SubTable :tableData="tableData"></SubTable>
       </div>
     </el-scrollbar>
   </div>
@@ -36,14 +34,21 @@ import { getStaticsGroupData } from '@/api/request';
 export default class StaticsTable extends Vue {
     @Provide() private confirmData: string[] = [];
     @Provide() private unconfirmData: string[] = [];
+    @Provide() private tableData: string[] = [];
+    @Provide() private activeType: number = 0;
     @State((state) => state.app.alarmDatas) private alarmDatas: any;
     created() {
       getStaticsGroupData().then((res) => {
         if (res) {
           this.confirmData = res.confirmed;
           this.unconfirmData = res.unconfirmed;
+          this.tableData = this.unconfirmData;
         }
       });
+    }
+    public switchTab(type: number) {
+      this.activeType = type;
+      this.tableData = this.activeType ? this.confirmData : this.unconfirmData;
     }
 }
 </script>
@@ -53,7 +58,7 @@ export default class StaticsTable extends Vue {
 $Gray-border: 1px solid #f8f9ff;
 .statics-table {
   height: calc(100vh - 200px);
-  margin-top: 20px;
+  margin-top: 10px;
   border-radius: 8px;
   box-shadow: 0 4px 0 0 rgba(186, 186, 186, 0.5);
   background-color: #ffffff;
@@ -61,6 +66,37 @@ $Gray-border: 1px solid #f8f9ff;
     line-height: 60px;
     box-sizing: border-box;
     border-bottom: $Gray-border;
+    .statics-table-tabs {
+      display: flex;
+      padding-left: 10px;
+      .statics-tab {
+        position: relative;
+        cursor: pointer;
+        &.active {
+          color: #338AFF;
+          font-weight: 500;
+        }
+        &.active:after {
+          content: '';
+          height: 3px;
+          width: 100%;
+          display: inline-block;
+          background: #338AFF;
+          position: absolute;
+          left: 0;
+          bottom: 0;
+        }
+      }
+      .statics-tab-content {
+        padding: 0 35px;
+      }
+    }
+    .statics-confirm-btn {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
     .leftAlign {
       text-align: left;
       padding-left: 20px;
@@ -69,9 +105,6 @@ $Gray-border: 1px solid #f8f9ff;
   .statics-sub-table {
     display: flex;
     background: #FFFFFF;
-    .sub {
-        flex: 1;
-    }
   }
   .statics-left-subtable {
     border-right: $Gray-border;
