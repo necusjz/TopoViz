@@ -1,19 +1,5 @@
 <template>
-  <div class="app-query-tool" v-if="isCheckNone">
-    <div class="app-query-tool-item app-query-tool-regulation">
-      <el-cascader
-        placeholder="请按照条件定位"
-        :options="options"
-        v-model="regulationValue"
-        :clearable="true"
-        popper-class="select-popper"
-        @change="locateNetWork"
-        :disabled="isNonImported"
-        size="mini"
-      ></el-cascader>
-    </div>
-  </div>
-  <div class="app-query-tool" v-else>
+  <div class="app-query-tool">
     <div class="app-query-tool-item app-query-date-wrap">
       <el-date-picker
         type="datetime"
@@ -151,7 +137,7 @@ export default class QueryTool extends Vue {
         bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
         return;
       }
-      getGroupIdsDataByInterval({start: (this.startTime / 1000).toString(), end: (this.endTime / 1000).toString()}).then((res) => {
+      getGroupIdsDataByInterval({start: (this.startTime / 1000).toString(), end: (this.endTime / 1000).toString(), xAlarm: this.isCheckNone}).then((res) => {
         if (res) {
           const groupIds = res['group_id'].filter((groupId: string) => !!groupId);
           this.$store.commit('SET_GROUPIDS', groupIds);
@@ -210,7 +196,7 @@ export default class QueryTool extends Vue {
   public expand(val: boolean) {
     bus.$emit(EventType.FILTERRESET);
     if (val) {
-      getExpandAlarmDatas({groupId: this.groupId, addTime: this.interval * 60}).then((res: AnalyzeRes) => {
+      getExpandAlarmDatas({groupId: this.groupId, addTime: this.interval * 60, xAlarm: this.isCheckNone}).then((res: AnalyzeRes) => {
         this.setData(res);
       });
     } else {

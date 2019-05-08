@@ -4,10 +4,6 @@
       <i class="el-icon-warning"></i>
       无数据
     </div>
-    <div class="topo-board-item topo-back" @click="goBack" v-else-if="isCheckNone">
-      <i class="el-icon-back"></i>
-      <span class="app-back">返回</span>
-    </div>
     <div class="topo-board-left" v-else>
       <div class="topo-board-item" v-show="groupId">
         <span class="tag-square tag-orange"></span>
@@ -19,6 +15,10 @@
         <span class="tag-label">{{conditionLabel}}: {{regValue}}</span>
       </div>
     </div>
+    <div class="topo-board-right">
+      <el-switch v-model="checkNone" active-color="#FFE10B" inactive-color="#B4B4B4" @change="switchStatus"></el-switch>
+      <span class="timer-hint" :class="{active: checkNone}">查看{{checkNone ? '未' : '已'}}知告警</span>
+    </div>
   </div>
 </template>
 
@@ -28,6 +28,7 @@ import { State } from 'vuex-class';
 import { Rules, AlarmData, Node, Edge, EventType } from '@/types/type';
 import CommonMixin from '@/components/mixins/commonMixin.vue';
 import bus from '@/util/bus';
+import { getInterval } from '@/api/request';
 
 @Component
 export default class StaticsBoard extends Mixins(CommonMixin) {
@@ -39,6 +40,7 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
   @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};
   @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
   @Provide() private conditionLabel: string = '';
+  @Provide() private checkNone: boolean = false;
 
   @Watch('regType')
   public watchRegType(val: string) {
@@ -49,6 +51,16 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
       };
       this.conditionLabel = temp[val] || '告警名称';
     }
+  }
+  @Watch('isCheckNone')
+  public watchIsCheckNone(val: boolean) {
+    getInterval({xAlarm: this.isCheckNone}).then((res) => {
+      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
+      this.$store.commit('SET_DEFAULTDATE', dateValue);
+    })
+  }
+  public switchStatus(val: boolean) {
+    this.$store.commit('SET_ISCHECKNONE', val);
   }
   public goBack() {
     this.$store.commit('SET_ISCHECKNONE', false);
@@ -104,12 +116,11 @@ export default class StaticsBoard extends Mixins(CommonMixin) {
     padding-left: 10px;
   }
   .timer-hint {
-    width: 150px;
     display: inline-block;
     padding-left: 10px;
     vertical-align: middle;
     text-align: left;
-    font-size: 12px;
+    font-size: 14px;
     color: #778296;
     &:active {
       color: #55657e;
