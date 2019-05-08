@@ -79,8 +79,7 @@ def interval():
     if x_alarm == 'false':
         res['group_id'] = list(set(alarm['GroupId_Edited'].dropna()))
     elif x_alarm == 'true':
-        mask = alarm['XAlarm'].str.contains('TOPO_TREE_', na=False)
-        res['group_id'] = list(set(alarm.loc[mask]))
+        res['group_id'] = list(set(alarm['X_Alarm'].dropna()))
     return jsonify(res)
 
 
@@ -200,7 +199,7 @@ def detail():
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     # get confirmed/unconfirmed groups
-    wrong_group = []
+    wrong = []
     confirmed_group = []
     unconfirmed_group = []
     alarm_tree = []
@@ -215,14 +214,16 @@ def detail():
                                                  app.config['EDITED_COLUMNS']))]
                 cur_alarm.columns = app.config['EDITED_COLUMNS']
                 if not pre_alarm.equals(cur_alarm):
-                    wrong_group.append(group_id)
+                    wrong.append(group_id)
             else:
                 unconfirmed_group.append(group_id)
     elif x_alarm == 'true':
-        pass
+        alarm_tree = list(set(alarm['X_Alarm'].dropna()))
+        for tree_id in set(alarm['X_Alarm'].dropna()):
+            pass
     # construct json for frontend
     res = dict()
-    res['wrong'] = wrong_group
+    res['wrong'] = wrong
     res['confirmed'] = confirmed_group
     res['unconfirmed'] = unconfirmed_group
     res['alarm_tree'] = alarm_tree
