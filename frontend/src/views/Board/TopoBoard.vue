@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="topo-board-right">
-      <el-switch v-model="checkNone" active-color="#FFE10B" inactive-color="#B4B4B4" @change="switchStatus"></el-switch>
+      <el-switch v-model="checkNone" @change="switchStatus"></el-switch>
       <span class="timer-hint" :class="{active: checkNone}">查看{{checkNone ? '未' : '已'}}知告警</span>
     </div>
   </div>
