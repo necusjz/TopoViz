@@ -75,14 +75,13 @@ def interval_limit(start, end):
 
 
 def group_filter(group_id):
-    x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    if x_alarm == 'false':
-        alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
-    elif x_alarm == 'true':
+    if group_id.startswith('TOPO_TREE_'):
         alarm = alarm.loc[alarm['X_Alarm'] == group_id]
+    else:
+        alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     return alarm
 
 
@@ -186,7 +185,7 @@ def update_tree(alarm):
         for ne in add_alarm:
             mask = alarm['AlarmSource'] == ne
             alarm.loc[mask, 'X_Alarm'] = tree
-        save_data(alarm, client_id)
+    save_data(alarm, client_id)
 
 
 def check_column(df):
