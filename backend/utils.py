@@ -74,7 +74,8 @@ def interval_limit(start, end):
     return alarm
 
 
-def group_filter(group_id, x_alarm):
+def group_filter(group_id):
+    x_alarm = request.args.get('xAlarm')
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
