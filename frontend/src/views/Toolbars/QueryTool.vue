@@ -51,7 +51,7 @@
         size="mini"
       ></el-cascader>
     </div>
-    <div class="query-expand">
+    <div class="query-expand" v-show="!isCheckNone">
       <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
       显示前后
       <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="10" :disabled="!status"></el-input-number>
