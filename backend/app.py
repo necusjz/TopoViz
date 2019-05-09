@@ -6,8 +6,8 @@ import uuid
 import time
 import json
 
-from flask import render_template, jsonify, send_from_directory
-from werkzeug.utils import secure_filename
+from flask import render_template, send_from_directory
+from datetime import datetime
 from flask_cors import CORS
 from utils import *
 
@@ -25,32 +25,11 @@ def upload():
     # get upload files
     file1 = request.files['file1']
     file2 = request.files['file2']
-    # generate client id and create folder
+    # create folder and process files
     client_id = str(uuid.uuid1())
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
-    f_type = []
-    for file in [file1, file2]:
-        filename = secure_filename(file.filename)
-        # convert excel to dataframe
-        if filename.endswith('.xlsx') or filename.endswith('xls'):
-            dataframe = pd.read_excel(file)
-        else:
-            dataframe = pd.read_csv(file)
-        # handling column name exception
-        if check_column(dataframe):
-            error = check_column(dataframe)
-            return jsonify(error), 400
-        # save formatted dataframe
-        if 'Confirmed' not in dataframe.columns:
-            dataframe = format_data(dataframe)
-        save_data(dataframe, client_id)
-        # store file types by flag
-        f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
-        f_type.append(f_flag)
-    # handling file type exception
-    if check_type(f_type):
-        error = check_type(f_type)
-        return jsonify(error), 400
+    file_list = [file1, file2]
+    process_file(file_list, client_id)
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
@@ -72,7 +51,7 @@ def switch():
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-
+    # determine which case
     if x_alarm == 'false':
         mask = pd.notnull(alarm['GroupId_Edited'])
         alarm = alarm.loc[mask]
@@ -80,7 +59,7 @@ def switch():
         mask = pd.isnull(alarm['GroupId_Edited'])
         alarm = alarm.loc[mask]
         fill_tree(alarm)
-
+    # construct json for frontend
     res = dict()
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
     res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
@@ -97,14 +76,12 @@ def interval():
     # construct json for frontend
     res = dict()
     if x_alarm == 'false':
-        res['group_id'] = list(alarm['GroupId_Edited']
-                               .drop_duplicates()
-                               .dropna())
+        res['group_id'] = list(alarm['GroupId_Edited'].drop_duplicates()
+                                                      .dropna())
     elif x_alarm == 'true':
         alarm = alarm.sort_values('X_Alarm')
-        res['group_id'] = list(alarm['X_Alarm']
-                               .drop_duplicates()
-                               .dropna())
+        res['group_id'] = list(alarm['X_Alarm'].drop_duplicates()
+                                               .dropna())
     return jsonify(res)
 
 
@@ -144,38 +121,22 @@ def confirm():
 
 @app.route('/expand', methods=['GET'])
 def expand():
-    # generate topo path
     group_id = request.args.get('groupId')
     add_time = int(request.args.get('addTime'))
     pre_alarm = group_filter(group_id)
-    topo_path = ne2path(set(pre_alarm['AlarmSource']))
-    topo_ne = path2ne(topo_path)
     # get interval filtered dataframe
     a_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].min())
                                     .timestamp() - add_time * 60 - 8 * 60 * 60)
     z_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].max())
                                     .timestamp() + add_time * 60 - 8 * 60 * 60)
-    alarm = interval_limit(a_time, z_time)
-    # check intersection and update topo, table
+    cur_alarm = interval_limit(a_time, z_time)
+    # get expand information
+    yellow_ne, topo_tree, expand_alarm = get_expand(pre_alarm, cur_alarm)
+    # construct json for frontend
     res = dict()
-    res['yellow'] = []
-    if not alarm.loc[alarm['GroupId_Edited'] != group_id].empty:
-        alarm = alarm.loc[alarm['GroupId_Edited'] != group_id]
-        add_path = ne2path(set(alarm['AlarmSource']))
-        add_alarm = set()
-        for path in add_path:
-            add_ne = path2ne({path})
-            if add_ne & topo_ne:
-                topo_path = topo_path | {path}
-                add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
-        # construct json for frontend
-        res['yellow'] = list(add_alarm)
-        for ne in add_alarm:
-            cur_alarm = alarm.loc[alarm['AlarmSource'] == ne]
-            pre_alarm = pre_alarm.append(cur_alarm, ignore_index=True)
-    topo_tree = build_tree(topo_path)
+    res['yellow'] = yellow_ne
     res['topo'] = topo_tree
-    res['table'] = json.loads(pre_alarm.to_json(orient='records'))
+    res['table'] = json.loads(expand_alarm.to_json(orient='records'))
     return jsonify(res)
 
 
