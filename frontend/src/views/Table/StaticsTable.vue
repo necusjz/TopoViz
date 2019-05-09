@@ -9,7 +9,7 @@
           <span class="statics-tab-content">已确认 {{this.confirmData.length}}</span>
         </div>
       </div>
-      <el-button type="primary" size="mini" class="statics-confirm-btn">一键确认</el-button>
+      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm">一键确认</el-button>
     </el-row>
     <el-scrollbar :native="false" wrapClass="statics-table-scroll-wrap" viewClass="" :noresize="false" class="statics-table-scroll">
       <div class="statics-sub-table">
@@ -24,7 +24,7 @@ import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import SubTable from "./SubTable.vue";
 import { AlarmData, StaticsRes } from '@/types/type';
-import { getStaticsGroupData } from '@/api/request';
+import { getStaticsGroupData, oneConfirm } from '@/api/request';
 
 @Component({
   components: {
@@ -59,6 +59,11 @@ export default class StaticsTable extends Vue {
     public switchTab(type: number) {
       this.activeType = type;
       this.tableData = this.activeType ? this.confirmData : this.unconfirmData;
+    }
+    public confirm() {
+      oneConfirm({xAlarm: this.isCheckNone}).then(res => {
+        console.log(res);
+      })
     }
 }
 </script>
