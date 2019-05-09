@@ -12,11 +12,14 @@
 <script lang="ts">
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from "vuex-class";
+import { checkId } from '@/api/request';
+
 @Component
 export default class TopoInput extends Vue {
   @Prop() private row!: any;
   @Prop() private attr!: string;
   @Provide() private inputValue: string = "";
+  @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
   mounted() {
     this.inputValue = this.row[this.attr];
     this.$nextTick(() => {
@@ -30,9 +33,19 @@ export default class TopoInput extends Vue {
   }
   public emitData() {
     // 校验输入的数据
-    const validStr: string = this.inputValue.trim();
-    this.row[this.attr] = validStr;
-    this.$emit("blur", this.row);
+    let validStr: string = this.inputValue.trim();
+    if (this.isCheckNone && this.attr === 'groupId_edit') {
+      validStr = `TOPO_TREE_${validStr}`;
+      checkId(validStr).then((res) => {
+        if (res && !res.exist) {
+          this.row[this.attr] = validStr;
+          this.$emit("blur", this.row);
+        }
+      })
+    } else {
+      this.row[this.attr] = validStr;
+      this.$emit("blur", this.row);
+    }
   }
 }
 </script>
