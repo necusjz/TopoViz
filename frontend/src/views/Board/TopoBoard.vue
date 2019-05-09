@@ -27,9 +27,9 @@ import bus from '@/util/bus';
 
 @Component
 export default class StaticsBoard extends Mixins(CommonMixin) {
-  @State((state) => state.app.groupId) private groupId: any;
-  @State((state) => state.app.regValue) private regValue: any;
-  @State((state) => state.app.regType) private regType: any;
+  @State((state) => state.app.groupId) private groupId!: string;
+  @State((state) => state.app.regValue) private regValue!: string;
+  @State((state) => state.app.regType) private regType!: string;
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.topoDatas) private topoDatas!: {elements: Node[], edges: Edge[]};

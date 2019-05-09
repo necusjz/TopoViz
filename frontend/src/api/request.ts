@@ -71,6 +71,14 @@ export function oneConfirm(params: {xAlarm: boolean}) {
     })
 }
 
+export function checkId(groupId: string) {
+    return service({
+        url: 'checkId',
+        method: 'get',
+        params: {curId: groupId}
+    })
+}
+
 export function clear(data: {clientId: string}) {
     return service({
         url: 'cleanUp',
