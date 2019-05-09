@@ -25,11 +25,32 @@ def upload():
     # get upload files
     file1 = request.files['file1']
     file2 = request.files['file2']
-    # create folder and process files
+    # generate client id and create folders
     client_id = str(uuid.uuid1())
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], client_id))
-    file_list = [file1, file2]
-    process_file(file_list, client_id)
+    f_type = []
+    for file in [file1, file2]:
+        filename = secure_filename(file.filename)
+        # convert excel to dataframe
+        if filename.endswith('.xlsx') or filename.endswith('xls'):
+            dataframe = pd.read_excel(file)
+        else:
+            dataframe = pd.read_csv(file)
+        # handling column name exception
+        if check_column(dataframe):
+            error = check_column(dataframe)
+            return jsonify(error), 400
+        # save formatted dataframe
+        if 'Confirmed' not in dataframe.columns:
+            dataframe = format_data(dataframe)
+        save_data(dataframe, client_id)
+        # store file types by flag
+        f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
+        f_type.append(f_flag)
+    # handling file type exception
+    if check_type(f_type):
+        error = check_type(f_type)
+        return jsonify(error), 400
     # construct json for frontend
     res = dict()
     res['client_id'] = client_id
@@ -156,8 +177,8 @@ def detail():
     return jsonify(res)
 
 
-@app.route('/download', methods=['GET'])
-def download():
+@app.route('/export', methods=['GET'])
+def export():
     # get directory path
     client_id = request.args.get('clientId')
     dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
@@ -165,22 +186,6 @@ def download():
     filename = 'alarm-verified-' + str(int(time.time())) + '.csv'
     return send_from_directory(dirpath, 'alarm_format.csv', as_attachment=True,
                                attachment_filename=filename)
-
-
-@app.route('/checkId', methods=['GET'])
-def check_id():
-    client_id = request.headers.get('Client-Id')
-    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                     app.config['ALARM_FILE']))
-    # get current/previous group id
-    cur_id = {request.args.get('curId')}
-    pre_id = set(alarm['GroupId_Edited'].dropna())
-    # construct json for frontend
-    res = dict()
-    res['exist'] = False
-    if cur_id & pre_id:
-        res['exist'] = True
-    return jsonify(res)
 
 
 @app.route('/oneClick', methods=['POST'])
@@ -202,6 +207,22 @@ def one_click():
     res['accuracy'] = accuracy
     res['confirmed'] = confirmed_num
     res['unconfirmed'] = group_count - confirmed_num
+    return jsonify(res)
+
+
+@app.route('/checkId', methods=['GET'])
+def check_id():
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+    # get current/previous group id
+    cur_id = {request.args.get('curId')}
+    pre_id = set(alarm['GroupId_Edited'].dropna())
+    # construct json for frontend
+    res = dict()
+    res['exist'] = False
+    if cur_id & pre_id:
+        res['exist'] = True
     return jsonify(res)
 
 
