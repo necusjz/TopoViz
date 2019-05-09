@@ -34,18 +34,19 @@ export default class TopoInput extends Vue {
   public emitData() {
     // 校验输入的数据
     let validStr: string = this.inputValue.trim();
-    if (this.isCheckNone && this.attr === 'groupId_edit') {
+    if (validStr === this.row[this.attr]) {
+      this.$emit("blur", this.row);
+    } else if (this.isCheckNone && this.attr === 'groupId_edit') {
       validStr = `TOPO_TREE_${validStr}`;
       checkId(validStr).then((res) => {
         if (res && !res.exist) {
           this.row[this.attr] = validStr;
-          this.$emit("blur", this.row);
         }
       })
     } else {
       this.row[this.attr] = validStr;
-      this.$emit("blur", this.row);
     }
+    this.$emit("blur", this.row);
   }
 }
 </script>
