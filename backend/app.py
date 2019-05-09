@@ -147,27 +147,12 @@ def expand():
     # generate topo path
     group_id = request.args.get('groupId')
     # check intersection and update topo, table
-    res = dict()
-    res['yellow'] = []
-    if not alarm.loc[alarm['GroupId_Edited'] != group_id].empty:
-        alarm = alarm.loc[alarm['GroupId_Edited'] != group_id]
-        add_path = ne2path(set(alarm['AlarmSource']))
-        add_alarm = set()
-        for path in add_path:
-            add_ne = path2ne({path})
-            if add_ne & topo_ne:
-                topo_path = topo_path | {path}
-                add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
-        # construct json for frontend
-        res['yellow'] = list(add_alarm)
-        for ne in add_alarm:
-            cur_alarm = alarm.loc[alarm['AlarmSource'] == ne]
-            pre_alarm = pre_alarm.append(cur_alarm, ignore_index=True)
+    topo_path, yellow, cur_alarm = get_extra(group_id)
     topo_tree = build_tree(topo_path)
     res = dict()
-    res['yellow'] = []
+    res['yellow'] = yellow
     res['topo'] = topo_tree
-    res['table'] = json.loads(pre_alarm.to_json(orient='records'))
+    res['table'] = json.loads(cur_alarm.to_json(orient='records'))
     return jsonify(res)
 
 
