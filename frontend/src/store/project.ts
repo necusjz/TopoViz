@@ -54,6 +54,9 @@ const mutations: MutationTree<ProjectState> = {
     SET_UNCONFIRMED_COUNT: (state: ProjectState, count: number) => {
         state.unconfirmed_count = count;
     },
+    SET_ACCURACY: (state: ProjectState, accuracy: number) => {
+        state.accuracy = decimalToPercentage(accuracy);
+    },
     SET_GROUPIDS: (state: ProjectState, ids: string[]) => {
         state.groupIds = ids;
     },
