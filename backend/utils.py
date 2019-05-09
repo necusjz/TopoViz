@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from flask import Flask, jsonify, request
 from numpy import nan
 
-app = Flask(__name__, static_folder='static', static_url_path='')
+app = Flask(__name__, static_url_path='')
 
 
 def format_data(df):
@@ -105,7 +105,8 @@ def fill_tree(alarm):
         tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
         add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
         for ne in add_alarm:
-            mask = alarm['AlarmSource'] == ne
+            mask = (alarm['AlarmSource'] == ne) & \
+                   (pd.isnull(alarm['GroupId_Edited']))
             alarm.loc[mask, 'X_Alarm'] = tree
     save_data(alarm, client_id)
 
