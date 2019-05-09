@@ -6,37 +6,37 @@
         <el-col :span="11" class="board-col board-left">
           <div class="board-col-item">
             <span class="board-count orange-text">{{total_count}}</span>
-            <span>总告警</span>
+            <span>{{$t('lang.totalAlarm')}}</span>
           </div>
           <div class="board-col-item">
             <span class="board-count">{{p_count}}</span>
-            <span>P 告警</span>
+            <span>{{$t('lang.pAlarm')}}</span>
           </div>
           <div class="board-col-item">
             <span class="board-count">{{c_count}}</span>
-            <span>C 告警</span>
+            <span>{{$t('lang.cAlarm')}}</span>
           </div>
           <div class="board-col-item statics-none-item">
             <span class="board-count">{{x_count}}</span>
-            <span>未知告警</span>
+            <span>{{$t('lang.xAlarm')}}</span>
           </div>
         </el-col>
         <el-col :span="13" class="board-col">
           <div class="board-col-item">
             <span class="board-count">{{group_count}}</span>
-            <span>组数量</span>
+            <span>{{$t('lang.groupNumber')}}</span>
           </div>
           <div class="board-col-item">
             <span class="board-count blue-text">{{confirmed_count}}</span>
-            <span>已确认组</span>
+            <span>{{$t('lang.confirmed')}}</span>
           </div>
           <div class="board-col-item">
             <span class="board-count" style="color: #ff686f">{{unconfirmed_count}}</span>
-            <span>未确认组</span>
+            <span>{{$t('lang.unconfirmed')}}</span>
           </div>
           <div class="board-col-item board-precision">
             <span class="board-count">{{accuracy}}</span>
-            <span>RCA 准确率</span>
+            <span>{{$t('lang.accuracy')}}</span>
           </div>
           <div class="board-col-item" @click="checkStatics">
             <i class="el-icon-arrow-right board-viewer-icon"></i>
