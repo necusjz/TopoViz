@@ -146,13 +146,36 @@ def confirm():
 def expand():
     # generate topo path
     group_id = request.args.get('groupId')
+    add_time = int(request.args.get('addTime'))
+    pre_alarm = group_filter(group_id)
+    topo_path = ne2path(set(pre_alarm['AlarmSource']))
+    topo_ne = path2ne(topo_path)
+    # get interval filtered dataframe
+    a_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].min())
+                                    .timestamp() - add_time * 60 - 8 * 60 * 60)
+    z_time = datetime.fromtimestamp(pd.to_datetime(pre_alarm['First'].max())
+                                    .timestamp() + add_time * 60 - 8 * 60 * 60)
+    alarm = interval_limit(a_time, z_time)
     # check intersection and update topo, table
-    topo_path, yellow, cur_alarm = get_extra(group_id)
-    topo_tree = build_tree(topo_path)
     res = dict()
-    res['yellow'] = yellow
+    res['yellow'] = []
+    if not alarm.loc[alarm['GroupId_Edited'] != group_id].empty:
+        alarm = alarm.loc[alarm['GroupId_Edited'] != group_id]
+        add_path = ne2path(set(alarm['AlarmSource']))
+        add_alarm = set()
+        for path in add_path:
+            add_ne = path2ne({path})
+            if add_ne & topo_ne:
+                topo_path = topo_path | {path}
+                add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
+        # construct json for frontend
+        res['yellow'] = list(add_alarm)
+        for ne in add_alarm:
+            cur_alarm = alarm.loc[alarm['AlarmSource'] == ne]
+            pre_alarm = pre_alarm.append(cur_alarm, ignore_index=True)
+    topo_tree = build_tree(topo_path)
     res['topo'] = topo_tree
-    res['table'] = json.loads(cur_alarm.to_json(orient='records'))
+    res['table'] = json.loads(pre_alarm.to_json(orient='records'))
     return jsonify(res)
 
 
@@ -160,7 +183,7 @@ def expand():
 def detail():
     x_alarm = request.args.get('xAlarm')
     # get wrong and confirmed/unconfirmed groups
-    column = 'Group_Edited'
+    column = 'GroupId_Edited'
     if x_alarm == 'true':
         column = 'X_Alarm'
     wrong, confirmed_group, unconfirmed_group = get_detail(column)
