@@ -167,6 +167,22 @@ def download():
                                attachment_filename=filename)
 
 
+@app.route('/checkId', methods=['POST'])
+def check_id():
+    client_id = request.headers.get('Client-Id')
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
+    # get current/previous group id
+    cur_id = {request.args.get('curId')}
+    pre_id = set(alarm['GroupId_Edited'].dropna())
+    # construct json for frontend
+    res = dict()
+    res['exist'] = False
+    if cur_id & pre_id:
+        res['exist'] = True
+    return jsonify(res)
+
+
 @app.route('/oneClick', methods=['POST'])
 def one_click():
     x_alarm = request.args.get('xAlarm')
