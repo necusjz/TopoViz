@@ -325,7 +325,7 @@ export default class TopoTable extends Vue {
     }
   }
   public saveData() {
-    // 验证本组有一个P警告
+    // 验证本组最少有一个P警告
     const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
     const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
     if (pAlarms.length === 0) {
@@ -347,7 +347,7 @@ export default class TopoTable extends Vue {
       for (const key of Object.keys(propsMapping)) {
         if (grow[key] !== grow[`${key}_edit`]) {
           columns.push(propsMapping[key]);
-          const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`] || NaN;
+          const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`];
           values.push(value);
         }
       }
