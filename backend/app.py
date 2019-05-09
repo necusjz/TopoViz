@@ -196,6 +196,11 @@ def clean_up():
     if client_id:
         dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
         shutil.rmtree(dirpath)
+    # construct json for frontend
+    res = dict()
+    res['code'] = 200
+    res['message'] = 'CLEAN UP SUCCESSFULLY'
+    return jsonify(res), 200
 
 
 @app.errorhandler(500)
