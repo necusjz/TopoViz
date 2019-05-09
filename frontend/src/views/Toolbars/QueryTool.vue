@@ -121,6 +121,7 @@ export default class QueryTool extends Vue {
   }
   @Watch('isCheckNone')
   public watchIsCheckNone(val: boolean) {
+    this.$store.commit('SET_SELECTALARM', '');
     getInterval({xAlarm: val}).then((res) => {
       const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
       this.$store.commit('SET_DEFAULTDATE', dateValue);
@@ -355,7 +356,7 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
     }
   }
   .app-query-tool-group {
-    width: 220px;
+    width: 210px;
   }
   .app-query-tool-item {
     position: relative;
