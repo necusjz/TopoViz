@@ -230,13 +230,9 @@ def one_click():
 
 @app.route('/cleanUp', methods=['POST'])
 def clean_up():
-    for dirname in os.listdir(app.config['UPLOAD_FOLDER']):
-        # get directory path
-        dirpath = os.path.join(app.config['UPLOAD_FOLDER'], dirname)
-        # clean up cache regularly
-        diff = time.time() - os.path.getmtime(dirpath)
-        if diff > 7 * 24 * 60 * 60:
-            shutil.rmtree(dirpath)
+    clean_id = request.args.get('cleanId')
+    dirpath = os.path.join(app.config['UPLOAD_FOLDER'], clean_id)
+    shutil.rmtree(dirpath)
 
 
 @app.errorhandler(500)
