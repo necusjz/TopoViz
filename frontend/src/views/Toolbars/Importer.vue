@@ -25,7 +25,7 @@
 <script lang="ts">
 import { Component, Vue, Provide } from "vue-property-decorator";
 import { State } from 'vuex-class';
-import { postTopoData, getInterval, exportAlarmData } from '@/api/request';
+import { postTopoData, getInterval, exportAlarmData, clear } from '@/api/request';
 import bus from '@/util/bus';
 import { EventType, StaticsRes } from '@/types/type';
 import NProgress from 'nprogress';
@@ -79,8 +79,15 @@ export default class Importer extends Vue {
     if (!this.isNonImported) {
       this.clearAllData();
     }
+    const clientId = localStorage.getItem('client-id');
+    if (clientId) {
+      // 清空之前上传保存的clientId
+      clear({clientId: clientId}).then((res) => {
+      });
+    }
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
+      localStorage.setItem('client-id', res.client_id);
       this.setDefaultDate();
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
