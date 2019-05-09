@@ -1,7 +1,7 @@
 <template>
   <div class="statics-table">
     <el-row class="statics-table-row">
-      <div class="statics-table-tabs" v-show="!isCheckNone">
+      <div class="statics-table-tabs">
         <div class="statics-tab" :class="{active: activeType === 0}" @click="switchTab(0)">
           <span class="statics-tab-content">未确认 {{this.unconfirmData.length}}</span>
         </div>
@@ -9,7 +9,7 @@
           <span class="statics-tab-content">已确认 {{this.confirmData.length}}</span>
         </div>
       </div>
-      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm">一键确认</el-button>
+      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm" v-if="activeType === 0">一键确认</el-button>
     </el-row>
     <el-scrollbar :native="false" wrapClass="statics-table-scroll-wrap" viewClass="" :noresize="false" class="statics-table-scroll">
       <div class="statics-sub-table">
@@ -23,8 +23,9 @@
 import { Component, Prop, Vue, Provide, Watch } from "vue-property-decorator";
 import { State } from "vuex-class";
 import SubTable from "./SubTable.vue";
-import { AlarmData, StaticsRes } from '@/types/type';
+import { AlarmData, StaticsRes, EventType } from '@/types/type';
 import { getStaticsGroupData, oneConfirm } from '@/api/request';
+import bus from '@/util/bus';
 
 @Component({
   components: {
@@ -47,11 +48,7 @@ export default class StaticsTable extends Vue {
             this.confirmData = res.confirmed;
             this.unconfirmData = res.unconfirmed;
             this.wrongData = res.wrong;
-            if (this.isCheckNone) {
-              this.tableData = res.alarm_tree;
-            } else {
-              this.tableData = this.unconfirmData;
-            }
+            this.tableData = this.unconfirmData;
           }
         });
       }
@@ -61,9 +58,22 @@ export default class StaticsTable extends Vue {
       this.tableData = this.activeType ? this.confirmData : this.unconfirmData;
     }
     public confirm() {
-      oneConfirm({xAlarm: this.isCheckNone}).then(res => {
-        console.log(res);
-      })
+      if (this.unconfirmData.length > 0) {
+        oneConfirm({xAlarm: this.isCheckNone}).then((res) => {
+          this.$store.commit('SET_ACCURACY', res.accuracy);
+          this.$store.commit('SET_CONFIRMED_COUNT', res.confirmed);
+          this.$store.commit('SET_UNCONFIRMED_COUNT', res.unconfirmed);
+          this.confirmData = this.confirmData.concat(this.unconfirmData);
+          this.unconfirmData = [];
+          this.switchTab(1);
+        });
+      } else {
+        bus.$emit(EventType.ERRORVISIBLE, {
+          title: '温馨提示',
+          type: 'info',
+          content: `<p>所有组都已确认</p>`
+        });
+      }
     }
 }
 </script>
