@@ -191,9 +191,11 @@ def one_click():
 
 @app.route('/cleanUp', methods=['POST'])
 def clean_up():
-    clean_id = request.args.get('cleanId')
-    dirpath = os.path.join(app.config['UPLOAD_FOLDER'], clean_id)
-    shutil.rmtree(dirpath)
+    client_id = request.json['clientId']
+    # clean up previous directory
+    if client_id:
+        dirpath = os.path.join(app.config['UPLOAD_FOLDER'], client_id)
+        shutil.rmtree(dirpath)
 
 
 @app.errorhandler(500)
