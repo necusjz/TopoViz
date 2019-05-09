@@ -49,7 +49,9 @@ export default class StaticsBoard extends Vue {
   }
   @Watch('selectAlarm')
   public watchSelectAlarm(val: string) {
-    this.skipPage();
+    if (val) {
+      this.skipPage();
+    }
   }
   public changeTableData() {
     let filt: boolean = !!this.activeType;
