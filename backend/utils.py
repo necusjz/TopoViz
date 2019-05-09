@@ -90,6 +90,26 @@ def result_monitor(client_id):
     return alarm, confirmed_num, accuracy
 
 
+def fill_tree(alarm):
+    client_id = request.headers.get('Client-Id')
+    # get paths merge result
+    merge_res = []
+    topo_path = ne2path(set(alarm['AlarmSource']))
+    serial_path = sort_path(topo_path)
+    merge_res = merge_path(serial_path, merge_res)
+    # empty x_alarm column
+    alarm.drop(columns='X_Alarm')
+    alarm['X_Alarm'] = nan
+    # fill x_alarm column
+    for i, paths in enumerate(merge_res):
+        tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
+        add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
+        for ne in add_alarm:
+            mask = alarm['AlarmSource'] == ne
+            alarm.loc[mask, 'X_Alarm'] = tree
+    save_data(alarm, client_id)
+
+
 def interval_limit(start, end):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
@@ -105,6 +125,7 @@ def group_filter(group_id):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
+    # determine which case
     if group_id.startswith('TOPO_TREE_'):
         alarm = alarm.loc[alarm['X_Alarm'] == group_id]
     else:
@@ -197,24 +218,6 @@ def build_tree(paths):
     return topo_tree
 
 
-def fill_tree(alarm):
-    client_id = request.headers.get('Client-Id')
-    merge_res = []
-    topo_path = ne2path(set(alarm['AlarmSource']))
-    serial_path = sort_path(topo_path)
-    merge_res = merge_path(serial_path, merge_res)
-
-    alarm.drop(columns='X_Alarm')
-    alarm['X_Alarm'] = nan
-    for i, paths in enumerate(merge_res):
-        tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
-        add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
-        for ne in add_alarm:
-            mask = alarm['AlarmSource'] == ne
-            alarm.loc[mask, 'X_Alarm'] = tree
-    save_data(alarm, client_id)
-
-
 def save_edit(client_id):
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -264,22 +267,23 @@ def get_detail(column):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
+    # initialize variables
     wrong = []
     confirmed_group = []
     unconfirmed_group = []
-    for i in set(alarm[column].dropna()):
-        mask = alarm[column] == i
+    for item in set(alarm[column].dropna()):
+        mask = alarm[column] == item
         if alarm.loc[mask].shape[0] == alarm.loc[mask]['Confirmed'].count():
-            confirmed_group.append(i)
+            confirmed_group.append(item)
             # get wrong groups
             pre_alarm = alarm.loc[mask][app.config['EDITED_COLUMNS']]
             cur_alarm = alarm.loc[mask][list(map(lambda x: x + '_Edited',
                                                  app.config['EDITED_COLUMNS']))]
             cur_alarm.columns = app.config['EDITED_COLUMNS']
             if not pre_alarm.equals(cur_alarm):
-                wrong.append(i)
+                wrong.append(item)
         else:
-            unconfirmed_group.append(i)
+            unconfirmed_group.append(item)
     return wrong, confirmed_group, unconfirmed_group
 
 
