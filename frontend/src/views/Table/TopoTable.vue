@@ -59,12 +59,37 @@
     </el-table-column>
     <el-table-column prop="groupId_edit" label="Group ID" width="180">
       <template slot-scope="scope">
+        <div v-if="isCheckNone">
+          <el-popover
+              popper-class="edit-history-wrap"
+              placement="bottom"
+              :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
+              trigger="hover">
+            <div class="edit-record">
+              <p class="gray-text">修改前：</p>
+              <p>{{scope.row.groupId}}</p>
+              <p class="gray-text">修改后：</p>
+              <p>{{scope.row.groupId_edit}}</p>
+            </div>
+            <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
+              <span :title="scope.row.groupId_edit" class="rcaReg-label edit-label">{{scope.row.groupId_edit}}</span>
+              <i class="el-icon-edit"></i>
+            </div>
+          </el-popover>
+          <TopoInput
+            class="topoTable-hidden-input"
+            v-if="editCellId === `${scope.row.uid}-groupId`"
+            :row="scope.row"
+            attr="groupId_edit"
+            @blur="inputBlur"
+          ></TopoInput>
+        </div>
         <el-popover
             popper-class="edit-history-wrap"
             placement="bottom"
             :width="100"
             :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
-            trigger="hover">
+            trigger="hover" v-else>
             <div class="edit-record">
               <p class="gray-text">修改前：</p>
               <p>{{scope.row.groupId}}</p>
@@ -89,7 +114,8 @@
             popper-class="edit-history-wrap"
             placement="bottom"
             :disabled="isunConfirmed || popoverDisable || scope.row.rcaResult === scope.row.rcaResult_edit"
-            trigger="hover">
+            trigger="hover"
+            >
             <div class="edit-record">
               <p class="gray-text">修改前：</p>
               <p>{{scope.row.rcaResult}}</p>
@@ -121,7 +147,7 @@
             <p class="gray-text">修改后：</p>
             <p>{{scope.row.rcaReg_edit}}</p>
           </div>
-          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row)">
+          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row, 'reg')">
             <span :title="scope.row.rcaReg_edit" class="rcaReg-label edit-label">{{scope.row.rcaReg_edit}}</span>
             <i class="el-icon-edit"></i>
           </div>
@@ -178,6 +204,7 @@ export default class TopoTable extends Vue {
   @State((state) => state.app.groupId) private groupId!: string;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
   @State((state) => state.app.needSave) private needSave!: boolean;
+  @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
     this.$nextTick(() => {
@@ -199,8 +226,8 @@ export default class TopoTable extends Vue {
     this.editRows = Array.from(new Set(rows));
     this.$store.commit('SET_NEEDSAVE', this.editRows.length > 0);
   }
-  public handleCellClick(row: AlarmData) {
-    this.editCellId = `${row.uid}-reg`;
+  public handleCellClick(row: AlarmData, tag: string) {
+    this.editCellId = `${row.uid}-${tag}`;
     this.inputValue = row.rcaReg_edit;
     this.popoverDisable = true;
   }
