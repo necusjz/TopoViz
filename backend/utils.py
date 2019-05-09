@@ -40,32 +40,6 @@ def save_data(df, client_id):
     df.to_csv(path, index=False)
 
 
-def process_file(file_list, client_id):
-    f_type = []
-    for file in file_list:
-        filename = secure_filename(file.filename)
-        # convert excel to dataframe
-        if filename.endswith('.xlsx') or filename.endswith('xls'):
-            dataframe = pd.read_excel(file)
-        else:
-            dataframe = pd.read_csv(file)
-        # handling column name exception
-        if check_column(dataframe):
-            error = check_column(dataframe)
-            return jsonify(error), 400
-        # save formatted dataframe
-        if 'Confirmed' not in dataframe.columns:
-            dataframe = format_data(dataframe)
-        save_data(dataframe, client_id)
-        # store file types by flag
-        f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
-        f_type.append(f_flag)
-    # handling file type exception
-    if check_type(f_type):
-        error = check_type(f_type)
-        return jsonify(error), 400
-
-
 def result_monitor(client_id):
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
