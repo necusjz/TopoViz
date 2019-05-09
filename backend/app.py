@@ -73,13 +73,13 @@ def switch():
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
 
-    mask = pd.notnull(alarm['GroupId_Edited'])
-
-    if x_alarm == 'true':
+    if x_alarm == 'false':
+        mask = pd.notnull(alarm['GroupId_Edited'])
+        alarm = alarm.loc[mask]
+    elif x_alarm == 'true':
         mask = pd.isnull(alarm['GroupId_Edited'])
-        update_tree(alarm)
-
-    alarm = alarm.loc[mask]
+        alarm = alarm.loc[mask]
+        fill_tree(alarm)
 
     res = dict()
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
@@ -217,6 +217,7 @@ def one_click():
     if x_alarm == 'true':
         mask = pd.notnull(alarm['X_Alarm'])
     alarm.loc[mask, 'Confirmed'] = '1'
+    save_data(alarm, client_id)
     # construct json for frontend
     res = dict()
     alarm, confirmed_num, accuracy = result_monitor(client_id)
