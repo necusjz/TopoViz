@@ -171,7 +171,7 @@ def build_tree(paths):
     return topo_tree
 
 
-def update_tree(alarm):
+def fill_tree(alarm):
     client_id = request.headers.get('Client-Id')
     merge_res = []
     topo_path = ne2path(set(alarm['AlarmSource']))
