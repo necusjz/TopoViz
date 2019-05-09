@@ -210,36 +210,6 @@ def save_edit(client_id):
     save_data(alarm, client_id)
 
 
-def get_extra(group_id):
-    # generate topo path
-    add_time = int(request.args.get('addTime'))
-    origin = group_filter(group_id)
-    topo_path = ne2path(set(origin['AlarmSource']))
-    topo_ne = path2ne(topo_path)
-    # get interval filtered dataframe
-    a_time = datetime.fromtimestamp(pd.to_datetime(origin['First'].min())
-                                    .timestamp() - add_time * 60 - 8 * 60 * 60)
-    z_time = datetime.fromtimestamp(pd.to_datetime(origin['First'].max())
-                                    .timestamp() + add_time * 60 - 8 * 60 * 60)
-    alarm = interval_limit(a_time, z_time)
-    # check intersection and update topo, table
-    yellow = []
-    if not alarm.loc[alarm['GroupId_Edited'] != group_id].empty:
-        alarm = alarm.loc[alarm['GroupId_Edited'] != group_id]
-        add_path = ne2path(set(alarm['AlarmSource']))
-        add_alarm = set()
-        for path in add_path:
-            add_ne = path2ne({path})
-            if add_ne & topo_ne:
-                topo_path = topo_path | {path}
-                add_alarm = add_alarm | (add_ne & set(alarm['AlarmSource']))
-        yellow = list(add_alarm)
-        for ne in add_alarm:
-            extra = alarm.loc[alarm['AlarmSource'] == ne]
-            origin = origin.append(extra, ignore_index=True)
-    return topo_path, yellow, origin
-
-
 def get_detail(column):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
