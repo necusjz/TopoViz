@@ -70,3 +70,11 @@ export function oneConfirm(params: {xAlarm: boolean}) {
         params
     })
 }
+
+export function clear(data: {clientId: string}) {
+    return service({
+        url: 'cleanUp',
+        method: 'post',
+        data
+    })
+}
