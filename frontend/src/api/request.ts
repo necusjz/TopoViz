@@ -62,3 +62,11 @@ export function exportAlarmData() {
         method: 'get'
     })
 }
+
+export function oneConfirm(params: {xAlarm: boolean}) {
+    return service({
+        url: `oneClick`,
+        method: 'post',
+        params
+    })
+}
