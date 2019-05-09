@@ -1,8 +1,8 @@
 import pandas as pd
 import os
 
-from flask import Flask, request
-from datetime import datetime
+from werkzeug.utils import secure_filename
+from flask import Flask, jsonify, request
 from numpy import nan
 
 app = Flask(__name__, static_folder='static', static_url_path='')
@@ -38,6 +38,32 @@ def save_data(df, client_id):
         path = os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                             app.config['TOPO_FILE'])
     df.to_csv(path, index=False)
+
+
+def process_file(file_list, client_id):
+    f_type = []
+    for file in file_list:
+        filename = secure_filename(file.filename)
+        # convert excel to dataframe
+        if filename.endswith('.xlsx') or filename.endswith('xls'):
+            dataframe = pd.read_excel(file)
+        else:
+            dataframe = pd.read_csv(file)
+        # handling column name exception
+        if check_column(dataframe):
+            error = check_column(dataframe)
+            return jsonify(error), 400
+        # save formatted dataframe
+        if 'Confirmed' not in dataframe.columns:
+            dataframe = format_data(dataframe)
+        save_data(dataframe, client_id)
+        # store file types by flag
+        f_flag = dataframe.shape[1] < app.config['DISTINCT_NUM']
+        f_type.append(f_flag)
+    # handling file type exception
+    if check_type(f_type):
+        error = check_type(f_type)
+        return jsonify(error), 400
 
 
 def result_monitor(client_id):
@@ -166,7 +192,7 @@ def build_tree(paths):
         for name, kind in zip(topo['NEName'], topo['NEType']):
             per_path.append({'NEName': name,
                              'NEType': app.config['NE_ICON'].get(kind, 'OTHER'),
-                             'Layer': app.config['TOPO_LAYER'].get(kind)})
+                             'Layer': app.config['NE_LAYER'].get(kind)})
         topo_tree.append(per_path)
     return topo_tree
 
@@ -208,6 +234,30 @@ def save_edit(client_id):
         else:
             alarm.loc[mask, 'Confirmed'] = nan
     save_data(alarm, client_id)
+
+
+def get_expand(pre_alarm, cur_alarm):
+    # get previous status
+    group_id = request.args.get('groupId')
+    topo_path = ne2path(set(pre_alarm['AlarmSource']))
+    topo_ne = path2ne(topo_path)
+    # check intersection and update topo, table
+    yellow_ne = []
+    if not cur_alarm.loc[cur_alarm['GroupId_Edited'] != group_id].empty:
+        cur_alarm = cur_alarm.loc[cur_alarm['GroupId_Edited'] != group_id]
+        add_path = ne2path(set(cur_alarm['AlarmSource']))
+        add_alarm = set()
+        for path in add_path:
+            add_ne = path2ne({path})
+            if add_ne & topo_ne:
+                topo_path = topo_path | {path}
+                add_alarm = add_alarm | (add_ne & set(cur_alarm['AlarmSource']))
+        yellow_ne = list(add_alarm)
+        for ne in add_alarm:
+            extra_alarm = cur_alarm.loc[cur_alarm['AlarmSource'] == ne]
+            pre_alarm = pre_alarm.append(extra_alarm, ignore_index=True)
+    topo_tree = build_tree(topo_path)
+    return yellow_ne, topo_tree, pre_alarm
 
 
 def get_detail(column):
