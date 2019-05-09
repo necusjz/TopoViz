@@ -67,6 +67,12 @@ export default class StaticsTable extends Vue {
           this.unconfirmData = [];
           this.switchTab(1);
         });
+      } else if(this.isNonImported) {
+        bus.$emit(EventType.ERRORVISIBLE, {
+          title: '温馨提示',
+          type: 'info',
+          content: `<p>请导入数据再确认</p>`
+        });
       } else {
         bus.$emit(EventType.ERRORVISIBLE, {
           title: '温馨提示',
