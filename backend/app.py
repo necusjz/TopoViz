@@ -52,13 +52,13 @@ def switch():
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     # determine which case
+    mask = False
     if x_alarm == 'false':
         mask = pd.notnull(alarm['GroupId_Edited'])
-        alarm = alarm.loc[mask]
     elif x_alarm == 'true':
         mask = pd.isnull(alarm['GroupId_Edited'])
-        alarm = alarm.loc[mask]
         fill_tree(alarm)
+    alarm = alarm.loc[mask]
     # construct json for frontend
     res = dict()
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
