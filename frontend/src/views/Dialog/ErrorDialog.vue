@@ -93,6 +93,7 @@ export default class ErrorDialog extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 $Error-color: #F56C6C;
+$Error-hover-color: #FF8484;
 .error-dialog {
   .el-dialog__header {
     padding: 0;
@@ -128,6 +129,10 @@ $Error-color: #F56C6C;
 .confirm-btn.error {
   background-color: $Error-color;
   border-color: $Error-color;
+  &:hover {
+    background-color: $Error-hover-color;
+    border-color: $Error-hover-color;
+  }
 }
 .error-content-box {
   padding-bottom: 20px;

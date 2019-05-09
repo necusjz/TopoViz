@@ -131,6 +131,7 @@ export default class TopoTree extends Vue {
       } else {
         if (this.borderLayer) {
           this.stage.removeLayer(this.borderLayer);
+          this.$store.commit('SET_SELECTALARM', '');
         }
       }
     });
