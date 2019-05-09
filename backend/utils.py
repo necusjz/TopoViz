@@ -108,6 +108,7 @@ def fill_tree(alarm):
             mask = (alarm['AlarmSource'] == ne) & \
                    (pd.isnull(alarm['GroupId_Edited']))
             alarm.loc[mask, 'X_Alarm'] = tree
+            alarm.loc[mask, 'RcaResult_Edited'] = 'C'
     save_data(alarm, client_id)
 
 
