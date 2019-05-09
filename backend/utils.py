@@ -237,7 +237,7 @@ def get_extra(group_id):
         for ne in add_alarm:
             extra = alarm.loc[alarm['AlarmSource'] == ne]
             origin = origin.append(extra, ignore_index=True)
-    return yellow, origin
+    return topo_path, yellow, origin
 
 
 def get_detail(column):
