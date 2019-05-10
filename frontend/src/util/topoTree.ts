@@ -66,6 +66,7 @@ export default class TopoTreeHelper {
     }
     public run() {
         // goup路径同层关联的nodes
+        if (this.data.length === 0) return;
         const parts: any = this.data.map((part) => {
             return part.map((ne) => this.nodes.get(ne.name));
         });
