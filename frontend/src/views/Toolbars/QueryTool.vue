@@ -196,8 +196,8 @@ export default class QueryTool extends Vue {
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');
     bus.$emit(EventType.CLEARALL);
-    this.status = false;
     bus.$emit(EventType.CLEAREXPAN);
+    this.status = false;
     getAlarmDatas({groupId: this.groupId, xAlarm: this.isCheckNone}).then((data: AnalyzeRes) => {
       this.setData(data);
     });
@@ -336,6 +336,10 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   user-select: none;
   background: #FFFFFF;
   box-sizing: border-box;
+  opacity: 0.5;
+  &:hover {
+    opacity: 1;
+  }
   .app-query-tool-group-wrap {
     .query-btn {
       color: #FFF;

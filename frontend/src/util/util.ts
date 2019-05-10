@@ -45,10 +45,10 @@ export function generateDateByTimestamp(timeStamp: number): string {
   return `${year}-${formatSingleNumber(month)}-${formatSingleNumber(day)} ${formatSingleNumber(h)}:${formatSingleNumber(m)}:${formatSingleNumber(s)}`
 }
 
-export function decimalToPercentage(decimal: number, fix?: number) {
+export function decimalToPercentage(decimal: number, fix: number = 2) {
   if (decimal === 0) {
     return '--';
-  } else if (fix && fix > -1) {
+  } else if (decimal % 1 !== 0) {
     return `${(decimal * 100).toFixed(fix)}%`;
   } else {
     return `${decimal * 100}%`;

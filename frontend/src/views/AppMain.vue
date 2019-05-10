@@ -94,7 +94,7 @@ export default class AppMain extends Vue {
     background: #f8f9ff;
     .app-topo-tree {
       position: relative;
-      height: 650px;
+      height: 700px;
       margin-top: 20px;
       @extend .box-border;
     }
