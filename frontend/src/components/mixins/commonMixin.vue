@@ -18,7 +18,7 @@ export default class CommonMixin extends Vue {
       clearTime: item['Clear'],
       domain: item['Domain'],
       groupId: item['GroupId'],
-      groupId_edit: item['GroupId_Edited'] || '空',
+      groupId_edit: item['GroupId_Edited'],
       rcaResult: item['RcaResult'].toString(),
       rcaResult_edit: item['RcaResult_Edited'],
       rcaReg: item['RuleName'],
