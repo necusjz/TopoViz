@@ -71,7 +71,7 @@
               <p class="gray-text">修改后：</p>
               <p>{{scope.row.groupId_edit}}</p>
             </div>
-            <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
+            <div class="rcaGroup-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
               <span :title="scope.row.groupId_edit" class="rcaReg-label edit-label">{{scope.row.groupId_edit}}</span>
               <i class="el-icon-edit"></i>
             </div>
@@ -99,7 +99,7 @@
             <el-dropdown trigger="click" size="small" @visible-change="dropDownVisble" @command="handleCommandGroupId" placement="bottom" slot="reference">
               <span :title="scope.row.groupId_edit" class="edit-text">
                 {{scope.row.groupId_edit}}
-                <i class="el-icon-arrow-down el-icon--right"></i>
+                <i class="el-icon-arrow-down"></i>
               </span>
               <el-dropdown-menu slot="dropdown" class="group_dropdown">
                 <el-dropdown-item :command="scope.row">{{getEditGroupIdLabel(scope.row)}}</el-dropdown-item>
@@ -352,13 +352,7 @@ export default class TopoTable extends Vue {
     }
   }
   public saveData() {
-    // 验证本组最少有一个P警告
-    const alarmDatas: AlarmData[] = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
-    const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
-    if (pAlarms.length === 0) {
-      bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
-      return;
-    }
+    if (!this.vertifyRCA()) return;
     const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
     const noGroupAlarmsSet: Set<string> = new Set();
     const rows = this.editRows;
@@ -395,12 +389,26 @@ export default class TopoTable extends Vue {
     })
     this.findClearAlars(noGroupAlarmsSet);
   }
+  public vertifyRCA(): boolean {
+    // 验证本组最少有一个P警告
+    let alarmDatas: AlarmData[] = this.alarmDatas;
+    if (!this.isCheckNone) {
+      alarmDatas = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
+    }
+    const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
+    if (pAlarms.length === 0) {
+      bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+      return false;
+    }
+    return true;
+  }
   public findClearAlars(noGroupAlarmsSet: Set<string>) {
     for (let i = this.alarmDatas.length - 1; i >= 0; i--) {
       const alarmData = this.alarmDatas[i];
-      if (alarmData.groupId_edit === '空' && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
-        this.alarmDatas.splice(i, 1);
+      if (alarmData.groupId_edit !== '空' && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
         noGroupAlarmsSet.delete(alarmData.alarmSourceName);
+      } else if (alarmData.groupId_edit === '空') {
+        this.alarmDatas.splice(i, 1);
       }
     }
     if (noGroupAlarmsSet.size > 0) {
@@ -520,6 +528,16 @@ export default class TopoTable extends Vue {
     &:hover {
       background: #f5f7fa;
     }
+  }
+}
+.rcaGroup-wrap {
+  display: flex;
+  align-items: center;
+  .edit-label {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 .group_dropdown {
