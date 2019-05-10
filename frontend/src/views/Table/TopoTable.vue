@@ -252,9 +252,11 @@ export default class TopoTable extends Vue {
       window.location.hash = '';
     });
   }
-  public inputBlur(newRow: AlarmData) {
+  public inputBlur(newRow?: AlarmData) {
     this.editCellId = "";
-    this.setSelectedRow(newRow);
+    if (newRow) {
+      this.setSelectedRow(newRow);
+    }
     this.popoverDisable = false;
   }
   public getHeaderCellClass(item: CellData) {
