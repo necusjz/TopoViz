@@ -95,6 +95,8 @@ export default class TopoTree extends Vue {
   public fullScreen() {
     if (this.stage && this.bound) {
       this.stage.fitBound(this.bound);
+      // const center = this.bound.getCenter();
+      // this.stage.setView([center[0], center[1] + 50]);
     }
   }
   public addEvents() {
@@ -236,7 +238,11 @@ export default class TopoTree extends Vue {
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
     const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
     // 添加告警数量tag
-    this.stage.addLayer(new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20));
+    const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20);
+    if (this.bound) {
+      this.bound = this.bound.union(tagImage.getBound());
+    }
+    this.stage.addLayer(tagImage);
     if (this.isPAlarm(alarmSourceName)) {
       const alarmUrl = require('../../assets/alarm.jpg');
       const alarmTagPos = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 1.2)).toArray();
