@@ -1,8 +1,7 @@
 import pandas as pd
 import os
 
-from werkzeug.utils import secure_filename
-from flask import Flask, jsonify, request
+from flask import Flask, request
 from numpy import nan
 
 app = Flask(__name__, static_url_path='')
@@ -82,7 +81,6 @@ def fill_tree(alarm):
             mask = (alarm['AlarmSource'] == ne) & \
                    (pd.isnull(alarm['GroupId_Edited']))
             alarm.loc[mask, 'X_Alarm'] = tree
-            alarm.loc[mask, 'RcaResult_Edited'] = 'C'
     save_data(alarm, client_id)
 
 
@@ -103,6 +101,7 @@ def group_filter(group_id):
                                      app.config['ALARM_FILE']))
     # determine which case
     if group_id.startswith('TOPO_TREE_'):
+        alarm['RcaResult_Edited'] = 'C'
         alarm = alarm.loc[alarm['X_Alarm'] == group_id]
     else:
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
@@ -208,7 +207,7 @@ def save_edit(client_id):
         for column, value in zip(columns, values):
             alarm.loc[mask, column] = value
         # fill confirmed field
-        if alarm.loc[mask, 'GroupId_Edited'].any():
+        if alarm['GroupId_Edited'].any():
             alarm.loc[mask, 'Confirmed'] = '1'
         else:
             alarm.loc[mask, 'Confirmed'] = nan
@@ -234,6 +233,8 @@ def get_expand(pre_alarm, cur_alarm):
         yellow_ne = list(add_alarm)
         for ne in add_alarm:
             extra_alarm = cur_alarm.loc[cur_alarm['AlarmSource'] == ne]
+            if not extra_alarm['GroupId_Edited'].any():
+                extra_alarm['RcaResult_Edited'] = 'C'
             pre_alarm = pre_alarm.append(extra_alarm, ignore_index=True)
     topo_tree = build_tree(topo_path)
     return yellow_ne, topo_tree, pre_alarm

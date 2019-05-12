@@ -41,7 +41,7 @@ export default class TopoInput extends Vue {
         if (!validStr) {
           this.$emit('blur');
         } else {
-          validStr = `TOPO_TREE_${validStr}`;
+          validStr = `EXTRA_${validStr}`;
           checkId(validStr).then((res) => {
             if (res && !res.exist) {
               this.row[this.attr] = validStr;
