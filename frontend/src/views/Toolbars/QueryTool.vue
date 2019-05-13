@@ -31,7 +31,7 @@
     </div>
     <div class="app-query-tool-item app-query-tool-group-wrap">
       <el-autocomplete
-        placeholder="请输入 Group ID"
+        :placeholder="$t('lang.enterGroup')"
         v-model="groupId"
         size="mini"
         :disabled="isNonImported"
@@ -45,7 +45,7 @@
     </div>
     <div class="app-query-tool-item app-query-tool-regulation">
       <el-cascader
-        placeholder="请按照条件定位"
+        :placeholder="$t('lang.selectCondition')"
         :options="options"
         v-model="regulationValue"
         :clearable="true"
@@ -57,9 +57,9 @@
     </div>
     <div class="query-expand" v-show="!isCheckNone">
       <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
-      显示前后
+      {{$t('lang.preExpand')}}
       <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="10" :disabled="!status"></el-input-number>
-      分钟告警
+      {{$t('lang.pstExpand')}}
     </div>
   </div>
 </template>
