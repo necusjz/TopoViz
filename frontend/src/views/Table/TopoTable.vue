@@ -332,18 +332,30 @@ export default class TopoTable extends Vue {
   public handleCommandRCAResult(item: AlarmData) {
     const result: string = item.rcaResult_edit === RCAResult.P ? RCAResult.C : RCAResult.P;
     item.rcaResult_edit = result;
-    this.setSelectedRow(item);
+    if (item.rcaResult_edit !== item.rcaResult) {
+      this.setSelectedRow(item);
+    } else {
+      this.cancelSelectRow(item);
+    }
   }
   public handleCommandGroupId(item: AlarmData) {
     const edit_groupId = this.getEditGroupIdLabel(item).trim();
     item.groupId_edit = edit_groupId;
-    this.setSelectedRow(item);
+    if (item.groupId_edit !== item.groupId) {
+      this.setSelectedRow(item);
+    } else {
+      this.cancelSelectRow(item);
+    }
   }
   // 设置选中的行
   public setSelectedRow(row: AlarmData) {
     const table: any = this.$refs.table;
     table.toggleRowSelection(row, true);
     this.$store.commit('SET_NEEDSAVE', true);
+  }
+  public cancelSelectRow(row: AlarmData) {
+    const table: any = this.$refs.table;
+    table.toggleRowSelection(row, false);
   }
   // 提交确认的数据
   public confirm(row: AlarmData | string, column?: any) {
