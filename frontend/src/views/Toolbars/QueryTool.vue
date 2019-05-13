@@ -379,6 +379,9 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
     }
   }
   .app-query-type-wrap {
+    &:first-child {
+      padding-right: 0;
+    }
     line-height: 30px;
     border-right: 1px solid #DFDFDF;
     .el-radio {
@@ -416,9 +419,13 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   .query-expand {
     position: absolute;
     right: 40px;
-    font-size: 14px;
+    font-size: 12px;
     .expand-input {
-      width: 80px;
+      width: 60px;
+      .el-input__inner {
+        padding-left: 10px;
+        padding-right: 40px;
+      }
     }
   }
 }
