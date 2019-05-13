@@ -21,6 +21,10 @@ const en = {
     unknownAlarm: 'Unknown',
     selectStart: 'select start time',
     selectEnd: 'select end time',
+    enterGroup: 'please enter a Group ID',
+    selectCondition: 'please select a condition',
+    preExpand: 'within',
+    pstExpand: 'minutes',
   },
   ...zhLocale
 }
