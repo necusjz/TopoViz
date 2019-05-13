@@ -72,7 +72,7 @@
               <p>{{scope.row.groupId_edit}}</p>
             </div>
             <div class="rcaGroup-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
-              <span :title="scope.row.groupId_edit" class="rcaReg-label edit-label">{{scope.row.groupId_edit}}</span>
+              <span :title="scope.row.groupId_edit" class="rcaReg-label edit-label">{{scope.row.groupId_edit || '空'}}</span>
               <i class="el-icon-edit"></i>
             </div>
           </el-popover>
@@ -368,7 +368,7 @@ export default class TopoTable extends Vue {
         rcaReg: 'RuleName_Edited',
       }
       for (const key of Object.keys(propsMapping)) {
-        if (grow[key] !== grow[`${key}_edit`]) {
+        if (this.checkEdited(grow, key)) {
           columns.push(propsMapping[key]);
           const value = grow[`${key}_edit`] === '空' ? '' : grow[`${key}_edit`];
           values.push(value);
@@ -391,16 +391,39 @@ export default class TopoTable extends Vue {
     })
     this.findClearAlars(noGroupAlarmsSet);
   }
+  public checkEdited(grow: AlarmData, key: string): boolean {
+    if (grow[key] !== grow[`${key}_edit`]) {
+      if (key === 'rcaResult') {
+        // groupId存在rcaResult的值才需要保存
+        return grow.GroupId_Edited && grow.GroupId_Edited !== '空';
+      }
+      return true;
+    }
+    return false;
+  }
   public vertifyRCA(): boolean {
     // 验证本组最少有一个P警告
-    let alarmDatas: AlarmData[] = this.alarmDatas;
-    if (!this.isCheckNone) {
-      alarmDatas = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
-    }
-    const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
-    if (pAlarms.length === 0) {
-      bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
-      return false;
+    if (this.isCheckNone) {
+      const distinctGroupIds: string[] = [...new Set(this.editRows.map((alarmData: AlarmData) => alarmData.groupId_edit))];
+      for (const groupId of distinctGroupIds) {
+        if (groupId) {
+          const alarmDatas = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.groupId_edit === groupId)
+          if (!alarmDatas.some((alarmData: AlarmData) => alarmData.rcaResult_edit === RCAResult.P)) {
+            bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+            return false;
+          }
+        }
+      }
+    } else {
+      let alarmDatas: AlarmData[] = this.alarmDatas;
+      if (!this.isCheckNone) {
+        alarmDatas = this.alarmDatas.filter((alarmData) => alarmData.groupId_edit === this.groupId);
+      }
+      const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
+      if (pAlarms.length === 0) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+        return false;
+      }
     }
     return true;
   }

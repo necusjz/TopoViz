@@ -5,25 +5,10 @@
       <span class="app-back">返回</span>
     </div>
     <div class="app-top-right">
-      <!-- <i class="app-help app-icon"></i> -->
-      <!-- <i class="app-account app-icon"></i> -->
-      <!-- <el-dropdown class="app-user-dropdown">
-        <span class="app-user">
-          <i class="el-icon-caret-bottom"></i>
-          {{userName}}
-        </span>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item>设置</el-dropdown-item>
-          <el-dropdown-item>退出</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown> -->
-      <!-- <div class="app-user-dropdown">
-        <span class="app-user">
-          <i class="el-icon-caret-bottom"></i>
-          {{userName}}
-        </span>
-      </div> -->
-      <span @click="switchLang" class="lang-type">{{lang}}</span>
+      <div @click="switchLang" class="lang-type">
+        <span class="bg-text">{{lang === 'cn' ? '中/' : 'EN/'}}</span>
+        {{lang === 'cn' ? 'EN' : '中'}}
+      </div>
     </div>
   </div>
 </template>
@@ -75,9 +60,12 @@ export default class Title extends Vue {
     cursor: pointer;
     .lang-type {
       margin-right: 40px;
-      font-size: 20px;
+      font-size: 12px;
       color: #FFFFFF;
       font-weight: 500;
+      .bg-text {
+        font-size: 18px;
+      }
     }
     .app-icon {
       width: 20px;
