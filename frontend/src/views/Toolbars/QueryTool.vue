@@ -288,7 +288,7 @@ export default class QueryTool extends Vue {
       clearTime: item['Clear'],
       domain: item['Domain'],
       groupId: item['GroupId'],
-      groupId_edit: item['GroupId_Edited'] || '空',
+      groupId_edit: item['GroupId_Edited'],
       rcaResult: item['RcaResult'],
       rcaResult_edit: item['RcaResult_Edited'],
       rcaReg: item['RuleName'],
