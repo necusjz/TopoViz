@@ -58,7 +58,7 @@ export function getStaticsGroupData(params: {xAlarm: boolean}) {
 
 export function exportAlarmData() {
     return service({
-        url: `download?${Date.now()}`,
+        url: `export?${Date.now()}`,
         method: 'get'
     })
 }
