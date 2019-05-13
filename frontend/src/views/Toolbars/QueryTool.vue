@@ -381,6 +381,9 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   .app-query-type-wrap {
     line-height: 30px;
     border-right: 1px solid #DFDFDF;
+    .el-radio {
+      margin-right: 15px;
+    }
   }
   .app-query-date-wrap {
     display: flex;
