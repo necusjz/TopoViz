@@ -407,7 +407,7 @@ export default class TopoTable extends Vue {
     if (grow[key] !== grow[`${key}_edit`]) {
       if (key === 'rcaResult') {
         // groupId存在rcaResult的值才需要保存
-        return grow.GroupId_Edited && grow.GroupId_Edited !== '空';
+        return !!grow.groupId_edit && grow.groupId_edit !== '空';
       }
       return true;
     }
