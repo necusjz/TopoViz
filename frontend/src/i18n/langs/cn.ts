@@ -14,7 +14,11 @@ const cn = {
     groupNumber: '组数量',
     confirmed: '已确认组',
     unconfirmed: '未确认组',
-    accuracy: 'RCA 准确率'
+    accuracy: 'RCA 准确率',
+    noData: '无数据',
+    noDataMsg: '您还没有确认过的数据哦，去“未确认”里看看吧。',
+    knownAlarm: '已知告警',
+    unknownAlarm: '未知告警',
   },
   ...zhLocale
 }
