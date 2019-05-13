@@ -28,7 +28,8 @@ ul, li, p {
     background: $None-Color;
     border: 1px solid $None-Color;
     font-size: 14px;
-    padding: 8px 24px;
+    padding: 8px 5px;
+    width: 80px;
 }
 .error-border-input {
     .el-input__inner {
