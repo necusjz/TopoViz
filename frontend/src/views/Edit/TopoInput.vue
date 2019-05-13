@@ -3,7 +3,6 @@
     size="mini"
     v-model="inputValue"
     ref="editInput"
-    :clearable="true"
     @blur="emitData"
     @keyup.enter.native="enter"
   ></el-input>
@@ -33,27 +32,25 @@ export default class TopoInput extends Vue {
   }
   public emitData() {
     // 校验输入的数据
-    setTimeout(() => {
-      let validStr: string = this.inputValue.trim();
-      if (validStr === this.row[this.attr]) {
-        this.$emit("blur");
-      } else if (this.isCheckNone && this.attr === 'groupId_edit') {
-        if (!validStr) {
-          this.$emit('blur');
-        } else {
-          validStr = `EXTRA_${validStr}`;
-          checkId(validStr).then((res) => {
-            if (res && !res.exist) {
-              this.row[this.attr] = validStr;
-              this.$emit("blur", this.row);
-            }
-          })
-        }
+    let validStr: string = this.inputValue.trim();
+    if (validStr === this.row[this.attr]) {
+      this.$emit("blur");
+    } else if (this.isCheckNone && this.attr === 'groupId_edit') {
+      if (!validStr) {
+        this.$emit('blur');
       } else {
-        this.row[this.attr] = validStr;
-        this.$emit("blur", this.row);
+        validStr = `EXTRA_${validStr}`;
+        checkId(validStr).then((res) => {
+          if (res && !res.exist) {
+            this.row[this.attr] = validStr;
+            this.$emit("blur", this.row);
+          }
+        })
       }
-    }, 200);
+    } else {
+      this.row[this.attr] = validStr;
+      this.$emit("blur", this.row);
+    }
   }
 }
 </script>
