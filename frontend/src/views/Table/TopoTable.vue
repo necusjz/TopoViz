@@ -164,7 +164,7 @@
     <div slot="empty" class="none-tableData-wrap">
       <span class="none-table-label">
         <i class="el-icon-warning"></i>
-        {{ isunConfirmed ? '无数据' : '您还没有确认过的数据哦，去“未确认”里看看吧。'}}
+        {{ isunConfirmed ? $t('lang.noData') : $t('lang.noDataMsg') }}
       </span>
     </div>
   </el-table>

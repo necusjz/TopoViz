@@ -2,7 +2,7 @@
   <div class="rca-topo-board">
     <div class="topo-board-item" v-if="isNoneTopoData">
       <i class="el-icon-warning"></i>
-      无数据
+      {{$t('lang.noData')}}
     </div>
     <div class="topo-board-left" v-else>
       <div class="topo-board-item" v-show="groupId">
