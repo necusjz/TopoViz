@@ -33,6 +33,7 @@ export default class Title extends Vue {
 </script>
 <style lang="scss" scoped>
 .app-title-wrap {
+  position: relative;
   width: 100%;
   height: 50px;
   text-align: left;
