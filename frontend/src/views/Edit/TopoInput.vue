@@ -50,7 +50,7 @@ export default class TopoInput extends Vue {
             bus.$emit(EventType.ERRORVISIBLE, {
               title: '错误提示',
               type: 'error',
-              content: `<p>您输入的GroupId已存在</p>`
+              content: `<p>您输入的 Group ID 已存在</p>`
             });
             this.$emit("blur");
           }
