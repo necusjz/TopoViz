@@ -134,7 +134,7 @@ export default class Importer extends Vue {
       bus.$emit(EventType.ERRORVISIBLE, '<p>请上传文件后再导出数据</p>');
       return;
     }
-    downLoad(`download?clientId=${this.clientId}&t=${Date.now()}`);
+    downLoad(`export?clientId=${this.clientId}&t=${Date.now()}`);
   }
 }
 </script>
