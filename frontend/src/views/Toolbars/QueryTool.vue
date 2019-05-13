@@ -279,20 +279,20 @@ export default class QueryTool extends Vue {
     return {
       uid: generateUUID(),
       index: item['Index'],
-      alarmName: item['AlarmName'],
-      alarmSourceName: item['AlarmSource'],
+      alarmName: item['AlarmName'] || '',
+      alarmSourceName: item['AlarmSource'] || '',
       company: item['Vendor'],
       firstTime: generateDateByTimestamp(item['First']),
       lastTime: item['Last'],
       level: item['Level'],
       clearTime: item['Clear'],
       domain: item['Domain'],
-      groupId: item['GroupId'],
-      groupId_edit: item['GroupId_Edited'],
-      rcaResult: item['RcaResult'],
-      rcaResult_edit: item['RcaResult_Edited'],
-      rcaReg: item['RuleName'],
-      rcaReg_edit: item['RuleName_Edited'],
+      groupId: item['GroupId'] || '',
+      groupId_edit: item['GroupId_Edited'] || '',
+      rcaResult: item['RcaResult'] || '',
+      rcaResult_edit: item['RcaResult_Edited'] || '',
+      rcaReg: item['RuleName'] || '',
+      rcaReg_edit: item['RuleName_Edited'] || '',
       isConfirmed: !!item['Confirmed']
     };
   }
