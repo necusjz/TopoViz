@@ -21,7 +21,7 @@ def format_data(df):
         df.insert(df.shape[1], 'RuleName_Edited', df['RuleName'])
         df['Confirmed'] = nan
         df['X_Alarm'] = nan
-        # sort by first occurrence
+        # sort alarms by first occurrence
         df = df.sort_values('First')
     else:
         df = df[app.config['TOPO_COLUMNS']]
@@ -99,7 +99,7 @@ def group_filter(group_id):
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    # determine which case
+    # decide which case
     if group_id.startswith('TOPO_TREE_'):
         alarm['RcaResult_Edited'] = 'C'
         alarm = alarm.loc[alarm['X_Alarm'] == group_id]
