@@ -316,7 +316,7 @@ export default class Stage extends Evt {
     zoom_h = Math.floor(zoom_h / this.zoomChange) * this.zoomChange;
     const zoom_min = Math.min(zoom_w, zoom_h);
     let zoom = Math.max(zoom_min, this.minZoom);
-    zoom = Math.min(zoom, this.maxZoom);
+    zoom = Math.min(zoom, 1);
     this._render(center, zoom);
   }
   /**
