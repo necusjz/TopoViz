@@ -13,7 +13,7 @@
         :clearable="false"
         :disabled="isNonImported"
         @change="dateChange"
-        placeholder={{$t('lang.selectStart')}}
+        :placeholder="$t('lang.selectStart')"
         size="mini"
       ></el-date-picker>
       <span style="padding-right: 5px;color:#C0C4CC">—</span>
@@ -25,7 +25,7 @@
         :clearable="false"
         :disabled="isNonImported"
         @change="dateChange"
-        placeholder={{$t('lang.selectEnd')}}
+        :placeholder="$t('lang.selectEnd')"
         size="mini"
       ></el-date-picker>
     </div>
