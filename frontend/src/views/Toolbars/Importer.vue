@@ -208,7 +208,8 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       color: #338aff;
       border: solid 1px #338aff;
       font-size: 14px;
-      padding: 8px 10px;
+      padding: 8px 5px;
+      width: 80px;
     }
   }
 }
