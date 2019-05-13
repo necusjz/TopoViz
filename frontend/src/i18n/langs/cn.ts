@@ -19,6 +19,8 @@ const cn = {
     noDataMsg: '您还没有确认过的数据哦，去“未确认”里看看吧。',
     knownAlarm: '已知告警',
     unknownAlarm: '未知告警',
+    selectStart: '选择开始时间',
+    selectEnd: '选择结束时间'
   },
   ...zhLocale
 }
