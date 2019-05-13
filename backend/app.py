@@ -223,10 +223,10 @@ def check_id():
     # construct json for frontend
     res = dict()
     res['exist'] = False
-    res['message'] = 'Group Id is unique.'
+    res['message'] = 'Group ID is unique.'
     if cur_id & pre_id:
         res['exist'] = True
-        res['message'] = 'Group Id is duplicate.'
+        res['message'] = 'Group ID is duplicate.'
     return jsonify(res)
 
 
