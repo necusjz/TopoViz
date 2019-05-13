@@ -13,7 +13,7 @@
         :clearable="false"
         :disabled="isNonImported"
         @change="dateChange"
-        placeholder="选择开始时间"
+        placeholder={{$t('lang.selectStart')}}
         size="mini"
       ></el-date-picker>
       <span style="padding-right: 5px;color:#C0C4CC">—</span>
@@ -25,7 +25,7 @@
         :clearable="false"
         :disabled="isNonImported"
         @change="dateChange"
-        placeholder="选择截止时间"
+        placeholder={{$t('lang.selectEnd')}}
         size="mini"
       ></el-date-picker>
     </div>
