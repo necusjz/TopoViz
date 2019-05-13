@@ -12,6 +12,8 @@
 import { Component, Prop, Vue, Provide } from "vue-property-decorator";
 import { State } from "vuex-class";
 import { checkId } from '@/api/request';
+import { EventType } from '@/types/type';
+import bus from '@/util/bus';
 
 @Component
 export default class TopoInput extends Vue {
@@ -20,7 +22,7 @@ export default class TopoInput extends Vue {
   @Provide() private inputValue: string = "";
   @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
   mounted() {
-    this.inputValue = this.row[this.attr];
+    this.inputValue = this.row[this.attr] || '';
     this.$nextTick(() => {
       const inputCom: any = this.$refs.editInput;
       inputCom.focus();
@@ -44,6 +46,13 @@ export default class TopoInput extends Vue {
           if (res && !res.exist) {
             this.row[this.attr] = validStr;
             this.$emit("blur", this.row);
+          } else {
+            bus.$emit(EventType.ERRORVISIBLE, {
+              title: '错误提示',
+              type: 'error',
+              content: `<p>您输入的GroupId已存在</p>`
+            });
+            this.$emit("blur");
           }
         })
       }
