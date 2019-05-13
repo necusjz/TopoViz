@@ -20,7 +20,11 @@ const cn = {
     knownAlarm: '已知告警',
     unknownAlarm: '未知告警',
     selectStart: '选择开始时间',
-    selectEnd: '选择结束时间'
+    selectEnd: '选择结束时间',
+    enterGroup: '请输入 Group ID',
+    selectCondition: '请选择条件',
+    preExpand: '前后',
+    pstExpand: '分钟',
   },
   ...zhLocale
 }
