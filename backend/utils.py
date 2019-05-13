@@ -207,7 +207,7 @@ def save_edit(client_id):
         for column, value in zip(columns, values):
             alarm.loc[mask, column] = value
         # fill confirmed field
-        if alarm['GroupId_Edited'].any():
+        if alarm.loc[mask]['GroupId_Edited'].any():
             alarm.loc[mask, 'Confirmed'] = '1'
         else:
             alarm.loc[mask, 'Confirmed'] = nan
