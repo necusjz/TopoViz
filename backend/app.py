@@ -101,6 +101,7 @@ def interval():
         res['group_id'] = list(alarm['GroupId_Edited'].drop_duplicates()
                                                       .dropna())
     elif x_alarm == 'true':
+        # sort topos by tree id
         alarm = alarm.sort_values('X_Alarm')
         res['group_id'] = list(alarm['X_Alarm'].drop_duplicates()
                                                .dropna())
@@ -222,8 +223,10 @@ def check_id():
     # construct json for frontend
     res = dict()
     res['exist'] = False
+    res['message'] = 'Group Id is unique.'
     if cur_id & pre_id:
         res['exist'] = True
+        res['message'] = 'Group Id is duplicate.'
     return jsonify(res)
 
 
@@ -237,7 +240,7 @@ def clean_up():
     # construct json for frontend
     res = dict()
     res['code'] = 200
-    res['message'] = 'CLEAN UP SUCCESSFULLY'
+    res['message'] = 'Cache was cleaned up successfully.'
     return jsonify(res), 200
 
 
