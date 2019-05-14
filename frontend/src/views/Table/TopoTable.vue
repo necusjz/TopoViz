@@ -366,7 +366,7 @@ export default class TopoTable extends Vue {
     }
   }
   public saveData() {
-    if (!this.vertifyRCA()) return;
+    if (!this.vertifyRCA() || !this.needSave) return;
     const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
     const noGroupAlarmsSet: Set<string> = new Set();
     const rows = this.editRows;
@@ -444,7 +444,7 @@ export default class TopoTable extends Vue {
       const alarmData = this.alarmDatas[i];
       if (alarmData.groupId_edit !== '空' && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
         noGroupAlarmsSet.delete(alarmData.alarmSourceName);
-      } else if (alarmData.groupId_edit === '空' && !this.isCheckNone) {
+      } else if ((alarmData.groupId_edit === '空' || alarmData.groupId_edit === '')&& !this.isCheckNone) {
         this.alarmDatas.splice(i, 1);
       }
     }
