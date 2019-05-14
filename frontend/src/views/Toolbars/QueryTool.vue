@@ -58,7 +58,7 @@
     <div class="query-expand" v-show="!isCheckNone">
       <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
       {{$t('lang.preExpand')}}
-      <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="10" :disabled="!status"></el-input-number>
+      <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="9" :disabled="!status"></el-input-number>
       {{$t('lang.pstExpand')}}
     </div>
   </div>
@@ -282,7 +282,7 @@ export default class QueryTool extends Vue {
       alarmName: item['AlarmName'] || '',
       alarmSourceName: item['AlarmSource'] || '',
       company: item['Vendor'],
-      firstTime: generateDateByTimestamp(item['First']),
+      firstTime: isNaN(item['First']) ? item['First'] : generateDateByTimestamp(item['First'] - 8 * 3600 * 1000),
       lastTime: item['Last'],
       level: item['Level'],
       clearTime: item['Clear'],
@@ -391,7 +391,7 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   .app-query-date-wrap {
     display: flex;
     .app-query-date {
-      width: 165px;
+      width: 170px;
       height: 30px;
       color: #778296;
       padding-right: 5px;

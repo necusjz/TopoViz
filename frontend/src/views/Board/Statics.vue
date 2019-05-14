@@ -119,6 +119,7 @@ export default class StaticsBoard extends Vue {
           line-height: 50px;
           font-size: 36px;
           color: #979797;
+          cursor: pointer;
         }
       }
     }
