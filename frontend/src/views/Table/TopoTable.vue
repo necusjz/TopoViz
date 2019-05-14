@@ -32,12 +32,12 @@
         <span :title="scope.row.company">{{scope.row.company}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="firstTime" label="首次发生时间" width="150">
+    <el-table-column prop="firstTime" label="首次发生时间" width="180">
       <template slot-scope="scope">
         <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="lastTime" label="最近发生时间" width="150">
+    <el-table-column prop="lastTime" label="最近发生时间" width="180">
       <template slot-scope="scope">
         <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
       </template>
@@ -442,12 +442,10 @@ export default class TopoTable extends Vue {
   public findClearAlars(noGroupAlarmsSet: Set<string>) {
     for (let i = this.alarmDatas.length - 1; i >= 0; i--) {
       const alarmData = this.alarmDatas[i];
-      if (noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
-        if (alarmData.groupId_edit !== '空') {
-          noGroupAlarmsSet.delete(alarmData.alarmSourceName);
-        } else if ((alarmData.groupId_edit === '空' || alarmData.groupId_edit === '')&& !this.isCheckNone) {
-          this.alarmDatas.splice(i, 1);
-        }
+      if ((alarmData.groupId_edit === '空' || alarmData.groupId_edit === '')&& !this.isCheckNone) {
+        this.alarmDatas.splice(i, 1);
+      } else if (noGroupAlarmsSet.has(alarmData.alarmSourceName) && alarmData.groupId_edit !== '空') {
+        noGroupAlarmsSet.delete(alarmData.alarmSourceName);
       }
     }
     if (noGroupAlarmsSet.size > 0) {
