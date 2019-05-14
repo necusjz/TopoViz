@@ -210,7 +210,10 @@ def save_edit(client_id):
         if alarm.loc[mask]['GroupId_Edited'].any():
             alarm.loc[mask, 'Confirmed'] = '1'
         else:
-            alarm.loc[mask, 'Confirmed'] = nan
+            if alarm.loc[mask]['X_Alarm'].any():
+                alarm.loc[mask, 'Confirmed'] = '1'
+            else:
+                alarm.loc[mask, 'Confirmed'] = nan
     save_data(alarm, client_id)
 
 
