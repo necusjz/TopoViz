@@ -391,7 +391,7 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
   .app-query-date-wrap {
     display: flex;
     .app-query-date {
-      width: 170px;
+      width: 175px;
       height: 30px;
       color: #778296;
       padding-right: 5px;
