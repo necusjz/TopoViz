@@ -110,9 +110,6 @@ export default class StaticsBoard extends Vue {
           flex-direction: column;
           text-align: center;
         }
-        .board-precision {
-          cursor: pointer;
-        }
         .board-count {
           font-size: 26px;
           font-weight: 500;
@@ -122,7 +119,6 @@ export default class StaticsBoard extends Vue {
           line-height: 50px;
           font-size: 36px;
           color: #979797;
-          cursor: pointer;
         }
       }
     }
