@@ -78,7 +78,7 @@ export default class TipDialog extends Vue {
 <style lang="scss">
 .tip-container {
   position: absolute;
-  width: 250px;
+  width: 300px;
   z-index: 5;
   background-color: #fff;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
