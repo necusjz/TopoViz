@@ -442,10 +442,12 @@ export default class TopoTable extends Vue {
   public findClearAlars(noGroupAlarmsSet: Set<string>) {
     for (let i = this.alarmDatas.length - 1; i >= 0; i--) {
       const alarmData = this.alarmDatas[i];
-      if (alarmData.groupId_edit !== '空' && noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
-        noGroupAlarmsSet.delete(alarmData.alarmSourceName);
-      } else if ((alarmData.groupId_edit === '空' || alarmData.groupId_edit === '')&& !this.isCheckNone) {
-        this.alarmDatas.splice(i, 1);
+      if (noGroupAlarmsSet.has(alarmData.alarmSourceName)) {
+        if (alarmData.groupId_edit !== '空') {
+          noGroupAlarmsSet.delete(alarmData.alarmSourceName);
+        } else if ((alarmData.groupId_edit === '空' || alarmData.groupId_edit === '')&& !this.isCheckNone) {
+          this.alarmDatas.splice(i, 1);
+        }
       }
     }
     if (noGroupAlarmsSet.size > 0) {
@@ -463,7 +465,7 @@ export default class TopoTable extends Vue {
     border-collapse: collapse;
   }
   .topo-table-row-active {
-    border: 2px solid #4a96ff;
+    border: 3px solid #4a96ff;
     border-left: 1px solid #4a96ff;
     & + .topo-table-row-active {
       border-top: none;

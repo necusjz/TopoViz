@@ -126,4 +126,9 @@ export default class AppMain extends Vue {
     }
   }
 }
+@media screen and (min-width: 1400px) {
+  .app-container .app-rca-body .app-topo-tree {
+    height: 850px;
+  }
+}
 </style>
