@@ -9,7 +9,7 @@
           <span class="statics-tab-content">已确认 {{this.confirmData.length}}</span>
         </div>
       </div>
-      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm" v-if="activeType === 0">一键确认</el-button>
+      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm" v-if="activeType === 0 && this.unconfirmData.length > 0">一键确认</el-button>
     </el-row>
     <el-scrollbar :native="false" wrapClass="statics-table-scroll-wrap" viewClass="" :noresize="false" class="statics-table-scroll">
       <div class="statics-sub-table">

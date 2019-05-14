@@ -91,7 +91,6 @@ export default class TopoTree extends Vue {
     } else {
       stage.zoomOut();
     }
-    console.log(stage.getZoom());
   }
   public fullScreen() {
     if (this.stage && this.bound) {
