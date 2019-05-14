@@ -191,7 +191,8 @@ export default class TopoTree extends Vue {
         const p1 = source.clone().add(ydir.clone().scale(this.size / 1.8));
         const p2 = target.clone().add(ydir.clone().scale(this.size / 1.8));
         const p3 = p1.clone().add(ydir.clone().scale(step / 3));
-        const p4 = p2.clone().add(ydir.clone().scale(step / 3));
+        // const p4 = p2.clone().add(ydir.clone().scale(step / 3));
+        const p4 = new xCanvas.Math.Vector2(p2.x, p3.y);
         path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
         const leader = new xCanvas.Polyline(path, {color: '#0276F7'});
         const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1});
@@ -251,8 +252,8 @@ export default class TopoTree extends Vue {
     }
     this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
     const maxLength = 150;
-    const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName, 
-      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12})
+    const iText = new xCanvas.IText([textPos[0], textPos[1]], 'WE Bkt Koman - Raub 2 Kolam Air', 
+      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12}); //  alarmSourceName
     this.stage.addLayer(iText);
     if (this.bound) {
       this.bound = this.bound.union(iText.getBound());
