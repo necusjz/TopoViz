@@ -45,11 +45,7 @@
     </div>
     <div class="app-query-tool-item app-query-tool-regulation">
       <el-cascader
-<<<<<<< Updated upstream
         :placeholder="$t('lang.selectCondition')"
-=======
-        placeholder="请按照条件定位werresdfdfdfdffsdf"
->>>>>>> Stashed changes
         :options="options"
         v-model="regulationValue"
         :clearable="true"
