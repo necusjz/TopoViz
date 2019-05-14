@@ -366,7 +366,7 @@ export default class TopoTable extends Vue {
     }
   }
   public saveData() {
-    if (!this.vertifyRCA()) return;
+    if (!this.vertifyRCA() || !this.needSave) return;
     const data: {row: number[], columns: string[][], values: string[][]} = {row: [], columns: [], values: []};
     const noGroupAlarmsSet: Set<string> = new Set();
     const rows = this.editRows;
