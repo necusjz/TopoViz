@@ -45,11 +45,7 @@
     </div>
     <div class="app-query-tool-item app-query-tool-regulation">
       <el-cascader
-<<<<<<< Updated upstream
         :placeholder="$t('lang.selectCondition')"
-=======
-        placeholder="请按照条件定位werresdfdfdfdffsdf"
->>>>>>> Stashed changes
         :options="options"
         v-model="regulationValue"
         :clearable="true"
@@ -414,6 +410,9 @@ $Btn_Background: linear-gradient(0deg, #f2f2f2 1%, #f7faff 100%);
       .el-input__inner {
         background-image: linear-gradient(to top, #f2f2f2, #f7faff);
       }
+    }
+    .el-input__inner {
+      width: 190px;
     }
     .app-query-tool-reg {
       margin-left: 10px;
