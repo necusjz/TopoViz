@@ -101,7 +101,7 @@ def group_filter(group_id):
                                      app.config['ALARM_FILE']))
     # decide which case
     if group_id.startswith('TOPO_TREE_'):
-        alarm['RcaResult_Edited'] = 'C'
+        alarm.loc[:, 'RcaResult_Edited'] = 'C'
         alarm = alarm.loc[alarm['X_Alarm'] == group_id]
     else:
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
@@ -237,7 +237,7 @@ def get_expand(pre_alarm, cur_alarm):
         for ne in add_alarm:
             extra_alarm = cur_alarm.loc[cur_alarm['AlarmSource'] == ne]
             if not extra_alarm['GroupId_Edited'].any():
-                extra_alarm.loc['RcaResult_Edited'] = 'C'
+                extra_alarm.loc[:, 'RcaResult_Edited'] = 'C'
             pre_alarm = pre_alarm.append(extra_alarm, ignore_index=True)
     topo_tree = build_tree(topo_path)
     return yellow_ne, topo_tree, pre_alarm
