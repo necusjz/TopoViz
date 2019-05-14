@@ -207,7 +207,7 @@ export default class QueryTool extends Vue {
   public expand(val: boolean) {
     bus.$emit(EventType.FILTERRESET);
     if (val) {
-      getExpandAlarmDatas({groupId: this.groupId, addTime: this.interval * 60, xAlarm: this.isCheckNone}).then((res: AnalyzeRes) => {
+      getExpandAlarmDatas({groupId: this.groupId, addTime: this.interval, xAlarm: this.isCheckNone}).then((res: AnalyzeRes) => {
         this.setData(res);
       });
     } else {
