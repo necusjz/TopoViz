@@ -27,6 +27,8 @@ export default class StaticsBoard extends Vue {
   @Provide() private tabData: AlarmData[] = [];
   @Provide() private confirm_count: number = 0;
   @Provide() private unconfirm_count: number = 0;
+  @Provide() private confirmText: any;
+  @Provide() private saveText: any;
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.app.isNoneTableData) private isNoneTableData!: boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -53,6 +55,10 @@ export default class StaticsBoard extends Vue {
     if (val) {
       this.skipPage();
     }
+  }
+  mounted() {
+    this.confirmText = this.$t('lang.confirm');
+    this.saveText = this.$t('lang.confirm');
   }
   public changeTableData() {
     let filt: boolean = !!this.activeType;
@@ -104,7 +110,7 @@ export default class StaticsBoard extends Vue {
     if (!this.activeType) {
       lastRow.ratio = '';
       lastRow.alarmName = '';
-      lastRow.alarmSourceName = '一键确认';
+      lastRow.alarmSourceName = this.confirmText;
     }
     this.tabData.splice(this.tabData.length, 0, lastRow);
   }
