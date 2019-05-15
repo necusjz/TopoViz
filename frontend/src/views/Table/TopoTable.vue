@@ -1,173 +1,179 @@
 <template>
-  <el-table
-    ref="table"
-    class="topoTable"
-    :class="{'topoTable-none-confirm': isunConfirmed}"
-    :data="tableData"
-    tooltip-effect="dark"
-    :cell-class-name="getCellClassName"
-    :row-class-name="getRowClassName"
-    :header-cell-class-name="getHeaderCellClass"
-    header-row-class-name="topoTable-header-row"
-    @selection-change="handleSelectionChange"
-    @cell-click="confirm"
-    @row-click="handleRowClick"
-    row-key="uid"
-    :span-method="objectSpanMethod"
-  >
-    <el-table-column type="selection" width="60" v-if="isunConfirmed"></el-table-column>
-    <el-table-column prop="alarmName" :label="$t('lang.alarmName')">
-      <template slot-scope="scope">
-        <span :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
-        <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="alarmSourceName" :label="$t('lang.alarmSource')">
-      <template slot-scope="scope">
-        <span :id="scope.row.alarmSourceName" :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="company" :label="$t('lang.firm')" min-width="60">
-      <template slot-scope="scope">
-        <span :title="scope.row.company">{{scope.row.company}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="190">
-      <template slot-scope="scope">
-        <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="lastTime" :label="$t('lang.lastTime')" width="200">
-      <template slot-scope="scope">
-        <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="level" :label="$t('lang.level')" width="70">
-      <template slot-scope="scope">
-        <span :title="scope.row.level">{{scope.row.level}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="clearTime" :label="$t('lang.clearTime')" width="150">
-      <template slot-scope="scope">
-        <span :title="scope.row.clearTime">{{scope.row.clearTime}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="domain" :label="$t('lang.domain')" width="90">
-      <template slot-scope="scope">
-        <span :title="scope.row.domain">{{scope.row.domain}}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="groupId_edit" label="Group ID" width="180">
-      <template slot-scope="scope">
-        <div v-if="isCheckNone">
+  <div>
+    <el-table
+      ref="table"
+      class="topoTable"
+      :class="{'topoTable-none-confirm': isunConfirmed}"
+      :data="tableData"
+      tooltip-effect="dark"
+      cell-class-name="topoTable-cell"
+      :row-class-name="getRowClassName"
+      :header-cell-class-name="getHeaderCellClass"
+      header-row-class-name="topoTable-header-row"
+      @selection-change="handleSelectionChange"
+      @cell-click="confirm"
+      @row-click="handleRowClick"
+      row-key="uid"
+    >
+      <el-table-column type="selection" width="60" v-if="isunConfirmed"></el-table-column>
+      <el-table-column prop="alarmName" :label="$t('lang.alarmName')">
+        <template slot-scope="scope">
+          <span :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
+          <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="alarmSourceName" :label="$t('lang.alarmSource')">
+        <template slot-scope="scope">
+          <span :id="scope.row.alarmSourceName" :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="company" :label="$t('lang.firm')" min-width="60">
+        <template slot-scope="scope">
+          <span :title="scope.row.company">{{scope.row.company}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="190">
+        <template slot-scope="scope">
+          <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="lastTime" :label="$t('lang.lastTime')" width="200">
+        <template slot-scope="scope">
+          <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="level" :label="$t('lang.level')" width="70">
+        <template slot-scope="scope">
+          <span :title="scope.row.level">{{scope.row.level}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="clearTime" :label="$t('lang.clearTime')" width="150">
+        <template slot-scope="scope">
+          <span :title="scope.row.clearTime">{{scope.row.clearTime}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="domain" :label="$t('lang.domain')" width="90">
+        <template slot-scope="scope">
+          <span :title="scope.row.domain">{{scope.row.domain}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="groupId_edit" label="Group ID" width="180">
+        <template slot-scope="scope">
+          <div v-if="isCheckNone">
+            <el-popover
+                popper-class="edit-history-wrap"
+                placement="bottom"
+                :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
+                trigger="hover">
+              <div class="edit-record">
+                <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
+                <p>{{scope.row.groupId}}</p>
+                <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
+                <p>{{scope.row.groupId_edit}}</p>
+              </div>
+              <div class="rcaGroup-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
+                <span :title="scope.row.groupId_edit" class="rcaReg-label edit-label">{{scope.row.groupId_edit || '空'}}</span>
+                <i class="el-icon-edit"></i>
+              </div>
+            </el-popover>
+            <TopoInput
+              class="topoTable-hidden-input"
+              v-if="editCellId === `${scope.row.uid}-groupId`"
+              :row="scope.row"
+              attr="groupId_edit"
+              @blur="inputBlur"
+            ></TopoInput>
+          </div>
           <el-popover
               popper-class="edit-history-wrap"
               placement="bottom"
+              :width="100"
               :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
+              trigger="hover" v-else>
+              <div class="edit-record">
+                <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
+                <p>{{scope.row.groupId}}</p>
+                <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
+                <p>{{scope.row.groupId_edit}}</p>
+              </div>
+              <el-dropdown trigger="click" size="small" @visible-change="dropDownVisble" @command="handleCommandGroupId" placement="bottom" slot="reference">
+                <span :title="scope.row.groupId_edit" class="edit-text">
+                  {{scope.row.groupId_edit}}
+                  <i class="el-icon-arrow-down"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown" class="group_dropdown">
+                  <el-dropdown-item :command="scope.row">{{getEditGroupIdLabel(scope.row)}}</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-popover>
+        </template>
+      </el-table-column>
+      <el-table-column prop="rcaResult_edit" :label="$t('lang.rcaResult')" width="120">
+        <template slot-scope="scope">
+          <el-popover
+              popper-class="edit-history-wrap"
+              placement="bottom"
+              :disabled="isunConfirmed || popoverDisable || scope.row.rcaResult === scope.row.rcaResult_edit"
+              trigger="hover"
+              >
+              <div class="edit-record">
+                <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
+                <p>{{scope.row.rcaResult}}</p>
+                <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
+                <p>{{scope.row.rcaResult_edit}}</p>
+              </div>
+              <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" @visible-change="dropDownVisble" placement="bottom" slot="reference">
+                <span :title="scope.row.rcaResult_edit" class="edit-text">
+                  {{scope.row.rcaResult_edit}}
+                  <i class="el-icon-arrow-down el-icon--right"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item :command="scope.row">{{scope.row.rcaResult_edit === 'C' ? 'P' : 'C'}}</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-popover>
+        </template>
+      </el-table-column>
+      <el-table-column prop="rcaReg_edit" :label="$t('lang.rcaReg')" min-width="180px">
+        <template slot-scope="scope">
+          <el-popover
+              popper-class="edit-history-wrap"
+              placement="bottom"
+              :disabled="isunConfirmed || popoverDisable || scope.row.rcaReg === scope.row.rcaReg_edit"
               trigger="hover">
             <div class="edit-record">
               <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
-              <p>{{scope.row.groupId}}</p>
+              <p>{{scope.row.rcaReg}}</p>
               <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
-              <p>{{scope.row.groupId_edit}}</p>
+              <p>{{scope.row.rcaReg_edit}}</p>
             </div>
-            <div class="rcaGroup-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
-              <span :title="scope.row.groupId_edit" class="rcaReg-label edit-label">{{scope.row.groupId_edit || '空'}}</span>
+            <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row, 'reg')">
+              <span :title="scope.row.rcaReg_edit" class="rcaReg-label edit-label">{{scope.row.rcaReg_edit}}</span>
               <i class="el-icon-edit"></i>
             </div>
           </el-popover>
           <TopoInput
             class="topoTable-hidden-input"
-            v-if="editCellId === `${scope.row.uid}-groupId`"
+            v-if="editCellId === `${scope.row.uid}-reg`"
             :row="scope.row"
-            attr="groupId_edit"
+            attr="rcaReg_edit"
             @blur="inputBlur"
           ></TopoInput>
-        </div>
-        <el-popover
-            popper-class="edit-history-wrap"
-            placement="bottom"
-            :width="100"
-            :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
-            trigger="hover" v-else>
-            <div class="edit-record">
-              <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
-              <p>{{scope.row.groupId}}</p>
-              <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
-              <p>{{scope.row.groupId_edit}}</p>
-            </div>
-            <el-dropdown trigger="click" size="small" @visible-change="dropDownVisble" @command="handleCommandGroupId" placement="bottom" slot="reference">
-              <span :title="scope.row.groupId_edit" class="edit-text">
-                {{scope.row.groupId_edit}}
-                <i class="el-icon-arrow-down"></i>
-              </span>
-              <el-dropdown-menu slot="dropdown" class="group_dropdown">
-                <el-dropdown-item :command="scope.row">{{getEditGroupIdLabel(scope.row)}}</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </el-popover>
-      </template>
-    </el-table-column>
-    <el-table-column prop="rcaResult_edit" :label="$t('lang.rcaResult')" width="120">
-      <template slot-scope="scope">
-        <el-popover
-            popper-class="edit-history-wrap"
-            placement="bottom"
-            :disabled="isunConfirmed || popoverDisable || scope.row.rcaResult === scope.row.rcaResult_edit"
-            trigger="hover"
-            >
-            <div class="edit-record">
-              <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
-              <p>{{scope.row.rcaResult}}</p>
-              <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
-              <p>{{scope.row.rcaResult_edit}}</p>
-            </div>
-            <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" @visible-change="dropDownVisble" placement="bottom" slot="reference">
-              <span :title="scope.row.rcaResult_edit" class="edit-text">
-                {{scope.row.rcaResult_edit}}
-                <i class="el-icon-arrow-down el-icon--right"></i>
-              </span>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item :command="scope.row">{{scope.row.rcaResult_edit === 'C' ? 'P' : 'C'}}</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </el-popover>
-      </template>
-    </el-table-column>
-    <el-table-column prop="rcaReg_edit" :label="$t('lang.rcaReg')" min-width="180px">
-      <template slot-scope="scope">
-        <el-popover
-            popper-class="edit-history-wrap"
-            placement="bottom"
-            :disabled="isunConfirmed || popoverDisable || scope.row.rcaReg === scope.row.rcaReg_edit"
-            trigger="hover">
-          <div class="edit-record">
-            <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
-            <p>{{scope.row.rcaReg}}</p>
-            <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
-            <p>{{scope.row.rcaReg_edit}}</p>
-          </div>
-          <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row, 'reg')">
-            <span :title="scope.row.rcaReg_edit" class="rcaReg-label edit-label">{{scope.row.rcaReg_edit}}</span>
-            <i class="el-icon-edit"></i>
-          </div>
-        </el-popover>
-        <TopoInput
-          class="topoTable-hidden-input"
-          v-if="editCellId === `${scope.row.uid}-reg`"
-          :row="scope.row"
-          attr="rcaReg_edit"
-          @blur="inputBlur"
-        ></TopoInput>
-      </template>
-    </el-table-column>
-    <div slot="empty" class="none-tableData-wrap">
-      <span class="none-table-label">
-        <i class="el-icon-warning"></i>
-        {{ isunConfirmed ? $t('lang.noData') : $t('lang.noDataMsg') }}
-      </span>
-    </div>
-  </el-table>
+        </template>
+      </el-table-column>
+      <div slot="empty" class="none-tableData-wrap">
+        <span class="none-table-label">
+          <i class="el-icon-warning"></i>
+          {{ isunConfirmed ? $t('lang.noData') : $t('lang.noDataMsg') }}
+        </span>
+      </div>
+    </el-table>
+    <el-row v-if="tableData.length > 0">
+      <el-col :offset="20" :span="4" class="topotable-confirm-btn" :class="{active: needSave}" @click.native="confirm('save')">
+        {{isunConfirmed ? $t('lang.confirmText') : $t('lang.saveText')}}
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
 <script lang="ts">
@@ -266,43 +272,11 @@ export default class TopoTable extends Vue {
     }
     return headerCellClassName;
   }
-  public getCellClassName(item: CellData): string {
-    let cellClassName: string = "topoTable-cell ";
-    if (item.rowIndex === this.tableData.length - 1) {
-      const index: number = this.isunConfirmed ? 1 : 0;
-      if (item.columnIndex === index) {
-        cellClassName += "static-cell";
-      } else if (item.columnIndex === index + 1) {
-        cellClassName += "submit-cell";
-        if (this.needSave) {
-          cellClassName += " active";
-        }
-      }
-    }
-    return cellClassName;
-  }
   public getRowClassName(item: { row: any; rowIndex: number }): string {
-    if (item.rowIndex === this.tableData.length - 1) {
-      return "topo-table-static-row";
-    }
     if (item.row.alarmSourceName === this.selectAlarm) {
       return 'topo-table-row-active';
     }
     return "";
-  }
-  public objectSpanMethod(item: CellData) {
-    if (item.rowIndex === this.tableData.length - 1) {
-      const index: number = this.isunConfirmed ? 1 : 0;
-      if (item.columnIndex === index) {
-        return this.isunConfirmed
-          ? { colspan: 10, rowspan: 1 }
-          : { colspan: 9, rowspan: 1 };
-      } else if (item.columnIndex === index + 1) {
-        return { colspan: 2, rowspan: 1 };
-      } else {
-        return { colspan: 0, rowspan: 0 };
-      }
-    }
   }
   // 更新相邻行选中的样式
   public updateStyleOfPrev() {
@@ -590,5 +564,21 @@ export default class TopoTable extends Vue {
 }
 .edit-label:hover {
   color: #368cff;
+}
+.topotable-confirm-btn {
+  height: 48px;
+  line-height: 48px;
+  background: #e6e6e6;
+  color: #999999;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 14px;
+  &:hover {
+    background: #bfbfbf;
+  }
+  &.active {
+    color: #ffffff;
+    background-image: linear-gradient(99deg, #4d97ff, #3189ff);
+  }
 }
 </style>
