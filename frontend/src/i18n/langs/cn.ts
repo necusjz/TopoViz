@@ -37,7 +37,10 @@ const cn = {
     rcaReg: 'RCA规则',
     beforeEdit: '修改前',
     afterEdit: '修改后',
-    confirm: '一键确认'
+    affirm: '已确认',
+    unaffirm: '未确认',
+    confirmText: '一键确认',
+    saveText: '保存'
   },
   ...zhLocale
 }
