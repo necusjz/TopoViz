@@ -16,43 +16,43 @@
     :span-method="objectSpanMethod"
   >
     <el-table-column type="selection" width="60" v-if="isunConfirmed"></el-table-column>
-    <el-table-column prop="alarmName" label="告警名称">
+    <el-table-column prop="alarmName" :label="$t('lang.alarmName')">
       <template slot-scope="scope">
         <span :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
         <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="alarmSourceName" label="告警源">
+    <el-table-column prop="alarmSourceName" :label="$t('lang.alarmSource')">
       <template slot-scope="scope">
         <span :id="scope.row.alarmSourceName" :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="company" label="厂商" min-width="60">
+    <el-table-column prop="company" :label="$t('lang.firm')" min-width="60">
       <template slot-scope="scope">
         <span :title="scope.row.company">{{scope.row.company}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="firstTime" label="首次发生时间" width="180">
+    <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="190">
       <template slot-scope="scope">
         <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="lastTime" label="最近发生时间" width="180">
+    <el-table-column prop="lastTime" :label="$t('lang.lastTime')" width="200">
       <template slot-scope="scope">
         <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="level" label="级别" width="70">
+    <el-table-column prop="level" :label="$t('lang.level')" width="70">
       <template slot-scope="scope">
         <span :title="scope.row.level">{{scope.row.level}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="clearTime" label="清除时间" width="150">
+    <el-table-column prop="clearTime" :label="$t('lang.clearTime')" width="150">
       <template slot-scope="scope">
         <span :title="scope.row.clearTime">{{scope.row.clearTime}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="domain" label="域" width="60">
+    <el-table-column prop="domain" :label="$t('lang.domain')" width="90">
       <template slot-scope="scope">
         <span :title="scope.row.domain">{{scope.row.domain}}</span>
       </template>
@@ -66,9 +66,9 @@
               :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
               trigger="hover">
             <div class="edit-record">
-              <p class="gray-text">修改前：</p>
+              <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
               <p>{{scope.row.groupId}}</p>
-              <p class="gray-text">修改后：</p>
+              <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
               <p>{{scope.row.groupId_edit}}</p>
             </div>
             <div class="rcaGroup-wrap" v-show="editCellId !== `${scope.row.uid}-groupId`" slot="reference" @click="handleCellClick(scope.row, 'groupId')">
@@ -91,9 +91,9 @@
             :disabled="isunConfirmed || popoverDisable || scope.row.groupId === scope.row.groupId_edit"
             trigger="hover" v-else>
             <div class="edit-record">
-              <p class="gray-text">修改前：</p>
+              <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
               <p>{{scope.row.groupId}}</p>
-              <p class="gray-text">修改后：</p>
+              <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
               <p>{{scope.row.groupId_edit}}</p>
             </div>
             <el-dropdown trigger="click" size="small" @visible-change="dropDownVisble" @command="handleCommandGroupId" placement="bottom" slot="reference">
@@ -108,7 +108,7 @@
           </el-popover>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaResult_edit" label="RCA 结果" width="90">
+    <el-table-column prop="rcaResult_edit" :label="$t('lang.rcaResult')" width="120">
       <template slot-scope="scope">
         <el-popover
             popper-class="edit-history-wrap"
@@ -117,9 +117,9 @@
             trigger="hover"
             >
             <div class="edit-record">
-              <p class="gray-text">修改前：</p>
+              <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
               <p>{{scope.row.rcaResult}}</p>
-              <p class="gray-text">修改后：</p>
+              <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
               <p>{{scope.row.rcaResult_edit}}</p>
             </div>
             <el-dropdown trigger="click" size="small" @command="handleCommandRCAResult" @visible-change="dropDownVisble" placement="bottom" slot="reference">
@@ -134,7 +134,7 @@
           </el-popover>
       </template>
     </el-table-column>
-    <el-table-column prop="rcaReg_edit" label="RCA 规则" min-width="180px">
+    <el-table-column prop="rcaReg_edit" :label="$t('lang.rcaReg')" min-width="180px">
       <template slot-scope="scope">
         <el-popover
             popper-class="edit-history-wrap"
@@ -142,9 +142,9 @@
             :disabled="isunConfirmed || popoverDisable || scope.row.rcaReg === scope.row.rcaReg_edit"
             trigger="hover">
           <div class="edit-record">
-            <p class="gray-text">修改前：</p>
+            <p class="gray-text">{{$t('lang.beforeEdit')}}：</p>
             <p>{{scope.row.rcaReg}}</p>
-            <p class="gray-text">修改后：</p>
+            <p class="gray-text">{{$t('lang.afterEdit')}}：</p>
             <p>{{scope.row.rcaReg_edit}}</p>
           </div>
           <div class="rcaReg-wrap" v-show="editCellId !== `${scope.row.uid}-reg`" slot="reference" @click="handleCellClick(scope.row, 'reg')">
