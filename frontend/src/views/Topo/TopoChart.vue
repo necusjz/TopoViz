@@ -1,8 +1,8 @@
 <template>
   <div class="rca-topo-table">
     <div class="topo-table-tabs">
-      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="switchTab(0)">未确认  {{unconfirm_count}}</div>
-      <div class="topo-table-tab" :class="{active: activeType}" @click="switchTab(1)">已确认  {{confirm_count}}</div>
+      <div class="topo-table-tab" :class="{active: activeType === 0}" @click="switchTab(0)">{{$t('lang.unaffirm')}}  {{unconfirm_count}}</div>
+      <div class="topo-table-tab" :class="{active: activeType}" @click="switchTab(1)">{{$t('lang.affirm')}}  {{confirm_count}}</div>
     </div>
     <TopoTable :isunConfirmed="activeType === 0" :tableData="tabData" @updateCount="updateConfirmCount"></TopoTable>
   </div>
@@ -27,8 +27,6 @@ export default class StaticsBoard extends Vue {
   @Provide() private tabData: AlarmData[] = [];
   @Provide() private confirm_count: number = 0;
   @Provide() private unconfirm_count: number = 0;
-  @Provide() private confirmText: any;
-  @Provide() private saveText: any;
   @State((state) => state.app.isNoneTopoData) private isNoneTopoData!: boolean;
   @State((state) => state.app.isNoneTableData) private isNoneTableData!: boolean;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -44,7 +42,7 @@ export default class StaticsBoard extends Vue {
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
     this.tabData = [...val];
-    this.setLastRow();
+    // this.setLastRow();
   }
   @Watch('activeType')
   private watchType(val: string, oval: string) {
@@ -55,10 +53,6 @@ export default class StaticsBoard extends Vue {
     if (val) {
       this.skipPage();
     }
-  }
-  mounted() {
-    this.confirmText = this.$t('lang.confirm');
-    this.saveText = this.$t('lang.confirm');
   }
   public changeTableData() {
     let filt: boolean = !!this.activeType;
@@ -110,7 +104,7 @@ export default class StaticsBoard extends Vue {
     if (!this.activeType) {
       lastRow.ratio = '';
       lastRow.alarmName = '';
-      lastRow.alarmSourceName = this.confirmText;
+      lastRow.alarmSourceName = '一键确认';
     }
     this.tabData.splice(this.tabData.length, 0, lastRow);
   }

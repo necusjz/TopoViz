@@ -37,7 +37,10 @@ const en = {
     rcaReg: 'RCA Rule',
     beforeEdit: 'Before Edit',
     afterEdit: 'After Edit',
-    confirm: 'Confirm'
+    affirm: 'Confirmed',
+    unaffirm: 'unConfirmed',
+    confirmText: 'Confirm',
+    saveText: 'Save'
   },
   ...zhLocale
 }

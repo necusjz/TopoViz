@@ -492,7 +492,7 @@ export default class Stage extends Evt {
     if (e.touches) {
       lastPosition = [e.touches[0].clientX, e.touches[0].clientY];
     }
-    e.preventDefault();
+    // e.preventDefault();
     const moveFunction = () => {
       let ev: any = event;
       if (ev.touches) {
