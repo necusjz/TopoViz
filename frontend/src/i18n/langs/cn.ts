@@ -25,6 +25,19 @@ const cn = {
     selectCondition: '请选择条件',
     preExpand: '前后',
     pstExpand: '分钟',
+    alarmName: '告警名称',
+    alarmSource: '告警源',
+    firm: '厂商',
+    firstTime: '首次发生时间',
+    lastTime: '最近发生时间',
+    level: '级别',
+    clearTime: '清除时间',
+    domain: '域',
+    rcaResult: 'RCA结果',
+    rcaReg: 'RCA规则',
+    beforeEdit: '修改前',
+    afterEdit: '修改后',
+    confirm: '一键确认'
   },
   ...zhLocale
 }

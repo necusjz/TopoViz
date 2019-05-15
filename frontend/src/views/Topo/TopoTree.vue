@@ -95,8 +95,6 @@ export default class TopoTree extends Vue {
   public fullScreen() {
     if (this.stage && this.bound) {
       this.stage.fitBound(this.bound);
-      // const center = this.bound.getCenter();
-      // this.stage.setView([center[0], center[1] + 50]);
     }
   }
   public addEvents() {
