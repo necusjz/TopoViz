@@ -25,6 +25,19 @@ const en = {
     selectCondition: 'please select a condition',
     preExpand: 'within',
     pstExpand: 'minutes',
+    alarmName: 'Alarm Name',
+    alarmSource: 'Alarm Source',
+    firm: 'Firm',
+    firstTime: 'Time of First Occurrence',
+    lastTime: 'Time of Recent Occurrence',
+    level: 'Level',
+    clearTime: 'Clear Time',
+    domain: 'Domain',
+    rcaResult: 'RCA Result',
+    rcaReg: 'RCA Rule',
+    beforeEdit: 'Before Edit',
+    afterEdit: 'After Edit',
+    confirm: 'Confirm'
   },
   ...zhLocale
 }
