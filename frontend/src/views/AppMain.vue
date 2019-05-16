@@ -13,7 +13,7 @@
             </div>
             <div class="app-topo-chart" :class="{none: isNoneTableData}">
               <TopoChart v-show="!isNoneTableData"></TopoChart>
-              <p class="app-topo-chart-none-label">暂无任何表格展示哦，导入 RCA 结果试试。</p>
+              <p class="app-topo-chart-none-label">No topology display, try importing RCA results.</p>
             </div>
             <div class="app-topo-pagination" v-if="!isNoneTableData">
               <TopoTablePagination></TopoTablePagination>

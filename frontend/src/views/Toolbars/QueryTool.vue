@@ -145,7 +145,7 @@ export default class QueryTool extends Vue {
   public dateChange() {
     if (this.startTime && this.endTime) {
       if (this.endTime < this.startTime) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>截止时间不能早于起止时间</p>');
+        bus.$emit(EventType.ERRORVISIBLE, '<p>End time cannot be earlier than start time.</p>');
         return;
       }
       getGroupIdsDataByInterval({start: (this.startTime / 1000).toString(), end: (this.endTime / 1000).toString(), xAlarm: this.isCheckNone}).then((res) => {
@@ -168,13 +168,13 @@ export default class QueryTool extends Vue {
   public queryTopoData() {
     if (!this.groupId || !this.groupIds.includes(this.groupId)) {
       this.groupId = this.store_groupId;
-      bus.$emit(EventType.ERRORVISIBLE, '<p>无效的<span class="blue-text">Group ID</span>, 请查询后重新输入</p>');
+      bus.$emit(EventType.ERRORVISIBLE, '<p>Invalid Group ID, please re-enter after querying.</p>');
       return;
     }
     if (this.needSave) {
       bus.$emit(EventType.ERRORVISIBLE, {
-        title: '错误提示',
-        content: '<p>当前结果未保存，您确定要离开吗？</p>',
+        title: 'Error',
+        content: '<p>The current result is not saved. Are you sure you want to leave?</p>',
         confirmCallback: () => {
           this.$store.commit('SET_NEEDSAVE', false);
           this.doQuery();

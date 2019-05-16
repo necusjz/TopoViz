@@ -3,8 +3,8 @@
     <QueryTool></QueryTool>
     <div class="stage-wrap" id="stage" ref="stage">
       <div class="none-topoTree" v-if="isNoneTopoData">
-        <p class="none-topoTree-label" v-if="isNonImported">暂无任何拓扑展示哦，导入 RCA 结果试试。</p>
-        <p class="none-topoTree-label" v-else>暂无 TOPO 图哦，选择一个 Group ID 试试。</p>
+        <p class="none-topoTree-label" v-if="isNonImported">No topology display, try importing RCA results.</p>
+        <p class="none-topoTree-label" v-else>No topology display, try importing RCA results.</p>
       </div>
     </div>
     <div class="stage-toolbar">
@@ -250,7 +250,7 @@ export default class TopoTree extends Vue {
     }
     this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
     const maxLength = 150;
-    const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName, 
+    const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName,
       {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12}); //  alarmSourceName
     this.stage.addLayer(iText);
     if (this.bound) {
