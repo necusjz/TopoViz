@@ -3,13 +3,13 @@
     <el-row class="statics-table-row">
       <div class="statics-table-tabs">
         <div class="statics-tab" :class="{active: activeType === 0}" @click="switchTab(0)">
-          <span class="statics-tab-content">Unconfirmed {{this.unconfirmData.length}}</span>
+          <span class="statics-tab-content">{{$t('lang.unaffirm')}} {{this.unconfirmData.length}}</span>
         </div>
         <div class="statics-tab" :class="{active: activeType === 1}" @click="switchTab(1)">
-          <span class="statics-tab-content">Confirmed {{this.confirmData.length}}</span>
+          <span class="statics-tab-content">{{$t('lang.affirm')}} {{this.confirmData.length}}</span>
         </div>
       </div>
-      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm" v-if="activeType === 0 && this.unconfirmData.length > 0">一键确认</el-button>
+      <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm" v-if="activeType === 0 && this.unconfirmData.length > 0">{{$t('lang.confirmText')}}</el-button>
     </el-row>
     <el-scrollbar :native="false" wrapClass="statics-table-scroll-wrap" viewClass="" :noresize="false" class="statics-table-scroll">
       <div class="statics-sub-table">
