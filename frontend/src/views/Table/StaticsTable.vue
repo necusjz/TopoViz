@@ -3,10 +3,10 @@
     <el-row class="statics-table-row">
       <div class="statics-table-tabs">
         <div class="statics-tab" :class="{active: activeType === 0}" @click="switchTab(0)">
-          <span class="statics-tab-content">未确认 {{this.unconfirmData.length}}</span>
+          <span class="statics-tab-content">Unconfirmed {{this.unconfirmData.length}}</span>
         </div>
         <div class="statics-tab" :class="{active: activeType === 1}" @click="switchTab(1)">
-          <span class="statics-tab-content">已确认 {{this.confirmData.length}}</span>
+          <span class="statics-tab-content">Confirmed {{this.confirmData.length}}</span>
         </div>
       </div>
       <el-button type="primary" size="mini" class="statics-confirm-btn" @click="confirm" v-if="activeType === 0 && this.unconfirmData.length > 0">一键确认</el-button>
@@ -69,15 +69,15 @@ export default class StaticsTable extends Vue {
         });
       } else if(this.isNonImported) {
         bus.$emit(EventType.ERRORVISIBLE, {
-          title: '温馨提示',
+          title: 'Tips',
           type: 'info',
-          content: `<p>请导入数据再确认</p>`
+          content: `<p>Please import data and confirm.</p>`
         });
       } else {
         bus.$emit(EventType.ERRORVISIBLE, {
-          title: '温馨提示',
+          title: 'Tips',
           type: 'info',
-          content: `<p>所有组都已确认</p>`
+          content: `<p>All groups have been confirmed.</p>`
         });
       }
     }
