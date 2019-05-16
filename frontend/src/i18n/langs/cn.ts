@@ -42,6 +42,9 @@ const cn = {
     confirmText: '一键确认',
     saveText: '保存',
     returnText:'返回',
+    pNumber: 'P 告警数量',
+    cNumber: 'C 告警数量',
+    xNumber: '未知告警数量',
   },
   ...zhLocale
 }
