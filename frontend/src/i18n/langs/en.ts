@@ -40,7 +40,8 @@ const en = {
     affirm: 'Confirmed',
     unaffirm: 'Unconfirmed',
     confirmText: 'Confirm',
-    saveText: 'Save'
+    saveText: 'Save',
+    returnText: 'Return',
   },
   ...zhLocale
 }
