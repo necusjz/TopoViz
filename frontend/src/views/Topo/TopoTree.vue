@@ -18,7 +18,6 @@
         <i class="stage-fullScreen"></i>
       </div>
     </div>
-    <TipDialog></TipDialog>
   </div>
 </template>
 
@@ -101,18 +100,12 @@ export default class TopoTree extends Vue {
     const stage: xCanvas.Stage = this.stage;
     stage.clearAllEvents();
     stage.on('mousemove', util.throttle((e: any) => {
-      const layers = stage.getLayersByPosition(e.pos);
-      const layer = layers.find((layer: xCanvas.Layer) => layer.options.layerType === 'node');
-      if (layer) {
+      const layer = stage.getLayerByPosition(e.pos);
+      if (layer && layer.options.type !== 'tag') {
         stage.clearHighLightLayer();
         stage.addHighLightLayer(layer);
         stage.hilightLayers();
-        const v = stage.transferWorldCoordinateToScreen(layer.getBound().getCenter());
-        if (layer.dirtyData) {
-          bus.$emit(EventType.TIPVISIBLE, true, layer.dirtyData.alarmSourceName, {left: v[0], top: v[1]});
-        }
       } else {
-        bus.$emit(EventType.TIPVISIBLE, false);
         stage.clearHighLightLayer();
       }
     }, 100));
@@ -217,9 +210,9 @@ export default class TopoTree extends Vue {
       const nodeLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, this.size, this.size, {layerType: 'node'}).addTo(stage);
       if (dirtyData) {
         nodeLayer.setDirtyData(dirtyData);
-        this.addAlarmCountTag(nodeLayer, node.name);
+        // this.addAlarmCountTag(nodeLayer, node.name);
       }
-      // this.addAlarmCountTag(nodeLayer, node.name);
+      this.addAlarmCountTag(nodeLayer, node.name);
       this.bound = this.bound ? this.bound.union(nodeLayer.getBound()) : nodeLayer.getBound();
     }
     if (this.bound) {
@@ -237,7 +230,7 @@ export default class TopoTree extends Vue {
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
     const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
     // 添加告警数量tag
-    const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20);
+    const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20, {type: 'tag'});
     if (this.bound) {
       this.bound = this.bound.union(tagImage.getBound());
     }
