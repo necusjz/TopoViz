@@ -43,7 +43,7 @@
       </el-autocomplete>
       <span class="query-none-groupId" v-show="visibleErrorTip">该时间段内没有分组数据</span>
     </div>
-    <div class="app-query-tool-item app-query-tool-regulation">
+    <!-- <div class="app-query-tool-item app-query-tool-regulation">
       <el-cascader
         :placeholder="$t('lang.selectCondition')"
         :options="options"
@@ -54,7 +54,7 @@
         :disabled="isNonImported"
         size="mini"
       ></el-cascader>
-    </div>
+    </div> -->
     <div class="query-expand" v-show="!isCheckNone">
       <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
       {{$t('lang.preExpand')}}
