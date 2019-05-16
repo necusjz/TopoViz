@@ -39,14 +39,14 @@ export default class TopoTablePagination extends Vue {
       this.totalSize = this.tableData.length;
       if (this.currentPage > Math.ceil(this.totalSize / this.pageSize)) {
         this.currentPage = 1;
-      } 
+      }
       this.submitPageData();
     }
     public handleSizeChange(size: number) {
       if (this.needSave) {
         bus.$emit(EventType.ERRORVISIBLE, {
-          title: '错误提示',
-          content: '<p>当前结果未保存，您确定要离开吗？</p>',
+          title: 'Error',
+          content: '<p>The current result is not saved. Are you sure you want to leave?</p>',
           confirmCallback: () => {
             this.$store.commit('SET_NEEDSAVE', false);
             this.pageSize = size;
@@ -72,8 +72,8 @@ export default class TopoTablePagination extends Vue {
     public handleCurrentChange(page: number) {
       if (this.needSave) {
         bus.$emit(EventType.ERRORVISIBLE, {
-          title: '错误提示',
-          content: '<p>当前结果未保存，您确定要离开吗？</p>',
+          title: 'Error',
+          content: '<p>The current result is not saved. Are you sure you want to leave?</p>',
           confirmCallback: () => {
             this.$store.commit('SET_NEEDSAVE', false);
             this.currentPage = page;

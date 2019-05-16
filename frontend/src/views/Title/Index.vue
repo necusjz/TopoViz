@@ -2,7 +2,7 @@
   <div class="app-title-wrap">
     <div class="app-back-wrap" v-if="isCheckStatics" @click="goBack">
       <i class="el-icon-back"></i>
-      <span class="app-back">返回</span>
+      <span class="app-back">Return</span>
     </div>
     <div class="app-top-right">
       <div @click="switchLang" class="lang-type">
@@ -94,4 +94,3 @@ export default class Title extends Vue {
   }
 }
 </style>
-

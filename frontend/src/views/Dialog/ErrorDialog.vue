@@ -34,7 +34,7 @@ export default class ErrorDialog extends Vue {
   @Provide() private dialogVisible: boolean = false;
   @Provide() private type: string = 'info';
   @Provide() private errorHtml: string = "";
-  @Provide() private errorTitle: string = "错误提示";
+  @Provide() private errorTitle: string = "Error";
   @Provide() private showSaveBtn: boolean = false;
   @Provide() private saveCallback?: any;
   @Provide() private confirmCallback?: any;
