@@ -94,7 +94,7 @@ export default class Importer extends Vue {
       NProgress.done();
     }).catch((e) => {
       bus.$emit(EventType.ERRORVISIBLE, {
-        title: '错误提示',
+        title: 'Error',
         type: 'error',
         content: `<p>${e.message}</p>`
       });
@@ -131,7 +131,7 @@ export default class Importer extends Vue {
   }
   public exportData() {
     if (this.isNonImported) {
-      bus.$emit(EventType.ERRORVISIBLE, '<p>请上传文件后再导出数据</p>');
+      bus.$emit(EventType.ERRORVISIBLE, '<p>Please upload data before exporting.</p>');
       return;
     }
     downLoad(`export?clientId=${this.clientId}&t=${Date.now()}`);
