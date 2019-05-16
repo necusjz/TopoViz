@@ -6,6 +6,20 @@
         <p class="none-topoTree-label" v-if="isNonImported">No topology display, try importing RCA results.</p>
         <p class="none-topoTree-label" v-else>No topology display, try importing RCA results.</p>
       </div>
+      <div class="topo-legend">
+        <div class="legend-item">
+          <i class="legend-red-tag legend-tag"></i>
+          <span class="legend-text">{{$t('lang.pNumber')}}</span>
+        </div>
+        <div class="legend-item">
+          <i class="legend-green-tag legend-tag"></i>
+          <span class="legend-text">{{$t('lang.cNumber')}}</span>
+        </div>
+        <div class="legend-item">
+          <i class="legend-blue-tag legend-tag"></i>
+          <span class="legend-text">{{$t('lang.xNumber')}}</span>
+        </div>
+      </div>
     </div>
     <div class="stage-toolbar">
       <div class="stage-toolbar-item" @click="zoom(1)">
@@ -327,6 +341,24 @@ export default class TopoTree extends Vue {
     canvas {
       left: 0;
     }
+    .topo-legend {
+      position: absolute;
+      width: 120px;
+      bottom: 20px;
+      right: 20px;
+      background: #fff;
+      padding: 8px 5px;
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      border-radius: 4px;
+      .legend-item {
+        display: flex;
+        align-items: center;
+        line-height: 30px;
+        font-size: 12px;
+      }
+    }
   }
   .none-topoTree {
     position: relative;
@@ -381,6 +413,25 @@ export default class TopoTree extends Vue {
     .stage-toolbar-item:active {
       box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
     }
+  }
+  .legend-tag {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  .legend-red-tag {
+    background-image: url('../../assets/red-left-tag.png');
+  }
+  .legend-green-tag {
+    background-image: url('../../assets/green-left-tag.png');
+  }
+  .legend-blue-tag {
+    background-image: url('../../assets/blue-left-tag.png');
+  }
+  .legend-text {
+    padding-left: 10px;
   }
 }
 </style>
