@@ -318,7 +318,7 @@ export default class CanvasHelper {
     const localPt = this.worldCoordinateToLocal(pos);
     const content: string[] = layer.content.map((item) => item.text);
     const fontSize = layer.getFontSize();
-    const space: number = layer.options.verticleSpace * this.retina;
+    const space: number = layer.options.verticleSpace;
     const len: number = layer.content.length;
     for (let i = 0; i < len; i++) {
       let y: number = 0;
