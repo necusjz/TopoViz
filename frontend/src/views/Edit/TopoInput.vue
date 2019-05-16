@@ -48,9 +48,9 @@ export default class TopoInput extends Vue {
             this.$emit("blur", this.row);
           } else {
             bus.$emit(EventType.ERRORVISIBLE, {
-              title: '错误提示',
+              title: 'Error',
               type: 'error',
-              content: `<p>您输入的 Group ID 已存在</p>`
+              content: `<p>The Group ID you entered already exists.</p>`
             });
             this.$emit("blur");
           }
