@@ -40,7 +40,8 @@ const cn = {
     affirm: '已确认',
     unaffirm: '未确认',
     confirmText: '一键确认',
-    saveText: '保存'
+    saveText: '保存',
+    returnText:'返回',
   },
   ...zhLocale
 }
