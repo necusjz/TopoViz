@@ -62,8 +62,8 @@ export default class StaticsBoard extends Vue {
   public switchTab(conType: number) {
     if (this.needSave) {
       bus.$emit(EventType.ERRORVISIBLE, {
-        title: '错误提示',
-        content: '<p>当前结果未保存，您确定要离开吗？</p>',
+        title: 'Error',
+        content: '<p>The current result is not saved. Are you sure you want to leave?</p>',
         confirmCallback: () => {
           this.$store.commit('SET_NEEDSAVE', false);
           this.activeType = conType;
