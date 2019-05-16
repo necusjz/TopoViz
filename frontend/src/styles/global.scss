@@ -19,6 +19,7 @@ ul, li, p {
 .confirm-btn {
     font-size: 14px;
     padding: 8px 24px;
+    width: 80px;
 }
 .save-btn {
     background: #ffffff;
@@ -28,7 +29,6 @@ ul, li, p {
     background: $None-Color;
     border: 1px solid $None-Color;
     font-size: 14px;
-    padding: 8px 5px;
     width: 80px;
 }
 .error-border-input {
