@@ -42,7 +42,6 @@ export default class StaticsBoard extends Vue {
   @Watch('pageData')
   public watchPageData(val: AlarmData[]) {
     this.tabData = [...val];
-    // this.setLastRow();
   }
   @Watch('activeType')
   private watchType(val: string, oval: string) {
@@ -75,38 +74,6 @@ export default class StaticsBoard extends Vue {
     } else {
       this.activeType = conType;
     }
-  }
-  public setLastRow() {
-    if (this.tabData.length === 0) {
-      return;
-    }
-    const lastRow = {
-      uid: generateUUID(),
-      index: -9999,
-      type: "statics",
-      ratio: "",
-      alarmName: "",
-      alarmSourceName: "保存",
-      company: "",
-      firstTime: "",
-      lastTime: "",
-      level: "",
-      clearTime: "",
-      domain: "",
-      groupId: "",
-      groupId_edit: "",
-      rcaResult: "",
-      rcaResult_edit: "",
-      rcaReg: "",
-      rcaReg_edit: "",
-      isConfirmed: false
-    }
-    if (!this.activeType) {
-      lastRow.ratio = '';
-      lastRow.alarmName = '';
-      lastRow.alarmSourceName = '一键确认';
-    }
-    this.tabData.splice(this.tabData.length, 0, lastRow);
   }
   // 联动跳转到当前页
   public skipPage() {
