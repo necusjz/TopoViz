@@ -42,6 +42,9 @@ const en = {
     confirmText: 'Confirm',
     saveText: 'Save',
     returnText: 'Return',
+    pNumber: 'P Alarm',
+    cNumber: 'C Alarm',
+    xNumber: 'Unknown Alarm',
   },
   ...zhLocale
 }
