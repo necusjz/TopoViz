@@ -2,7 +2,7 @@
   <div class="app-title-wrap">
     <div class="app-back-wrap" v-if="isCheckStatics" @click="goBack">
       <i class="el-icon-back"></i>
-      <span class="app-back">Return</span>
+      <span class="app-back">{{$t('lang.returnText')}}</span>
     </div>
     <div class="app-top-right">
       <div @click="switchLang" class="lang-type">
