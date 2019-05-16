@@ -16,33 +16,33 @@
       row-key="uid"
     >
       <el-table-column type="selection" width="60" v-if="isunConfirmed"></el-table-column>
-      <el-table-column prop="alarmName" :label="$t('lang.alarmName')">
+      <el-table-column prop="alarmName" :label="$t('lang.alarmName')" width="110">
         <template slot-scope="scope">
           <span :title="scope.row.alarmName">{{scope.row.alarmName}}</span>
           <span class="static-ratio" v-if="scope.row.type === 'statics'">{{scope.row.ratio}}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="alarmSourceName" :label="$t('lang.alarmSource')">
+      <el-table-column prop="alarmSourceName" :label="$t('lang.alarmSource')" width="110">
         <template slot-scope="scope">
           <span :id="scope.row.alarmSourceName" :title="scope.row.alarmSourceName">{{scope.row.alarmSourceName}}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="company" :label="$t('lang.firm')" min-width="60">
+      <el-table-column prop="company" :label="$t('lang.firm')" min-width="80">
         <template slot-scope="scope">
           <span :title="scope.row.company">{{scope.row.company}}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="190">
+      <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="150">
         <template slot-scope="scope">
           <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="lastTime" :label="$t('lang.lastTime')" width="200">
+      <el-table-column prop="lastTime" :label="$t('lang.lastTime')" width="150">
         <template slot-scope="scope">
           <span :title="scope.row.lastTime">{{scope.row.lastTime}}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="level" :label="$t('lang.level')" width="70">
+      <el-table-column prop="level" :label="$t('lang.level')" width="110">
         <template slot-scope="scope">
           <span :title="scope.row.level">{{scope.row.level}}</span>
         </template>
@@ -395,7 +395,7 @@ export default class TopoTable extends Vue {
         if (groupId) {
           const alarmDatas = this.alarmDatas.filter((alarmData: AlarmData) => alarmData.groupId_edit === groupId)
           if (!alarmDatas.some((alarmData: AlarmData) => alarmData.rcaResult_edit === RCAResult.P)) {
-            bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+            bus.$emit(EventType.ERRORVISIBLE, '<p>A group of data contains at least one P alarm. Please check and edit.</p>');
             return false;
           }
         }
@@ -407,7 +407,7 @@ export default class TopoTable extends Vue {
       }
       const pAlarms = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P);
       if (pAlarms.length === 0) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>一组Group ID的数据中至少包含一个P告警哦，请查询后再编辑。</p>');
+        bus.$emit(EventType.ERRORVISIBLE, '<p>A group of data contains at least one P alarm. Please check and edit.</p>');
         return false;
       }
     }
