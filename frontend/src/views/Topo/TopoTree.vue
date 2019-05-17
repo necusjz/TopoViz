@@ -117,7 +117,11 @@ export default class TopoTree extends Vue {
       const layer = stage.getLayerByPosition(e.pos);
       if (layer && layer.options.type !== 'tag') {
         stage.clearHighLightLayer();
-        stage.addHighLightLayer(layer);
+        if (layer.options.type === 'node') {
+          layer.highLight({shadow: true});
+        } else {
+          layer.highLight();
+        }
         stage.hilightLayers();
       } else {
         stage.clearHighLightLayer();
@@ -238,10 +242,10 @@ export default class TopoTree extends Vue {
   public addAlarmCountTag(nodeLayer: xCanvas.Layer, alarmSourceName: string) {
     const bound = nodeLayer.getBound().expand(4);
     const base: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(bound.getCenter());
-    const vec: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(1, 1).normalize().scale(this.size);
+    const vec: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(1, 1).normalize().scale(this.size * 0.8);
     const topRight = base.clone().add(vec);
-    const top = base.clone().add(new xCanvas.Math.Vector2(-1, 1).scale(8, this.size - 8));
-    const topLeft = base.clone().add(new xCanvas.Math.Vector2(-1, 1).normalize().scale(this.size));
+    const top = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 2 + 16));
+    const topLeft = base.clone().add(new xCanvas.Math.Vector2(-1, 1).normalize().scale(this.size * 0.8));
     const pts: xCanvas.Math.Vector2[] = [top, topRight, topLeft];
 
     const nums: {text: string, icon: string}[] = [];
@@ -259,7 +263,7 @@ export default class TopoTree extends Vue {
       nums.push({text: cCount.toString(), icon: 'green'});
     }
     nums.forEach((tag, index) => {
-      const dir = index === 1 ? 'right': 'left';
+      const dir = index === 0 ? 'center': index === 1 ? 'right' : 'left';
       const tagUrl = require(`../../assets/${tag.icon}-${dir}-tag.png`);
       const tagPos = [pts[index].x + 4, pts[index].y];
       // 添加告警数量tag
@@ -271,7 +275,7 @@ export default class TopoTree extends Vue {
       }
     });
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
-    const maxLength = 240;
+    const maxLength = 120;
     const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName,
       {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 12, fontSize: 10}); //  alarmSourceName
     this.stage.addLayer(iText);
