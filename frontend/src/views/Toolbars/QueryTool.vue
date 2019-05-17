@@ -196,8 +196,8 @@ export default class QueryTool extends Vue {
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');
     bus.$emit(EventType.CLEARALL);
-    bus.$emit(EventType.CLEAREXPAN);
     this.status = false;
+    this.interval = 5;
     getAlarmDatas({groupId: this.groupId, xAlarm: this.isCheckNone}).then((data: AnalyzeRes) => {
       this.setData(data);
     });
