@@ -103,8 +103,13 @@ export default class Importer extends Vue {
   }
   public setDefaultDate() {
     getInterval({xAlarm: this.isCheckNone}).then((res: {start: number, end: number}) => {
-      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
-      this.$store.commit('SET_DEFAULTDATE', dateValue);
+      if (res.start === 0 && res.end === 0) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>There is no data.</p>');
+        this.$store.commit('SET_DEFAULTDATE', [0, 0]);
+      } else {
+        const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
+        this.$store.commit('SET_DEFAULTDATE', dateValue);
+      }
     });
   }
   public submitData() {
