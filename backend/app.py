@@ -73,23 +73,27 @@ def switch():
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
+    res = dict()
     # decide which scenario
-    if x_alarm == 'false':
-        mask = pd.notnull(alarm['GroupId_Edited'])
-        alarm = alarm.loc[mask]
-    else:
+    if x_alarm == 'true':
         mask = pd.isnull(alarm['GroupId_Edited'])
         alarm = alarm.loc[mask]
-        if not alarm.empty:
+        if alarm.empty:
+            res['start'] = 0
+            res['end'] = 0
+            return jsonify(res)
+        else:
             fill_tree(alarm)
-    # construct json for frontend
-    res = dict()
-    if not alarm.empty:
-        res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
-        res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     else:
-        res['start'] = 0
-        res['end'] = 0
+        mask = pd.notnull(alarm['GroupId_Edited'])
+        alarm = alarm.loc[mask]
+        if alarm.empty:
+            res['start'] = 0
+            res['end'] = 0
+            return jsonify(res)
+    # construct json for frontend
+    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
+    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
     return jsonify(res)
 
 
