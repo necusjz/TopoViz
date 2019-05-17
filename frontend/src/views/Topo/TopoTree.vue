@@ -6,7 +6,7 @@
         <p class="none-topoTree-label" v-if="isNonImported">No topology display, try importing RCA results.</p>
         <p class="none-topoTree-label" v-else>No topology display, try importing RCA results.</p>
       </div>
-      <div class="topo-legend">
+      <div class="topo-legend" v-if="!isNoneTopoData">
         <div class="legend-item">
           <i class="legend-red-tag legend-tag"></i>
           <span class="legend-text">{{$t('lang.pNumber')}}</span>
