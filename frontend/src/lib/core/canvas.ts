@@ -10,7 +10,7 @@ import Rectangle from '../layer/rectangle';
 import Util from '../util/util';
 
 export default class CanvasHelper {
-  public retina: number = 1;
+  public retina: number = window.devicePixelRatio || 1;
   public isCache: boolean = false;
   private readonly canvas: HTMLCanvasElement;
   private readonly context: CanvasRenderingContext2D;
@@ -324,7 +324,7 @@ export default class CanvasHelper {
       let y: number = 0;
       if (i === 1) {
         this.context.textAlign = 'left';
-        localPt[0] -= layer.options.maxLength;
+        localPt[0] -= layer.options.maxLength / 2;
       }
       if (layer.options.baseLine === 'bottom') {
         y = localPt[1] - (len - i - 1) * (fontSize + space);
@@ -350,7 +350,7 @@ export default class CanvasHelper {
     if (fontStyle) {
       this.context.font = fontStyle;
     }
-    const width = this.context.measureText(text).width;
+    const width = this.context.measureText(text).width * this.retina;
     this.context.restore();
     return width;
   }
