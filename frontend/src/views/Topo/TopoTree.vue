@@ -236,26 +236,55 @@ export default class TopoTree extends Vue {
     this.addEvents();
   }
   public addAlarmCountTag(nodeLayer: xCanvas.Layer, alarmSourceName: string) {
-    const tagUrl = require('../../assets/tag.jpg');
     const bound = nodeLayer.getBound().expand(4);
     const base: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(bound.getCenter());
     const vec: xCanvas.Math.Vector2 = new xCanvas.Math.Vector2(1, 1).normalize().scale(this.size);
-    const tagPos = base.clone().add(vec).toArray();
+    const topRight = base.clone().add(vec);
+    const top = base.clone().add(new xCanvas.Math.Vector2(-1, 1).scale(8, this.size - 8));
+    const topLeft = base.clone().add(new xCanvas.Math.Vector2(-1, 1).normalize().scale(this.size));
+    const pts: xCanvas.Math.Vector2[] = [top, topRight, topLeft];
+
+    const nums: {text: string, icon: string}[] = [];
+    const alarmDatas = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName);
+    const pCount = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P).length;
+    if (pCount > 0) {
+      nums.push({text: pCount.toString(), icon: 'red'});
+    }
+    const xCount = alarmDatas.filter((alarmData) => !alarmData.groupId_edit).length;
+    if (xCount > 0) {
+      nums.push({text: xCount.toString(), icon: 'blue'});
+    }
+    const cCount = alarmDatas.length - pCount - xCount;
+    if (cCount > 0) {
+      nums.push({text: cCount.toString(), icon: 'green'});
+    }
+    nums.forEach((tag, index) => {
+      const dir = index === 1 ? 'right': 'left';
+      const tagUrl = require(`../../assets/${tag.icon}-${dir}-tag.png`);
+      const tagPos = [pts[index].x + 4, pts[index].y];
+      // 添加告警数量tag
+      const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0], tagPos[1], 28, 20, {type: 'tag'});
+      this.stage.addLayer(tagImage);
+      this.stage.addLayer(new xCanvas.IText(pts[index].toArray(), tag.text, {color: '#FFFFFF'}));
+      if (this.bound) {
+        this.bound = this.bound.union(tagImage.getBound());
+      }
+    });
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
-    const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
-    // 添加告警数量tag
-    const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20, {type: 'tag'});
-    if (this.bound) {
-      this.bound = this.bound.union(tagImage.getBound());
-    }
-    this.stage.addLayer(tagImage);
-    if (this.isPAlarm(alarmSourceName)) {
-      const alarmUrl = require('../../assets/alarm.jpg');
-      const alarmTagPos = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 1.2)).toArray();
-      // 添加报警标志
-      this.stage.addLayer(new xCanvas.ImageLayer(alarmUrl, alarmTagPos[0], alarmTagPos[1] + 5, 28, 28));
-    }
-    this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
+    // const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
+    // // 添加告警数量tag
+    // const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20, {type: 'tag'});
+    // if (this.bound) {
+    //   this.bound = this.bound.union(tagImage.getBound());
+    // }
+    // this.stage.addLayer(tagImage);
+    // this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
+    // if (this.isPAlarm(alarmSourceName)) {
+    //   const alarmUrl = require('../../assets/alarm.jpg');
+    //   const alarmTagPos = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 1.2)).toArray();
+    //   // 添加报警标志
+    //   this.stage.addLayer(new xCanvas.ImageLayer(alarmUrl, alarmTagPos[0], alarmTagPos[1] + 5, 28, 28));
+    // }
     const maxLength = 150;
     const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName,
       {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12}); //  alarmSourceName
