@@ -265,11 +265,11 @@ export default class TopoTree extends Vue {
     nums.forEach((tag, index) => {
       const dir = index === 0 ? 'center': index === 1 ? 'right' : 'left';
       const tagUrl = require(`../../assets/${tag.icon}-${dir}-tag.png`);
-      const tagPos = [pts[index].x + 4, pts[index].y];
+      const tagPos = [pts[index].x, pts[index].y];
       // 添加告警数量tag
       const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0], tagPos[1], 28, 20, {type: 'tag'});
       this.stage.addLayer(tagImage);
-      this.stage.addLayer(new xCanvas.IText(pts[index].toArray(), tag.text, {color: '#FFFFFF'}));
+      this.stage.addLayer(new xCanvas.IText(pts[index].toArray(), tag.text, {color: '#FFFFFF', textAlign: 'center'}));
       if (this.bound) {
         this.bound = this.bound.union(tagImage.getBound());
       }
