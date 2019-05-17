@@ -56,7 +56,7 @@
       ></el-cascader>
     </div> -->
     <div class="query-expand" v-show="!isCheckNone">
-      <el-switch v-model="status" active-color="#FFE10B" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
+      <el-switch v-model="status" inactive-color="#B4B4B4" @change="expand" :disabled="isNoneTopoData"></el-switch>
       {{$t('lang.preExpand')}}
       <el-input-number v-model="interval" class="expand-input" size="mini" controls-position="right" @change="handleChange" :min="1" :max="9" :disabled="!status"></el-input-number>
       {{$t('lang.pstExpand')}}

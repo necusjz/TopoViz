@@ -10,7 +10,7 @@ import Rectangle from '../layer/rectangle';
 import Util from '../util/util';
 
 export default class CanvasHelper {
-  public retina: number = window.devicePixelRatio || 1;
+  public retina: number = 1;
   public isCache: boolean = false;
   private readonly canvas: HTMLCanvasElement;
   private readonly context: CanvasRenderingContext2D;
@@ -313,6 +313,7 @@ export default class CanvasHelper {
    * @param layer 文字图层
    */
   public drawText(layer: IText) {
+    this.context.save();
     this._setFontStyle(layer);
     const pos: Vertex = layer.getGeometry();
     const localPt = this.worldCoordinateToLocal(pos);
@@ -324,7 +325,7 @@ export default class CanvasHelper {
       let y: number = 0;
       if (i === 1) {
         this.context.textAlign = 'left';
-        localPt[0] -= layer.options.maxLength / this.retina;
+        localPt[0] -= layer.options.maxLength / 2 * this.retina;
       }
       if (layer.options.baseLine === 'bottom') {
         y = localPt[1] - (len - i - 1) * (fontSize + space);
@@ -339,6 +340,7 @@ export default class CanvasHelper {
         this.context.strokeText(content[i], localPt[0], y);
       }
     }
+    this.context.restore();
   }
   /**
    * 返回文字的对应宽度
@@ -350,7 +352,7 @@ export default class CanvasHelper {
     if (fontStyle) {
       this.context.font = fontStyle;
     }
-    const width = this.context.measureText(text).width * this.retina;
+    const width = this.context.measureText(text).width;
     this.context.restore();
     return width;
   }
@@ -365,11 +367,11 @@ export default class CanvasHelper {
       this.context.fillStyle = options.fillColor || options.color;
       this.context.fill(options.fillRule || 'evenodd');
     }
-    if (this.isCache) {
-      this.context.shadowOffsetX = 5; // 阴影Y轴偏移
-      this.context.shadowOffsetY = -5; // 阴影X轴偏移
-      this.context.shadowBlur = 12; // 模糊尺寸
-      this.context.shadowColor = 'rgba(0, 0, 0, 0.5)'; // 颜色
+    if (options.shadow) {
+      this.context.shadowOffsetX = options.shadowOffsetX || 5; // 阴影Y轴偏移
+      this.context.shadowOffsetY = options.shadowOffsetY || -5; // 阴影X轴偏移
+      this.context.shadowBlur = options.shadowBlur || 12; // 模糊尺寸
+      this.context.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)'; // 颜色
     }
     if (options.stroke && options.weight !== 0) {
       if (this.context.setLineDash) {
@@ -396,6 +398,12 @@ export default class CanvasHelper {
     }
     if (options.fill) {
       this.context.fillStyle = this.isCache ? layer.highOptions.fillColor || layer.highOptions.color : layer.options.fillColor || layer.options.color;
+    }
+    if (options.shadow) {
+      this.context.shadowOffsetX = options.shadowOffsetX || 5; // 阴影Y轴偏移
+      this.context.shadowOffsetY = options.shadowOffsetY || -5; // 阴影X轴偏移
+      this.context.shadowBlur = options.shadowBlur || 12; // 模糊尺寸
+      this.context.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.5)'; // 颜色
     }
     if (options.stroke) {
       this.context.strokeStyle = this.isCache ? layer.highOptions.color : layer.options.color;
