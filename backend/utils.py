@@ -63,20 +63,22 @@ def result_monitor(client_id):
     return alarm, confirmed_num, accuracy
 
 
-def fill_tree(alarm):
+def fill_tree(x_alarm):
     client_id = request.headers.get('Client-Id')
     # get paths merge result
     merge_res = []
-    topo_path = ne2path(set(alarm['AlarmSource']))
+    topo_path = ne2path(set(x_alarm['AlarmSource']))
     serial_path = sort_path(topo_path)
     merge_res = merge_path(serial_path, merge_res)
     # empty x_alarm column
+    alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                     app.config['ALARM_FILE']))
     alarm.drop(columns='X_Alarm')
     alarm['X_Alarm'] = nan
     # fill x_alarm column
     for i, paths in enumerate(merge_res):
         tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
-        add_alarm = path2ne(paths) & set(alarm['AlarmSource'])
+        add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
         for ne in add_alarm:
             mask = (alarm['AlarmSource'] == ne) & \
                    (pd.isnull(alarm['GroupId_Edited']))
