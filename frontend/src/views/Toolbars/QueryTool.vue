@@ -123,8 +123,14 @@ export default class QueryTool extends Vue {
   public watchIsCheckNone(val: boolean) {
     this.$store.commit('SET_SELECTALARM', '');
     getInterval({xAlarm: val}).then((res) => {
-      const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
-      this.$store.commit('SET_DEFAULTDATE', dateValue);
+      if (res.start === 0 && res.end === 0) {
+        bus.$emit(EventType.ERRORVISIBLE, '<p>There is no data.</p>');
+        this.groupId = '';
+        this.$store.commit('SET_DEFAULTDATE', [0, 0]);
+      } else {
+        const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
+        this.$store.commit('SET_DEFAULTDATE', dateValue);
+      }
     })
   }
   mounted() {
