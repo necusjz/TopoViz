@@ -224,7 +224,7 @@ export default class QueryTool extends Vue {
       this.$store.commit('SET_ISNONETOPODATA', false);
       const topoTreeData = res.topo.map((path: any) => {
         return path.map((node: any) => {
-          const color = this.getElementColor(node.NEName, res.yellow);
+          const color = this.getElementColor(node.NEName);
           return { name: node.NEName, type: node.NEType, color, level: node.Layer };
         });
       });
@@ -234,10 +234,8 @@ export default class QueryTool extends Vue {
   public handleChange() {
     this.expand(true);
   }
-  public getElementColor(name: string, yellow: string[] = []): string {
-    if (yellow.includes(name)) {
-      return 'Yellow';
-    } else if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === name)) {
+  public getElementColor(name: string): string {
+    if (this.alarmDatas.some((alarmData) => alarmData.alarmSourceName === name)) {
       return 'Warning';
     } else {
       return '';
