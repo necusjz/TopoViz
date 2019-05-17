@@ -73,14 +73,14 @@ def switch():
     client_id = request.headers.get('Client-Id')
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
-    # determine which case
-    mask = False
+    # decide which scenario
     if x_alarm == 'false':
         mask = pd.notnull(alarm['GroupId_Edited'])
-    elif x_alarm == 'true':
+        alarm = alarm.loc[mask]
+    else:
         mask = pd.isnull(alarm['GroupId_Edited'])
+        alarm = alarm.loc[mask]
         fill_tree(alarm)
-    alarm = alarm.loc[mask]
     # construct json for frontend
     res = dict()
     res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
@@ -100,7 +100,7 @@ def interval():
     if x_alarm == 'false':
         res['group_id'] = list(alarm['GroupId_Edited'].drop_duplicates()
                                                       .dropna())
-    elif x_alarm == 'true':
+    else:
         # sort topos by tree id
         alarm = alarm.sort_values('X_Alarm')
         res['group_id'] = list(alarm['X_Alarm'].drop_duplicates()
