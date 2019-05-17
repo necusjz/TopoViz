@@ -271,23 +271,9 @@ export default class TopoTree extends Vue {
       }
     });
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
-    // const count = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName).length;
-    // // 添加告警数量tag
-    // const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0] + 4, tagPos[1], 28, 20, {type: 'tag'});
-    // if (this.bound) {
-    //   this.bound = this.bound.union(tagImage.getBound());
-    // }
-    // this.stage.addLayer(tagImage);
-    // this.stage.addLayer(new xCanvas.IText(tagPos, count.toString(), {color: '#FFFFFF'}));
-    // if (this.isPAlarm(alarmSourceName)) {
-    //   const alarmUrl = require('../../assets/alarm.jpg');
-    //   const alarmTagPos = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 1.2)).toArray();
-    //   // 添加报警标志
-    //   this.stage.addLayer(new xCanvas.ImageLayer(alarmUrl, alarmTagPos[0], alarmTagPos[1] + 5, 28, 28));
-    // }
-    const maxLength = 150;
+    const maxLength = 240;
     const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName,
-      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 15, fontSize: 12}); //  alarmSourceName
+      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 12, fontSize: 12}); //  alarmSourceName
     this.stage.addLayer(iText);
     if (this.bound) {
       this.bound = this.bound.union(iText.getBound());
