@@ -277,7 +277,7 @@ export default class TopoTree extends Vue {
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
     const maxLength = 120;
     const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName,
-      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 12, fontSize: 10}); //  alarmSourceName
+      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 8, fontSize: 10}); //  alarmSourceName
     this.stage.addLayer(iText);
     if (this.bound) {
       this.bound = this.bound.union(iText.getBound());
@@ -365,7 +365,7 @@ export default class TopoTree extends Vue {
       width: 120px;
       bottom: 20px;
       right: 20px;
-      background: #fff;
+      background: rgba(255, 255, 255, 0.3);
       padding: 8px 5px;
       display: flex;
       flex-direction: column;
