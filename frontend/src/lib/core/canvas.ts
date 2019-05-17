@@ -324,7 +324,7 @@ export default class CanvasHelper {
       let y: number = 0;
       if (i === 1) {
         this.context.textAlign = 'left';
-        localPt[0] -= layer.options.maxLength / 2;
+        localPt[0] -= layer.options.maxLength / this.retina;
       }
       if (layer.options.baseLine === 'bottom') {
         y = localPt[1] - (len - i - 1) * (fontSize + space);
