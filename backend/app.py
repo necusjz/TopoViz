@@ -80,11 +80,16 @@ def switch():
     else:
         mask = pd.isnull(alarm['GroupId_Edited'])
         alarm = alarm.loc[mask]
-        fill_tree(alarm)
+        if not alarm.empty:
+            fill_tree(alarm)
     # construct json for frontend
     res = dict()
-    res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
-    res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
+    if not alarm.empty:
+        res['start'] = pd.to_datetime(alarm['First'].min()).timestamp()
+        res['end'] = pd.to_datetime(alarm['First'].max()).timestamp()
+    else:
+        res['start'] = 0
+        res['end'] = 0
     return jsonify(res)
 
 
