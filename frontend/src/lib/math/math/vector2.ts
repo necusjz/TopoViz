@@ -51,9 +51,9 @@ export default class Vector2 {
     this.y = y;
     return this;
   }
-  public scale(multiple: number): Vector2 {
-    this.x *= multiple;
-    this.y *= multiple;
+  public scale(scale_x: number, scale_y?: number): Vector2 {
+    this.x *= scale_x;
+    this.y *= scale_y || scale_x;
     return this;
   }
   public getSquareLength(): number {
