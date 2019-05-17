@@ -37,6 +37,7 @@ export default abstract class Layer extends Evt {
       fillColor: null,
       fillOpacity: 1,
       fillRule: 'evenodd',
+      shadow: false,
       strict: true,
     };
     this.type = this.getLayerType();
@@ -90,7 +91,7 @@ export default abstract class Layer extends Evt {
    * @param options 高亮图层style
    */
   public setHighlightOptions(options: {[k: string]: any} = {}) {
-    this.highOptions = {...this.highOptions, ...options};
+    this.highOptions = {...this.highOptions, ...options,};
   }
   /**
    * 清除高亮
