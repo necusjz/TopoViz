@@ -367,7 +367,7 @@ export default class Stage extends Evt {
     const stepY: number = (targetCenter[1] - this.center[1]) / 16;
     const zoomChange: number = (targetZoom - this.zoom) / 16;
     const filter = () => {
-      return math.Base.isSamePoint(this.center, targetCenter) && math.Base.isZero(this.zoom - targetZoom);
+      return math.Base.isSamePoint(this.getCenter(), targetCenter) && math.Base.isZero(this.zoom - targetZoom);
     }
     if (this.amination) {
       cancelAnimationFrame(this.amination);
