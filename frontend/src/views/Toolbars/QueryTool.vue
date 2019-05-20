@@ -124,7 +124,11 @@ export default class QueryTool extends Vue {
     this.$store.commit('SET_SELECTALARM', '');
     getInterval({xAlarm: val}).then((res) => {
       if (res.start === 0 && res.end === 0) {
-        bus.$emit(EventType.ERRORVISIBLE, '<p>There is no data.</p>');
+        bus.$emit(EventType.ERRORVISIBLE, {
+          title: 'Tip',
+          content: '<p>There is no data.</p>',
+          type: 'info'
+        });
         this.groupId = '';
         this.$store.commit('SET_DEFAULTDATE', [0, 0]);
       } else {
