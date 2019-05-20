@@ -123,6 +123,7 @@ export default class QueryTool extends Vue {
   public watchIsCheckNone(val: boolean) {
     this.$store.commit('SET_SELECTALARM', '');
     getInterval({xAlarm: val}).then((res) => {
+      debugger
       if (res.start === 0 && res.end === 0) {
         bus.$emit(EventType.ERRORVISIBLE, {
           title: 'Tip',

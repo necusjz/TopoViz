@@ -9,7 +9,7 @@ app = Flask(__name__, static_url_path='')
 
 def format_data(df):
     if df.shape[1] > app.config['DISTINCT_NUM']:
-        # format raw data and map column name
+        # map column name and format raw data
         df = df[app.config['ALARM_COLUMNS']]
         df.columns = app.config['ALARM_MAPPING']
         df = df.replace({'RcaResult': {1: 'P', 2: 'C'}})
@@ -22,6 +22,7 @@ def format_data(df):
         df['Confirmed'] = nan
         df['X_Alarm'] = nan
         # sort alarms by first occurrence
+        df['First'] = pd.to_datetime(df['First'])
         df = df.sort_values('First')
     else:
         df = df[app.config['TOPO_COLUMNS']]
@@ -59,7 +60,10 @@ def result_monitor(client_id):
             if not pre_alarm.equals(cur_alarm):
                 wrong_num += 1
     # calculate global accuracy
-    accuracy = 1 - (wrong_num / total_num)
+    if total_num != 0:
+        accuracy = 1 - (wrong_num / total_num)
+    else:
+        accuracy = 1
     return alarm, confirmed_num, accuracy
 
 
