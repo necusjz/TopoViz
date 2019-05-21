@@ -90,13 +90,11 @@ export default class Importer extends Vue {
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
       localStorage.setItem('client-id', res.client_id);
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       this.setDefaultDate();
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
       // NProgress.done();
     }).catch((e) => {
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       bus.$emit(EventType.ERRORVISIBLE, {
         title: 'Error',
         type: 'error',

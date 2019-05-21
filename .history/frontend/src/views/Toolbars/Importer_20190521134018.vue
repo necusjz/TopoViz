@@ -31,15 +31,27 @@ import { EventType, StaticsRes } from '@/types/type';
 import NProgress from 'nprogress';
 import { downLoad } from '@/util/util';
 
-NProgress.configure({
-  easing: 'ease',  // 动画方式
-  speed: 500,  // 递增进度条的速度
-  showSpinner: false, // 是否显示加载ico
-  trickleSpeed: 200, // 自动递增间隔
-  minimum: 0.3, // 初始化时的最小百分比
+// NProgress.configure({
+//   // easing: 'ease',  // 动画方式
+//   // speed: 500,  // 递增进度条的速度
+//   // showSpinner: false, // 是否显示加载ico
+//   // trickleSpeed: 200, // 自动递增间隔
+//   // minimum: 0.3, // 初始化时的最小百分比
+// })
+NProgress.settings = {
+  minimum: 0.08,
+  easing: 'linear',
+  positionUsing: '',
+  speed: 200,
+  trickle: true,
+  trickleSpeed: 200,
+  showSpinner: true,
+  barSelector: '[role="bar"]',
+  spinnerSelector: '[role="spinner"]',
   parent: 'body',
   template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
-})
+};
+
 @Component
 export default class Importer extends Vue {
   @Provide() private targetName: string = '';
@@ -76,7 +88,7 @@ export default class Importer extends Vue {
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
-    // NProgress.start();
+    NProgress.start();
     if (!this.isNonImported) {
       this.clearAllData();
     }
@@ -86,23 +98,20 @@ export default class Importer extends Vue {
       clear({clientId: clientId}).then((res) => {
       });
     }
-    bus.$emit(EventType.LOADINGVISIBLE, true);
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
       localStorage.setItem('client-id', res.client_id);
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       this.setDefaultDate();
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
-      // NProgress.done();
+      NProgress.done();
     }).catch((e) => {
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       bus.$emit(EventType.ERRORVISIBLE, {
         title: 'Error',
         type: 'error',
         content: `<p>${e.message}</p>`
       });
-      // NProgress.done();
+      NProgress.done();
     })
   }
   public setDefaultDate() {
