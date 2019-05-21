@@ -22,7 +22,6 @@ export enum EventType {
     QUERY = 'QUERY',
     CLEAREXPAN = 'CLEAREXPAN',
     SAVEDATA = 'SAVEDATA',
-    LOADINGVISIBLE = 'LOADINGVISIBLE',
 }
 
 export interface AppState {
