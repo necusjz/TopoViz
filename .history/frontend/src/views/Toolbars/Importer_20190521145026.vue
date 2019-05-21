@@ -96,7 +96,6 @@ export default class Importer extends Vue {
       this.$store.commit('SET_ISNOEIMPORTED', false);
       // NProgress.done();
     }).catch((e) => {
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       bus.$emit(EventType.ERRORVISIBLE, {
         title: 'Error',
         type: 'error',

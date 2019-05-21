@@ -24,7 +24,6 @@
       </div>
     </el-scrollbar>
     <ErrorDialog></ErrorDialog>
-    <Loading></Loading>
   </div>
 </template>
 
@@ -40,7 +39,6 @@ import TopoChart from './Topo/TopoChart.vue';
 import TopoTablePagination from './Pagination/TopoPagination.vue';
 import ErrorDialog from './Dialog/ErrorDialog.vue';
 import StaticsTable from './Table/StaticsTable.vue';
-import Loading from './Loading/Index.vue';
 
 @Component({
   components: {
@@ -53,7 +51,6 @@ import Loading from './Loading/Index.vue';
     TopoTablePagination,
     ErrorDialog,
     StaticsTable,
-    Loading
   }
 })
 export default class AppMain extends Vue {

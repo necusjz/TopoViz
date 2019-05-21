@@ -76,7 +76,7 @@ export default class Importer extends Vue {
     const form: FormData = new FormData();
     form.append('file1', this.targetFile);
     form.append('file2', this.formatFile);
-    // NProgress.start();
+    NProgress.start();
     if (!this.isNonImported) {
       this.clearAllData();
     }
@@ -86,23 +86,20 @@ export default class Importer extends Vue {
       clear({clientId: clientId}).then((res) => {
       });
     }
-    bus.$emit(EventType.LOADINGVISIBLE, true);
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
       localStorage.setItem('client-id', res.client_id);
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       this.setDefaultDate();
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
-      // NProgress.done();
+      NProgress.done();
     }).catch((e) => {
-      bus.$emit(EventType.LOADINGVISIBLE, false);
       bus.$emit(EventType.ERRORVISIBLE, {
         title: 'Error',
         type: 'error',
         content: `<p>${e.message}</p>`
       });
-      // NProgress.done();
+      NProgress.done();
     })
   }
   public setDefaultDate() {
