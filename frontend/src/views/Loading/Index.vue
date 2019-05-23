@@ -2,7 +2,7 @@
   <div class="loading-wrap" v-show="visible">
     <div class="loading-content">
       <el-progress :stroke-width="12" :percentage="percent" :show-text="false"></el-progress>
-      <p class="loading-text">正在导入数据，请稍等</p>
+      <p class="loading-text">Importing data, please wait ...</p>
     </div>
   </div>
 </template>
@@ -72,4 +72,3 @@ export default class Loading extends Vue{
   }
 }
 </style>
-
