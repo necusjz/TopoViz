@@ -39,13 +39,13 @@
 import { Component, Prop, Vue, Provide, Watch } from 'vue-property-decorator';
 import { State } from 'vuex-class';
 import * as xCanvas from '../../lib';
-import { Vertex } from '@/lib/typeof/typeof';
 import { Node, Edge, EventType, AlarmData, NodeData, RCAResult } from '../../types/type';
 import * as util from '../../util/util';
 import bus from '../../util/bus';
 import TipDialog from '../Dialog/TipDialog.vue';
 import QueryTool from '../Toolbars/QueryTool.vue';
 import TopoTreeHelper from '@/util/topoTree';
+import { EventData, Vertex } from '../../lib/typeof/typeof';
 
 declare const ht: any;
 
@@ -127,23 +127,60 @@ export default class TopoTree extends Vue {
         stage.clearHighLightLayer();
       }
     }, 100));
-    stage.on('click', (e: any) => {
-      const layers = stage.getLayersByPosition(e.pos);
-      const layer = layers.find((layer: xCanvas.Layer) => layer.options.layerType === 'node');
-      if (layer) {
-        const dirtyData = layer.getDirtyData();
-        if (dirtyData) {
-          window.location.hash = '#' + dirtyData.alarmSourceName;
-          this.$store.commit('SET_SELECTALARM', dirtyData.alarmSourceName);
-          setTimeout(() => {
-            window.location.hash = '';
-          });
-        }
-      } else {
-        if (this.borderLayer) {
-          this.stage.removeLayer(this.borderLayer);
-          this.$store.commit('SET_SELECTALARM', '');
-        }
+    stage.on('mousedown', (e: EventData) => {
+      const layer = stage.getLayerByPosition(e.pos);
+      if (layer && layer.options.layerType === 'node') {
+        stage.disableDrag();
+        let startPos = e.pos;
+        stage.on('mousemove', (ev: EventData) => {
+          this.clearBorderlayer();
+          stage.startBatch()
+          const endPos = ev.pos;
+          const dx = endPos[0] - startPos[0];
+          const dy = endPos[1] - startPos[1];
+          layer.translate(dx, dy);
+          this.updateRelateLayers(dx, dy, layer.options.name);
+          startPos = endPos;
+          stage.endBatch();
+        });
+        stage.once('mouseup', (et: EventData) => {
+          if (xCanvas.Math.Base.isSamePoint(et.pos, e.pos)) {
+            this.locationTableAlarm(et.pos);
+          }
+          stage.off('mousemove');
+        })
+      }
+    });
+  }
+  public locationTableAlarm(pos: Vertex) {
+    const layers = this.stage.getLayersByPosition(pos);
+    const layer = layers.find((layer: xCanvas.Layer) => layer.options.layerType === 'node');
+    if (layer) {
+      const dirtyData = layer.getDirtyData();
+      if (dirtyData) {
+        window.location.hash = '#' + dirtyData.alarmSourceName;
+        this.$store.commit('SET_SELECTALARM', dirtyData.alarmSourceName);
+        setTimeout(() => {
+          window.location.hash = '';
+        });
+      }
+    } else {
+      this.clearBorderlayer();
+    }
+  }
+  public clearBorderlayer() {
+    if (this.borderLayer) {
+      this.stage.removeLayer(this.borderLayer);
+      this.$store.commit('SET_SELECTALARM', '');
+    }
+  }
+  public updateRelateLayers(dx: number, dy: number, name: string) {
+    this.stage.eachLayer((layer: xCanvas.Layer) => {
+      if (layer.options.layerType === 'edge') {
+        console.log('edge');
+        layer.translate(dx, dy);
+      } else if (layer.options.layerType === 'tag' && layer.options.name === name) {
+        layer.translate(dx, dy);
       }
     });
   }
@@ -200,21 +237,20 @@ export default class TopoTree extends Vue {
         const p1 = source.clone().add(ydir.clone().scale(this.size / 1.8));
         const p2 = target.clone().add(ydir.clone().scale(this.size / 1.8));
         const p3 = p1.clone().add(ydir.clone().scale(step / 3));
-        // const p4 = p2.clone().add(ydir.clone().scale(step / 3));
         const p4 = new xCanvas.Math.Vector2(p2.x, p3.y);
         path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
-        const leader = new xCanvas.Polyline(path, {color: '#0276F7'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
+        const leader = new xCanvas.Polyline(path, {color: '#0276F7', layerType: 'edge-line'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
       } else {
         const dir = target.clone().substract(source.clone()).normalize();
         const p1 = source.clone().add(dir.clone().scale(this.size / 1.5));
         const p2 = target.clone().substract(dir.clone().scale(this.size / 1.5));
         const pts: Vertex[] = [];
         pts.push([p1.x, p1.y], [p2.x, p2.y]);
-        const leader = new xCanvas.Polyline(pts, {color: '#0276F7'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow]));
+        const leader = new xCanvas.Polyline(pts, {color: '#0276F7', layerType: 'edge-line'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
       }
     }
     for (const node of helper.nodes.values()) {
@@ -225,7 +261,7 @@ export default class TopoTree extends Vue {
       }
       const ex: string = dirtyData ? `-${dirtyData.statusType}` : '';
       const url = require(`../../assets/${node.type}${ex}.png`);
-      const nodeLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, this.size, this.size, {layerType: 'node'}).addTo(stage);
+      const nodeLayer = new xCanvas.ImageLayer(url, node.position.x, node.position.y, this.size, this.size, {layerType: 'node', name: node.name}).addTo(stage);
       if (dirtyData) {
         nodeLayer.setDirtyData(dirtyData);
         // this.addAlarmCountTag(nodeLayer, node.name);
@@ -247,7 +283,6 @@ export default class TopoTree extends Vue {
     const top = base.clone().add(new xCanvas.Math.Vector2(0, 1).scale(this.size / 2 + 16));
     const topLeft = base.clone().add(new xCanvas.Math.Vector2(-1, 1).normalize().scale(this.size * 0.8));
     const pts: xCanvas.Math.Vector2[] = [top, topRight, topLeft];
-
     const nums: {text: string, icon: string}[] = [];
     const alarmDatas = this.alarmDatas.filter((alarmData) => alarmData.alarmSourceName === alarmSourceName);
     const pCount = alarmDatas.filter((alarmData) => alarmData.rcaResult_edit === RCAResult.P).length;
@@ -262,14 +297,18 @@ export default class TopoTree extends Vue {
     if (cCount > 0) {
       nums.push({text: cCount.toString(), icon: 'green'});
     }
+    const layerGroup: xCanvas.LayerGroup = new xCanvas.LayerGroup([], {layerType: 'tag', name: alarmSourceName});
     nums.forEach((tag, index) => {
       const dir = index === 0 ? 'center': index === 1 ? 'right' : 'left';
       const tagUrl = require(`../../assets/${tag.icon}-${dir}-tag.png`);
       const tagPos = [pts[index].x, pts[index].y];
       // 添加告警数量tag
-      const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0], tagPos[1], 28, 20, {type: 'tag'});
-      this.stage.addLayer(tagImage);
-      this.stage.addLayer(new xCanvas.IText(pts[index].toArray(), tag.text, {color: '#FFFFFF', textAlign: 'center'}));
+      const tagImage = new xCanvas.ImageLayer(tagUrl, tagPos[0], tagPos[1], 28, 20, {layerType: 'tag'});
+      layerGroup.addLayer(tagImage);
+      // this.stage.addLayer(tagImage);
+      const tagText = new xCanvas.IText(pts[index].toArray(), tag.text, {color: '#FFFFFF', textAlign: 'center'});
+      layerGroup.addLayer(tagText);
+      // this.stage.addLayer(new xCanvas.IText(pts[index].toArray(), tag.text, {color: '#FFFFFF', textAlign: 'center'}));
       if (this.bound) {
         this.bound = this.bound.union(tagImage.getBound());
       }
@@ -277,8 +316,10 @@ export default class TopoTree extends Vue {
     const textPos = base.clone().add(new xCanvas.Math.Vector2(0, -1).scale(this.size / 1.5)).toArray();
     const maxLength = 120;
     const iText = new xCanvas.IText([textPos[0], textPos[1]], alarmSourceName,
-      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 8, fontSize: 10}); //  alarmSourceName
-    this.stage.addLayer(iText);
+      {color: '#282828', textAlign: 'center', baseLine: 'top', maxLength, verticleSpace: 8, fontSize: 10});
+    layerGroup.addLayer(iText);
+    // this.stage.addLayer(iText);
+    this.stage.addLayer(layerGroup);
     if (this.bound) {
       this.bound = this.bound.union(iText.getBound());
     }
