@@ -192,6 +192,7 @@ def build_tree(paths):
         topo = topo.sort_values('PathHop', ascending=False)
         per_path = []
         for name, kind in zip(topo['NEName'], topo['NEType']):
+            kind = kind.upper()
             per_path.append({'NEName': name,
                              'NEType': app.config['NE_ICON'].get(kind, 'OTHER'),
                              'Layer': app.config['NE_LAYER'].get(kind)})
