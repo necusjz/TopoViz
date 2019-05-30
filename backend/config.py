@@ -1,4 +1,4 @@
-DISTINCT_NUM = 8
+DISTINCT_NUM = 10
 
 UPLOAD_FOLDER = 'temp'
 
@@ -16,7 +16,12 @@ ALARM_COLUMNS = ['Alarm Name', 'Alarm Source', 'Vendor', 'First Occurrence',
 ALARM_MAPPING = ['AlarmName', 'AlarmSource', 'Vendor', 'First', 'Last',
                  'Level', 'Clear', 'Domain', 'GroupId', 'RcaResult', 'RuleName']
 
-NE_ICON = {'nodeB': 'BTS', 'BTS': 'BTS', 'E Node': 'BTS', 'MicroWave': 'MW',
-           'ATN': 'ATN', 'Router': 'ATN', 'BSC': 'BSC', 'RNC': 'RNC'}
-NE_LAYER = {'nodeB': 0, 'BTS': 0, 'E Node': 0, 'MicroWave': 1, 'ATN': 2,
-            'Router': 2, 'BSC': 3, 'RNC': 3}
+NE_ICON = {'NODEB': 'BTS', 'BTS': 'BTS', 'E NODE': 'BTS',
+           'MICROWAVE': 'MW',
+           'ATN': 'ATN', 'ROUTER': 'ATN',
+           'BSC': 'BSC', 'RNC': 'RNC'}
+
+NE_LAYER = {'NODEB': 0, 'BTS': 0, 'E NODE': 0,
+            'MICROWAVE': 1,
+            'ATN': 2, 'ROUTER': 2,
+            'BSC': 3, 'RNC': 3}
