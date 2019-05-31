@@ -110,8 +110,6 @@ def interval():
         res['group_id'] = list(alarm['GroupId_Edited'].drop_duplicates()
                                                       .dropna())
     else:
-        # sort topos by tree id
-        alarm = alarm.sort_values('X_Alarm')
         res['group_id'] = list(alarm['X_Alarm'].drop_duplicates()
                                                .dropna())
     return jsonify(res)
