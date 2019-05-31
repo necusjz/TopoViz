@@ -67,21 +67,57 @@ def result_monitor(client_id):
     return alarm, confirmed_num, accuracy
 
 
+def ne2path(alarms):
+    # get paths for each network element
+    ne_path = []
+    for alarm in alarms:
+        client_id = request.headers.get('Client-Id')
+        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                        app.config['TOPO_FILE']))
+        topo = topo.loc[topo['NEName'] == alarm]
+        ne_path.append(set(topo['PathId']))
+    # calculate the topo paths need to be displayed
+    topo_path = set()
+    for i in range(0, len(ne_path)):
+        topo_path = topo_path | ne_path[i]
+    return topo_path
+
+
+def path2ne(paths):
+    ne_set = set()
+    for path in paths:
+        topo = path_filter(path)
+        ne_set = ne_set | set(topo['NEName'])
+    return ne_set
+
+
+def union_path(paths):
+    res_id = [i for i in range(len(paths))]
+    for i in range(len(paths)-1):
+        if path2ne([paths[i]]) & path2ne([paths[i+1]]):
+            res_id[i+1] = res_id[i]
+    return res_id
+
+
 def fill_tree(x_alarm):
     client_id = request.headers.get('Client-Id')
-    # get paths merge result
-    merge_res = []
-    topo_path = ne2path(set(x_alarm['AlarmSource']))
-    serial_path = sort_path(topo_path)
-    merge_res = merge_path(serial_path, merge_res)
+    # get paths union result dict
+    topo_path = list(ne2path(set(x_alarm['AlarmSource'])))
+    union_res = union_path(topo_path)
+    path_dict = dict(zip(topo_path, union_res))
+    print(path_dict)
     # empty x_alarm column
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     alarm.drop(columns='X_Alarm')
     alarm['X_Alarm'] = nan
     # fill x_alarm column
-    for i, paths in enumerate(merge_res):
-        tree = 'TOPO_TREE_' + str(i + 1).zfill(3)
+    serial_res = pd.value_counts(union_res)
+    for tree_id in serial_res.index:
+        print(tree_id)
+        paths = [key for key, value in path_dict.items() if value == tree_id]
+        print(paths)
+        tree = 'TOPO_TREE_' + str(tree_id).zfill(3)
         add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
         for ne in add_alarm:
             mask = (alarm['AlarmSource'] == ne) & \
@@ -120,67 +156,6 @@ def path_filter(path):
                                     app.config['TOPO_FILE']))
     topo = topo.loc[topo['PathId'] == path]
     return topo
-
-
-def ne2path(alarms):
-    # get paths for each network element
-    ne_path = []
-    for alarm in alarms:
-        client_id = request.headers.get('Client-Id')
-        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                        app.config['TOPO_FILE']))
-        topo = topo.loc[topo['NEName'] == alarm]
-        ne_path.append(set(topo['PathId']))
-    # calculate the topo paths need to be displayed
-    topo_path = set()
-    for i in range(0, len(ne_path)):
-        topo_path = topo_path | ne_path[i]
-    return topo_path
-
-
-def path2ne(paths):
-    ne_set = set()
-    for path in paths:
-        topo = path_filter(path)
-        ne_set = ne_set | set(topo['NEName'])
-    return ne_set
-
-
-def sort_path(paths):
-    # count the number of each network element
-    total_ne = []
-    for path in paths:
-        topo = path_filter(path)
-        total_ne.extend(list(topo['NEName']))
-    count_res = pd.value_counts(total_ne)
-    # sort by complexity
-    path_res = dict()
-    for path in paths:
-        complexity = 0
-        topo = path_filter(path)
-        for ne in list(topo['NEName']):
-            complexity += count_res.loc[ne]
-        path_res[path] = complexity
-    res = sorted(path_res.items(), key=lambda item: item[1], reverse=True)
-    res = list(map(lambda x: [x[0]], res))
-    return res
-
-
-def merge_path(paths, merge_res):
-    # exit
-    if len(paths) == 1:
-        merge_res.append(paths[0])
-        return merge_res
-    # recursive merge path
-    ne_set = path2ne(paths[0])
-    for i in range(1, len(paths)):
-        if ne_set & path2ne(paths[i]):
-            paths[0].extend(paths[i])
-            paths.remove(paths[i])
-            return merge_path(paths, merge_res)
-    merge_res.append(paths[0])
-    paths.remove(paths[0])
-    return merge_path(paths, merge_res)
 
 
 def build_tree(paths):
@@ -236,7 +211,7 @@ def get_expand(pre_alarm, cur_alarm):
         add_path = ne2path(set(cur_alarm['AlarmSource']))
         add_alarm = set()
         for path in add_path:
-            add_ne = path2ne({path})
+            add_ne = path2ne([path])
             if add_ne & topo_ne:
                 topo_path = topo_path | {path}
                 add_alarm = add_alarm | (add_ne & set(cur_alarm['AlarmSource']))
