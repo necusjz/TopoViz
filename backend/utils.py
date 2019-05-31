@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 
+from itertools import combinations
 from flask import Flask, request
 from numpy import nan
 
@@ -91,33 +92,32 @@ def path2ne(paths):
     return ne_set
 
 
-def union_path(paths):
-    res_id = [i for i in range(len(paths))]
-    for i in range(len(paths)-1):
-        if path2ne([paths[i]]) & path2ne([paths[i+1]]):
-            res_id[i+1] = res_id[i]
-    return res_id
+def union_path(path_dict):
+    paths = [k for k, v in path_dict.items()]
+    for pair in list(combinations(paths, 2)):
+        if not path2ne([pair[0]]).isdisjoint(path2ne([pair[1]])):
+            path_dict[pair[0]] = path_dict[pair[1]]
+    return path_dict
 
 
 def fill_tree(x_alarm):
     client_id = request.headers.get('Client-Id')
-    # get paths union result dict
+    # get paths union result
     topo_path = list(ne2path(set(x_alarm['AlarmSource'])))
-    union_res = union_path(topo_path)
-    path_dict = dict(zip(topo_path, union_res))
-    print(path_dict)
+    path_id = [i for i in range(len(topo_path))]
+    path_dict = dict(zip(topo_path, path_id))
+    path_dict = union_path(path_dict)
     # empty x_alarm column
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     alarm.drop(columns='X_Alarm')
     alarm['X_Alarm'] = nan
     # fill x_alarm column
-    serial_res = pd.value_counts(union_res)
-    for tree_id in serial_res.index:
-        print(tree_id)
-        paths = [key for key, value in path_dict.items() if value == tree_id]
-        print(paths)
-        tree = 'TOPO_TREE_' + str(tree_id).zfill(3)
+    ids = [v for k, v in path_dict.items()]
+    ids = pd.value_counts(ids)
+    for tree_id in ids.index:
+        tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(3)
+        paths = [k for k, v in path_dict.items() if v == tree_id]
         add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
         for ne in add_alarm:
             mask = (alarm['AlarmSource'] == ne) & \
