@@ -130,6 +130,7 @@ export default class TopoTree extends Vue {
     stage.on('mousedown', (e: EventData) => {
       const layer = stage.getLayerByPosition(e.pos);
       if (layer && layer.options.layerType === 'node') {
+        /**
         stage.disableDrag();
         let startPos = e.pos;
         stage.on('mousemove', (ev: EventData) => {
@@ -143,6 +144,7 @@ export default class TopoTree extends Vue {
           startPos = endPos;
           stage.endBatch();
         });
+        **/
         stage.once('mouseup', (et: EventData) => {
           if (xCanvas.Math.Base.isSamePoint(et.pos, e.pos)) {
             this.locationTableAlarm(et.pos);
