@@ -70,26 +70,26 @@ def result_monitor(client_id):
 
 
 def ne2path(alarms):
-    # get paths for each network element
-    ne_path = []
-    for alarm in alarms:
-        client_id = request.headers.get('Client-Id')
-        topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                        app.config['TOPO_FILE']))
-        topo = topo.loc[topo['NEName'] == alarm]
-        ne_path.append(set(topo['PathId']))
+    client_id = request.headers.get('Client-Id')
+    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                    app.config['TOPO_FILE']))
     # calculate the topo paths need to be displayed
     topo_path = set()
-    for i in range(0, len(ne_path)):
-        topo_path = topo_path | ne_path[i]
+    for alarm in alarms:
+        res = topo.loc[topo['NEName'] == alarm]
+        topo_path = topo_path | set(res['PathId'])
     return topo_path
 
 
 def path2ne(paths):
+    client_id = request.headers.get('Client-Id')
+    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                    app.config['TOPO_FILE']))
+    # convert topo paths to net elements
     ne_set = set()
     for path in paths:
-        topo = path_filter(path)
-        ne_set = ne_set | set(topo['NEName'])
+        res = topo.loc[topo['PathId'] == path]
+        ne_set = ne_set | set(res['NEName'])
     return ne_set
 
 
@@ -97,26 +97,33 @@ def pair_path(path_dict):
     res = []
     paths = path_dict.keys()
     for pair in list(combinations(paths, 2)):
-        if not path2ne([pair[0]]).isdisjoint(path2ne([pair[1]])):
+        set1 = set(pair[0])
+        set2 = set(pair[1])
+        if not set1.isdisjoint(set2):
             res.append((path_dict[pair[0]], path_dict[pair[1]]))
     return res
 
 
 def fill_tree(x_alarm):
     client_id = request.headers.get('Client-Id')
+    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                    app.config['TOPO_FILE']))
     # get paths union result
     topo_path = list(ne2path(set(x_alarm['AlarmSource'])))
+    path_tuple = []
+    for path in topo_path:
+        res = topo.loc[topo['PathId'] == path]
+        path_tuple.append(tuple(res['NEName']))
     path_id = [i for i in range(len(topo_path))]
-    path_dict = dict(zip(topo_path, path_id))
-    print(path_dict)
+    path_dict = dict(zip(path_tuple, path_id))
     pair_list = pair_path(path_dict)
     uf = union_find.UnionFind(len(topo_path))
     for pair in pair_list:
         path1 = pair[0]
         path2 = pair[1]
-        uf.union(path1, path2)
+        uf.unite(path1, path2)
+    uf.id = [uf.find(i) for i in uf.id]
     path_dict = dict(zip(topo_path, uf.id))
-    print(path_dict)
     # empty x_alarm column
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -124,7 +131,7 @@ def fill_tree(x_alarm):
     alarm['X_Alarm'] = nan
     # fill x_alarm column
     for tree_id in uf.id:
-        tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(3)
+        tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(4)
         paths = [k for k, v in path_dict.items() if v == tree_id]
         add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
         for ne in add_alarm:
