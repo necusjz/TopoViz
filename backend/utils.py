@@ -1,4 +1,5 @@
 import pandas as pd
+import union_find
 import os
 
 from itertools import combinations
@@ -92,12 +93,13 @@ def path2ne(paths):
     return ne_set
 
 
-def union_path(path_dict):
-    paths = [k for k, v in path_dict.items()]
+def pair_path(path_dict):
+    res = []
+    paths = path_dict.keys()
     for pair in list(combinations(paths, 2)):
         if not path2ne([pair[0]]).isdisjoint(path2ne([pair[1]])):
-            path_dict[pair[0]] = path_dict[pair[1]]
-    return path_dict
+            res.append((path_dict[pair[0]], path_dict[pair[1]]))
+    return res
 
 
 def fill_tree(x_alarm):
@@ -106,16 +108,22 @@ def fill_tree(x_alarm):
     topo_path = list(ne2path(set(x_alarm['AlarmSource'])))
     path_id = [i for i in range(len(topo_path))]
     path_dict = dict(zip(topo_path, path_id))
-    path_dict = union_path(path_dict)
+    print(path_dict)
+    pair_list = pair_path(path_dict)
+    uf = union_find.UnionFind(len(topo_path))
+    for pair in pair_list:
+        path1 = pair[0]
+        path2 = pair[1]
+        uf.union(path1, path2)
+    path_dict = dict(zip(topo_path, uf.id))
+    print(path_dict)
     # empty x_alarm column
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
     alarm.drop(columns='X_Alarm')
     alarm['X_Alarm'] = nan
     # fill x_alarm column
-    ids = [v for k, v in path_dict.items()]
-    ids = pd.value_counts(ids)
-    for tree_id in ids.index:
+    for tree_id in uf.id:
         tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(3)
         paths = [k for k, v in path_dict.items() if v == tree_id]
         add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
