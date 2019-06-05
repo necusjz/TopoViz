@@ -46,6 +46,7 @@ export interface AppState {
     yellowAlarms: string[];
     clientId: string;
     needSave: boolean;
+    loading: boolean;
 }
 
 export interface AlarmData {
