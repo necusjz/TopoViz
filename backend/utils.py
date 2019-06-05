@@ -96,6 +96,7 @@ def path2ne(paths):
 def pair_path(path_dict):
     res = []
     paths = path_dict.keys()
+    # get intersected pairs
     for pair in list(combinations(paths, 2)):
         set1 = set(pair[0])
         set2 = set(pair[1])
@@ -108,7 +109,7 @@ def fill_tree(x_alarm):
     client_id = request.headers.get('Client-Id')
     topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                     app.config['TOPO_FILE']))
-    # get paths union result
+    # generate ne tuple dict
     topo_path = list(ne2path(set(x_alarm['AlarmSource'])))
     path_tuple = []
     for path in topo_path:
@@ -117,11 +118,13 @@ def fill_tree(x_alarm):
     path_id = [i for i in range(len(topo_path))]
     path_dict = dict(zip(path_tuple, path_id))
     pair_list = pair_path(path_dict)
+    # do union-find
     uf = union_find.UnionFind(len(topo_path))
     for pair in pair_list:
         path1 = pair[0]
         path2 = pair[1]
         uf.unite(path1, path2)
+    # generate topo path dict
     uf.id = [uf.find(i) for i in uf.id]
     path_dict = dict(zip(topo_path, uf.id))
     # empty x_alarm column
@@ -174,14 +177,17 @@ def path_filter(path):
 
 
 def build_tree(paths):
+    client_id = request.headers.get('Client-Id')
+    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
+                                    app.config['TOPO_FILE']))
     # combine paths into tree
     topo_tree = []
     for path in paths:
         # unified format for per path
-        topo = path_filter(path)
-        topo = topo.sort_values('PathHop', ascending=False)
+        res = topo.loc[topo['PathId'] == path]
+        res = res.sort_values('PathHop', ascending=False)
         per_path = []
-        for name, kind in zip(topo['NEName'], topo['NEType']):
+        for name, kind in zip(res['NEName'], res['NEType']):
             kind = kind.upper()
             per_path.append({'NEName': name,
                              'NEType': app.config['NE_ICON'].get(kind, 'OTHER'),
