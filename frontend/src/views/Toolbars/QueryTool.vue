@@ -95,6 +95,7 @@ export default class QueryTool extends Vue {
   @State((state) => state.app.defaultDate) public defaultDate!: number[];
   @State((state) => state.app.needSave) public needSave!: boolean;
   @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
+  @State((state) => state.app.loading) private loading!: boolean;
 
   @Watch('defaultDate')
   public watchDefaultDate(val: number[]) {
@@ -137,6 +138,14 @@ export default class QueryTool extends Vue {
         this.$store.commit('SET_DEFAULTDATE', dateValue);
       }
     })
+  }
+
+  @Watch('loading')
+  public isLoading(val: boolean) {
+    const instance = this.$loading({fullscreen: true, lock: true});
+    if (!val) {
+      instance.close();
+    }
   }
   mounted() {
     this.options = ruleOptions;
@@ -203,6 +212,7 @@ export default class QueryTool extends Vue {
     }
   }
   public doQuery() {
+    this.$store.commit('SET_LOADING', true);
     this.regulationValue = [];
     this.$store.commit("SET_REGVALUE", '');
     this.$store.commit("SET_REGTYPE", '');
@@ -210,6 +220,7 @@ export default class QueryTool extends Vue {
     this.status = false;
     this.interval = 5;
     getAlarmDatas({groupId: this.groupId, xAlarm: this.isCheckNone}).then((data: AnalyzeRes) => {
+      this.$store.commit('SET_LOADING', false);
       this.setData(data);
     });
     this.$store.commit("SET_GROUPID", this.groupId);
