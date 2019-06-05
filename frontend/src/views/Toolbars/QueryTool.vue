@@ -118,6 +118,7 @@ export default class QueryTool extends Vue {
   }
   @Watch('radioType')
   public watchRadioType(val: string) {
+    this.$store.commit('SET_LOADING', true);
     this.$store.commit('SET_ISCHECKNONE', val === '2');
   }
   @Watch('isCheckNone')
