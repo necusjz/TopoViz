@@ -81,6 +81,7 @@ export default class Importer extends Vue {
       this.clearAllData();
     }
     const clientId = localStorage.getItem('client-id');
+    localStorage.setItem('client-id', '');
     if (clientId) {
       // 清空之前上传保存的clientId
       clear({clientId: clientId}).then((res) => {
