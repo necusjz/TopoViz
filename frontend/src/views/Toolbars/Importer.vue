@@ -51,6 +51,7 @@ export default class Importer extends Vue {
   @State((state) => state.app.clientId) private clientId!: string;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isCheckNone) private isCheckNone!: boolean;
+  @State((state) => state.app.loading) private loading!: boolean;
 
   public beforeUpload(type: string, file: File) {
     if (file.name.endsWith('csv') || file.name.endsWith('xlsx') || file.name.endsWith('xls')) {
