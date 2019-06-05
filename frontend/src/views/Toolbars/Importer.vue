@@ -87,7 +87,8 @@ export default class Importer extends Vue {
       clear({clientId: clientId}).then((res) => {
       });
     }
-    bus.$emit(EventType.LOADINGVISIBLE, true);
+    // ßbus.$emit(EventType.LOADINGVISIBLE, true);
+    this.$store.commit('SET_LOADING', true);
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
       localStorage.setItem('client-id', res.client_id);
