@@ -331,7 +331,7 @@ export default class TopoTreeHelper {
             const step = Math.max(this.options.step, h / groupData.length);
             for (let k = 0; k < groupData.length; k++) {
                 const group = groupData[k];
-                const interval = w / group.nodes.length;
+                const interval = Math.max(this.options.interval, w / group.nodes.length);
                 const nodes = group.nodes.sort((a, b) => a.position.x - b.position.x);
                 for (let i = 0; i < nodes.length; i++) {
                     const node = nodes[i];
