@@ -140,14 +140,6 @@ export default class QueryTool extends Vue {
       }
     })
   }
-
-  @Watch('loading')
-  public isLoading(val: boolean) {
-    const instance = this.$loading({fullscreen: true, lock: true});
-    if (!val) {
-      instance.close();
-    }
-  }
   mounted() {
     this.options = ruleOptions;
     bus.$on(EventType.FILTERRESET, () => {
