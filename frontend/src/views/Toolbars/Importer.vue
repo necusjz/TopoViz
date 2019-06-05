@@ -87,7 +87,6 @@ export default class Importer extends Vue {
       clear({clientId: clientId}).then((res) => {
       });
     }
-    // ßbus.$emit(EventType.LOADINGVISIBLE, true);
     this.$store.commit('SET_LOADING', true);
     postTopoData(form).then((res: StaticsRes) => {
       this.$store.commit('SET_CLIENTID', res.client_id);
@@ -96,7 +95,6 @@ export default class Importer extends Vue {
       this.setDefaultDate();
       this.$store.commit('SET_STATICS', res);
       this.$store.commit('SET_ISNOEIMPORTED', false);
-      // NProgress.done();
     }).catch((e) => {
       bus.$emit(EventType.LOADINGVISIBLE, false);
       bus.$emit(EventType.ERRORVISIBLE, {
@@ -105,7 +103,6 @@ export default class Importer extends Vue {
         content: `<p>${e.message}</p>`
       });
       this.$store.commit('SET_LOADING', false);
-      // NProgress.done();
     })
   }
   public setDefaultDate() {
