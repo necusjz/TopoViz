@@ -22,6 +22,7 @@ const state: AppState = {
     yellowAlarms: [], // 黄色的告警元
     clientId: '',
     needSave: false,
+    loading: false,
 };
 
 const mutations: MutationTree<AppState> = {
@@ -84,6 +85,9 @@ const mutations: MutationTree<AppState> = {
     },
     SET_NEEDSAVE: (state: AppState, need: boolean) => {
         state.needSave = need;
+    },
+    SET_LOADING: (state: AppState, isLoading: boolean) => {
+        state.loading = isLoading;
     }
 };
 
