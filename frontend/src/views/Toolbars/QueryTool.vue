@@ -185,6 +185,8 @@ export default class QueryTool extends Vue {
           }
         }
       })
+    } else {
+      this.$store.commit('SET_LOADING', false);
     }
   }
   public queryTopoData() {
