@@ -130,7 +130,7 @@ def fill_tree(x_alarm):
     alarm.drop(columns='X_Alarm')
     alarm['X_Alarm'] = nan
     # fill x_alarm column
-    for tree_id in uf.id:
+    for tree_id in set(uf.id):
         tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(4)
         paths = [k for k, v in path_dict.items() if v == tree_id]
         add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
