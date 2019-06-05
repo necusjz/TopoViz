@@ -124,9 +124,8 @@ def fill_tree(x_alarm):
         path1 = pair[0]
         path2 = pair[1]
         uf.unite(path1, path2)
-    # generate topo path dict
     uf.id = [uf.find(i) for i in uf.id]
-    path_dict = dict(zip(topo_path, uf.id))
+    path_dict = dict(zip(path_tuple, uf.id))
     # empty x_alarm column
     alarm = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
                                      app.config['ALARM_FILE']))
@@ -134,9 +133,12 @@ def fill_tree(x_alarm):
     alarm['X_Alarm'] = nan
     # fill x_alarm column
     for tree_id in set(uf.id):
+        ne_set = set()
         tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(4)
-        paths = [k for k, v in path_dict.items() if v == tree_id]
-        add_alarm = path2ne(paths) & set(x_alarm['AlarmSource'])
+        net_elements = [k for k, v in path_dict.items() if v == tree_id]
+        for ne in net_elements:
+            ne_set = ne_set | set(ne)
+        add_alarm = ne_set & set(x_alarm['AlarmSource'])
         for ne in add_alarm:
             mask = (alarm['AlarmSource'] == ne) & \
                    (pd.isnull(alarm['GroupId_Edited']))
@@ -166,14 +168,6 @@ def group_filter(group_id):
     else:
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     return alarm
-
-
-def path_filter(path):
-    client_id = request.headers.get('Client-Id')
-    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                    app.config['TOPO_FILE']))
-    topo = topo.loc[topo['PathId'] == path]
-    return topo
 
 
 def build_tree(paths):
