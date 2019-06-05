@@ -43,6 +43,7 @@ export default class ErrorDialog extends Vue {
     bus.$on(EventType.ERRORVISIBLE, (obj: string | RecieveData) => {
       this.dialogVisible = true;
       if (typeof obj === 'string') {
+        this.type = 'info';
         this.errorHtml = obj;
         this.showSaveBtn = false;
       } else {
