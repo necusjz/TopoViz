@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" v-loading.fullscreen.lock="loading">
     <el-scrollbar :native="false" wrapClass="app-scroll-wrap" viewClass="" :noresize="false" class="app-scroll">
       <Title></Title>
       <Importer></Importer>
@@ -61,6 +61,7 @@ export default class AppMain extends Vue {
   @State((state) => state.app.isNoneTopoData) public isNoneTopoData!: boolean;
   @State((state) => state.app.isNoneTableData) public isNoneTableData!: boolean;
   @State((state) => state.app.isCheckStatics) public isCheckStatics!: boolean;
+  @State((state) => state.app.loading) public loading!: boolean;
 }
 </script>
 
