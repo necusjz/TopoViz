@@ -125,7 +125,6 @@ export default class QueryTool extends Vue {
   public watchIsCheckNone(val: boolean) {
     this.$store.commit('SET_SELECTALARM', '');
     getInterval({xAlarm: val}).then((res) => {
-      debugger
       if (res.start === 0 && res.end === 0) {
         bus.$emit(EventType.ERRORVISIBLE, {
           title: 'Tip',
@@ -134,6 +133,7 @@ export default class QueryTool extends Vue {
         });
         this.groupId = '';
         this.$store.commit('SET_DEFAULTDATE', [0, 0]);
+        this.$store.commit('SET_LOADING', false);
       } else {
         const dateValue = [res.start * 1000 - 8 * 3600 * 1000, res.end * 1000 - 8 * 3600 * 1000];
         this.$store.commit('SET_DEFAULTDATE', dateValue);
@@ -154,6 +154,7 @@ export default class QueryTool extends Vue {
       this.regulationValue = [];
       this.$store.commit("SET_REGVALUE", '');
       this.$store.commit("SET_REGTYPE", '');
+      this.radioType = '1';
     });
   }
   public suggestion(val: string, cb: any) {
