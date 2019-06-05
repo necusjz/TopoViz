@@ -104,6 +104,7 @@ export default class Importer extends Vue {
         type: 'error',
         content: `<p>${e.message}</p>`
       });
+      this.$store.commit('SET_LOADING', false);
       // NProgress.done();
     })
   }
@@ -136,6 +137,7 @@ export default class Importer extends Vue {
     this.$store.commit('SET_ALARMDATAS', []);
     this.$store.commit('SET_TOPODATA', '');
     bus.$emit(EventType.CLEAREXPAN);
+    bus.$emit(EventType.FILTERRESET);
   }
   public goBack() {
     this.$store.commit('SET_ISCHECKSTATICS', false);
