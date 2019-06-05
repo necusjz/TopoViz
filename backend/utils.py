@@ -124,7 +124,6 @@ def fill_tree(x_alarm):
         path1 = pair[0]
         path2 = pair[1]
         uf.unite(path1, path2)
-    # generate topo path dict
     uf.id = [uf.find(i) for i in uf.id]
     path_dict = dict(zip(path_tuple, uf.id))
     # empty x_alarm column
@@ -169,14 +168,6 @@ def group_filter(group_id):
     else:
         alarm = alarm.loc[alarm['GroupId_Edited'] == group_id]
     return alarm
-
-
-def path_filter(path):
-    client_id = request.headers.get('Client-Id')
-    topo = pd.read_csv(os.path.join(app.config['UPLOAD_FOLDER'], client_id,
-                                    app.config['TOPO_FILE']))
-    topo = topo.loc[topo['PathId'] == path]
-    return topo
 
 
 def build_tree(paths):
