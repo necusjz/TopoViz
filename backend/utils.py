@@ -135,9 +135,13 @@ def fill_tree(x_alarm):
     for tree_id in set(uf.id):
         ne_set = set()
         tree = 'TOPO_TREE_' + str(tree_id + 1).zfill(4)
+        print(tree)
         net_elements = [k for k, v in path_dict.items() if v == tree_id]
+        print(net_elements)
         for ne in net_elements:
             ne_set = ne_set | set(ne)
+        print(ne_set)
+        print(set(x_alarm['AlarmSource']))
         add_alarm = ne_set & set(x_alarm['AlarmSource'])
         for ne in add_alarm:
             mask = (alarm['AlarmSource'] == ne) & \
