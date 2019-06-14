@@ -190,7 +190,7 @@ export default class TopoTreeHelper {
             this.insertNode(restNodes, groupedNodes);
         }
     }
-    public isStraight(x1: number, x2: number, type: string): boolean {
+    public isSeparated(x1: number, x2: number, type: string): boolean {
         const nodes = this.getNodeByFilter((node: Node) => node.type === type);
         const xrange = nodes.map((node: Node) => node.position.x);
         return xrange.some((x: number) => (x - x1) * (x - x2) < 0);
