@@ -60,6 +60,7 @@ export default class TopoTree extends Vue {
   @Provide() private borderLayer!: xCanvas.Layer;
   @Provide() private size: number = 60;
   @Provide() private bound?: xCanvas.Math.Bound | undefined;
+  @Provide() private step: number = 250;
   @State((state) => state.app.isNonImported) private isNonImported!: boolean;
   @State((state) => state.app.isNoneTopoData) isNoneTopoData: any;
   @State((state) => state.app.alarmDatas) private alarmDatas!: AlarmData[];
@@ -113,6 +114,11 @@ export default class TopoTree extends Vue {
   public addEvents() {
     const stage: xCanvas.Stage = this.stage;
     stage.clearAllEvents();
+    this.bindMouseMoveEvent();
+    this.bindNodeDragEvent();
+  }
+  public bindMouseMoveEvent() {
+    const stage: xCanvas.Stage = this.stage;
     stage.on('mousemove', util.throttle((e: any) => {
       const layer = stage.getLayerByPosition(e.pos);
       if (layer && layer.options.type !== 'tag') {
@@ -127,15 +133,17 @@ export default class TopoTree extends Vue {
         stage.clearHighLightLayer();
       }
     }, 100));
+  }
+  public bindNodeDragEvent() {
+    const stage: xCanvas.Stage = this.stage;
     stage.on('mousedown', (e: EventData) => {
       const layer = stage.getLayerByPosition(e.pos);
       if (layer && layer.options.layerType === 'node') {
-        /**
         stage.disableDrag();
         let startPos = e.pos;
         stage.on('mousemove', (ev: EventData) => {
           this.clearBorderlayer();
-          stage.startBatch()
+          stage.startBatch();
           const endPos = ev.pos;
           const dx = endPos[0] - startPos[0];
           const dy = endPos[1] - startPos[1];
@@ -144,14 +152,15 @@ export default class TopoTree extends Vue {
           startPos = endPos;
           stage.endBatch();
         });
-        **/
-        stage.once('mouseup', (et: EventData) => {
-          if (xCanvas.Math.Base.isSamePoint(et.pos, e.pos)) {
-            this.locationTableAlarm(et.pos);
-          }
-          stage.off('mousemove');
-        })
       }
+      stage.once('mouseup', (et: EventData) => {
+        if (xCanvas.Math.Base.isSamePoint(et.pos, e.pos)) {
+          this.locationTableAlarm(et.pos);
+        }
+        stage.off('mousemove');
+        stage.enableDrag();
+        this.bindMouseMoveEvent();
+      })
     });
   }
   public locationTableAlarm(pos: Vertex) {
@@ -178,13 +187,25 @@ export default class TopoTree extends Vue {
   }
   public updateRelateLayers(dx: number, dy: number, name: string) {
     this.stage.eachLayer((layer: xCanvas.Layer) => {
-      if (layer.options.layerType === 'edge') {
-        console.log('edge');
-        layer.translate(dx, dy);
+      if (layer.options.layerType === 'edge' && (layer.options.sourceName === name || layer.options.targetName === name)) {
+        const sourceNode = this.getNodeByName(layer.options.sourceName);
+        const targetNode = this.getNodeByName(layer.options.targetName);
+        if (sourceNode && targetNode) {
+          const sourcePos = sourceNode.getCenter();
+          const targetPos = targetNode.getCenter();
+          const pts: Vertex[] = this.getPathData(new xCanvas.Math.Vector2(sourcePos), new xCanvas.Math.Vector2(targetPos));
+          const leader = (layer as xCanvas.LayerGroup).getLayer((glayer: xCanvas.Layer) => glayer.options.layerType === 'edge-line');
+          (leader as xCanvas.Polyline).setGeometry(pts);
+          const arrow = (layer as xCanvas.LayerGroup).getLayer((glayer: xCanvas.Layer) => glayer.options.layerType === 'edge-arrow');
+          (arrow as xCanvas.Polygon).setGeometry(this.getArrowData(pts[0], pts[1]));
+        }
       } else if (layer.options.layerType === 'tag' && layer.options.name === name) {
         layer.translate(dx, dy);
       }
     });
+  }
+  public getNodeByName(name: string) {
+    return this.stage.getLayer((layer: xCanvas.Layer) => layer.options.name === name);
   }
   public selectNetwork() {
     const layer = this.stage.getLayer((glayer: xCanvas.Layer) => {
@@ -198,6 +219,14 @@ export default class TopoTree extends Vue {
       this.borderLayer = new xCanvas.Rectangle(bound.getSouthWest(), bound.getNorthEast(), {fill: false, color: '#4a96ff'}).addTo(this.stage);
       this.stage.setView(bound.getCenter());
     }
+  }
+  public getPathData(v1: xCanvas.Math.Vector2, v2: xCanvas.Math.Vector2): Vertex[] {
+    const dir = v2.clone().substract(v1.clone()).normalize();
+    const p1 = v1.clone().add(dir.clone().scale(this.size / 1.5));
+    const p2 = v2.clone().substract(dir.clone().scale(this.size / 1.5));
+    const pts: Vertex[] = [];
+    pts.push([p1.x, p1.y], [p2.x, p2.y]);
+    return pts;
   }
   public getArrowData(v1: Vertex, v2: Vertex): Vertex[] {
     const p = new xCanvas.Math.Vector2(v1);
@@ -222,11 +251,10 @@ export default class TopoTree extends Vue {
     if (!this.topoDatas) {
       return;
     }
-    const step: number = 250;
     const stageDom: any = this.$refs.stage;
     const width: number = stageDom.offsetWidth;
     const height: number = stageDom.offsetHeight;
-    const helper = new TopoTreeHelper(this.topoDatas, {size: this.size, width, height, step});
+    const helper = new TopoTreeHelper(this.topoDatas, {size: this.size, width, height, step: this.step});
     helper.run();
     const stage: xCanvas.Stage = this.stage;
     stage.startBatch();
@@ -234,22 +262,18 @@ export default class TopoTree extends Vue {
       const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
       const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
       const path = [];
-      if (edge.source.type ===  edge.target.type && helper.isStraight(source.x, target.x, edge.source.type)) {
+      if (edge.source.type ===  edge.target.type && helper.isSeparated(source.x, target.x, edge.source.type)) {
         const ydir = new xCanvas.Math.Vector2(0, -1);
         const p1 = source.clone().add(ydir.clone().scale(this.size / 1.8));
         const p2 = target.clone().add(ydir.clone().scale(this.size / 1.8));
-        const p3 = p1.clone().add(ydir.clone().scale(step / 3));
+        const p3 = p1.clone().add(ydir.clone().scale(this.step / 3));
         const p4 = new xCanvas.Math.Vector2(p2.x, p3.y);
         path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
         const leader = new xCanvas.Polyline(path, {color: '#0276F7', layerType: 'edge-line'});
         const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
         stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
       } else {
-        const dir = target.clone().substract(source.clone()).normalize();
-        const p1 = source.clone().add(dir.clone().scale(this.size / 1.5));
-        const p2 = target.clone().substract(dir.clone().scale(this.size / 1.5));
-        const pts: Vertex[] = [];
-        pts.push([p1.x, p1.y], [p2.x, p2.y]);
+        const pts: Vertex[] = this.getPathData(source, target);
         const leader = new xCanvas.Polyline(pts, {color: '#0276F7', layerType: 'edge-line'});
         const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
         stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
