@@ -233,7 +233,9 @@ export default class QueryTool extends Vue {
   public setData(res: AnalyzeRes) {
     if (res.table) {
       this.$store.commit('SET_ISNONETABLEDATA', false);
-      const alarmDatas = res.table.map((item: any) => this.formatData(item));
+      const alarmDatas = res.table.map((item: any) => this.formatData(item)).sort((pre: AlarmData, next: AlarmData) => {
+        return pre.alarmSourceName.localeCompare(next.alarmSourceName);
+      });
       this.$store.commit('SET_ALARMDATAS', alarmDatas);
     }
     if (res.topo) {

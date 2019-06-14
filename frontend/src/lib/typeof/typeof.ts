@@ -20,6 +20,7 @@ export enum GraphType {
   IMAGE = 'IMAGE',
   GROUP = 'GROUP',
   TEXT = 'TEXT',
+  QUADRATICBERZIER = 'QUADRATICBERZIER',
 }
 
 export enum TextAlign {
