@@ -32,7 +32,7 @@
           <span :title="scope.row.company">{{scope.row.company}}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="150">
+      <el-table-column prop="firstTime" :label="$t('lang.firstTime')" width="150" sortable>
         <template slot-scope="scope">
           <span :title="scope.row.firstTime">{{scope.row.firstTime}}</span>
         </template>
