@@ -1,5 +1,6 @@
 import Layer from './layer';
 import { GraphType, Vertex } from '../typeof/typeof';
+import * as math from '../math';
 
 export default class QuadraticBerzier extends Layer {
   private p0: Vertex;
@@ -32,6 +33,13 @@ export default class QuadraticBerzier extends Layer {
     return '';
   }
   public translate(dx: number, dy: number) {
-    
+    [this.p0, this.cp, this.p1].forEach((p: Vertex) => {
+      p[0] += dx;
+      p[1] += dy;
+    });
+    this.updateAll();
+  }
+  public getBound(): math.Bound {
+    return new math.Bound(0, 0, 0, 0);
   }
 }
