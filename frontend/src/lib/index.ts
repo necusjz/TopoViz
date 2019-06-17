@@ -7,6 +7,7 @@ import Rectangle from './layer/rectangle';
 import ImageLayer from './layer/imageLayer';
 import LayerGroup from './layer/layerGroup';
 import IText from './layer/text';
+import QuatraticBerzier from './layer/quadraticBerzier';
 import * as Math from './math';
 import Util from './util/util';
 
@@ -15,6 +16,7 @@ export {
   Layer,
   Circle,
   Polyline,
+  QuatraticBerzier,
   Polygon,
   Rectangle,
   ImageLayer,
