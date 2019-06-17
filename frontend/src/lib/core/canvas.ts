@@ -8,8 +8,10 @@ import IText from '../layer/text';
 import Render from './render';
 import Rectangle from '../layer/rectangle';
 import Util from '../util/util';
+import QuadraticBerzier from '../layer/quadraticBerzier';
 
 export default class CanvasHelper {
+  public static cache: Map<string, HTMLImageElement> = new Map();
   public retina: number = 1;
   public isCache: boolean = false;
   private readonly canvas: HTMLCanvasElement;
@@ -19,7 +21,6 @@ export default class CanvasHelper {
   private scale: number;
   private center: Vertex = [0, 0];
   private bgColor: string = '#ffffff';
-  private cache: Map<string, HTMLImageElement>;
   private aliaveCache: Map<string, HTMLImageElement>;
   private readonly render: Render;
   constructor(w: number, h: number, render: Render, scale: number = 1) {
@@ -28,7 +29,6 @@ export default class CanvasHelper {
     this.canvas = document.createElement('canvas') as HTMLCanvasElement;
     this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
     this.scale = scale;
-    this.cache = new Map();
     this.aliaveCache = new Map();
     this.updateSize(w, h);
   }
@@ -127,7 +127,7 @@ export default class CanvasHelper {
    * 返回缓存中的图片
    */
   public getCache(): Map<string, HTMLImageElement> {
-    return this.cache;
+    return CanvasHelper.cache;
   }
   /**
    * 将世界坐标距离转换为屏幕像素坐标
@@ -141,7 +141,15 @@ export default class CanvasHelper {
    * @param cache 图片缓存
    */
   public setCache(cache: Map<string, HTMLImageElement>) {
-    this.cache = cache;
+    CanvasHelper.cache = cache;
+  }
+  /**
+   * 添加缓存图片
+   * @param key 缓存key
+   * @param image 缓存image
+   */
+  public addCache(key: string, image: HTMLImageElement) {
+    CanvasHelper.cache.set(key, image);
   }
   /**
    * 设置分辨率
@@ -219,9 +227,9 @@ export default class CanvasHelper {
    */
   public endDraw(redraw?: boolean) {
     this.context.restore();
-    if (redraw) {
-      this.cache = new Map(this.aliaveCache);
-    }
+    // if (redraw) {
+    //   CanvasHelper.cache = new Map(this.aliaveCache);
+    // }
   }
   /**
    * 绘制圆
@@ -271,6 +279,17 @@ export default class CanvasHelper {
     
   }
   /**
+   * 绘制二次贝塞尔曲线
+   * @param layer QuatraticBerzier图层
+   */
+  public drawQuadraticBerzier(layer: QuadraticBerzier) {
+    const pts: Vertex[] = layer.getGeometry().map((p: Vertex) => this.worldCoordinateToLocal(p));
+    this.context.beginPath();
+    this.context.moveTo(pts[0][0], pts[0][1]);
+    this.context.quadraticCurveTo(pts[1][0], pts[1][1], pts[2][0], pts[2][1]);
+    this._fillstroke(layer);
+  }
+  /**
    * 绘制矩形
    * @param layer Rectangle图层
    */
@@ -288,9 +307,9 @@ export default class CanvasHelper {
     if (!layer.accesible) {
       return;
     }
-    if (this.cache.has(layer.url)) {
+    if (CanvasHelper.cache.has(layer.url)) {
       this.render.deletePeddingLayer(layer);
-      const imageData = this.cache.get(layer.url) as HTMLImageElement;
+      const imageData = CanvasHelper.cache.get(layer.url) as HTMLImageElement;
       this.aliaveCache.set(layer.url, imageData);
       const bound = layer.getGeometry();
       const position = this.worldCoordinateToLocal([bound.x, bound.y + bound.height]);
@@ -302,9 +321,10 @@ export default class CanvasHelper {
       }
       this.context.drawImage(imageData, position[0], position[1], bound.width * this.retina, bound.height * this.retina);
     } else {
+      console.log(false, layer.url);
       this.render.setPeddingLayer(layer.id);
       const image = await layer.loadImageData();
-      this.cache.set(layer.url, image);
+      CanvasHelper.cache.set(layer.url, image);
       this.render.redraw();
     }
   }
