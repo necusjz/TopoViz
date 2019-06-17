@@ -291,6 +291,19 @@ export default class Stage extends Evt {
     this.setZoom(this.zoom - this.zoomChange);
   }
   /**
+   * 添加图片缓存
+   * @param images 
+   */
+  public addImagesCache(images: string[]) {
+    for (const url of images) {
+      const image: HTMLImageElement = new Image();
+      image.src = url;
+      image.addEventListener('load', () => {
+        this.render.addCache(url, image);
+      });
+    }
+  }
+  /**
    * 定位
    * @param center 定位点
    * @param zoom 缩放级别

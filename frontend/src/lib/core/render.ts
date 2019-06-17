@@ -9,6 +9,7 @@ import LayerGroup from '../layer/layerGroup';
 import IText from '../layer/text';
 import * as math from '../math';
 import Rectangle from '../layer/rectangle';
+import QuadraticBerzier from '../layer/quadraticBerzier';
 
 export default class Render {
   // 是否渲染全部图层
@@ -89,6 +90,14 @@ export default class Render {
    */
   public getBound(): math.Bound {
     return this.canvasHelper.getViewBound();
+  }
+  /**
+   * 添加全局画布缓存资源
+   * @param key 
+   * @param value 
+   */
+  public addCache(key: string, value: HTMLImageElement) {
+    this.canvasHelper.addCache(key, value);
   }
   /**
    * 设置批处理状态，减少重绘次数
@@ -174,6 +183,9 @@ export default class Render {
         break;
       case GraphType.TEXT:
         canvasHelper.drawText(layer as IText);
+        break;
+      case GraphType.QUADRATICBERZIER:
+        canvasHelper.drawQuadraticBerzier(layer as QuadraticBerzier);
         break;
       case GraphType.GROUP:
         this.drawGroup(layer as LayerGroup, canvasHelper);
