@@ -75,6 +75,8 @@ export default class TopoTree extends Vue {
     this.selectNetwork();
   }
   mounted() {
+    this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1, zoom: 1});
+    this.initCache();
     bus.$on(EventType.NETWORKFILTER, (neNames: string[], type: string = 'Red') => {
       this.updateAlarmImg(neNames, type);
     });
@@ -193,11 +195,18 @@ export default class TopoTree extends Vue {
         if (sourceNode && targetNode) {
           const sourcePos = sourceNode.getCenter();
           const targetPos = targetNode.getCenter();
-          const pts: Vertex[] = this.getPathData(new xCanvas.Math.Vector2(sourcePos), new xCanvas.Math.Vector2(targetPos));
           const leader = (layer as xCanvas.LayerGroup).getLayer((glayer: xCanvas.Layer) => glayer.options.layerType === 'edge-line');
-          (leader as xCanvas.Polyline).setGeometry(pts);
           const arrow = (layer as xCanvas.LayerGroup).getLayer((glayer: xCanvas.Layer) => glayer.options.layerType === 'edge-arrow');
-          (arrow as xCanvas.Polygon).setGeometry(this.getArrowData(pts[0], pts[1]));
+          if (layer.options.isCurve) {
+            const {p1, p2, cp} = this.getQuatraticData(new xCanvas.Math.Vector2(sourcePos), new xCanvas.Math.Vector2(targetPos));
+            (leader as xCanvas.QuatraticBerzier).setGeometry(p1.toArray(), cp.toArray(), p2.toArray());
+             const temp = p2.clone().substract(new xCanvas.Math.Vector2(p2.x - cp.x, p2.y - cp.y).normalize().scale(1));
+             (arrow as xCanvas.Polygon).setGeometry(this.getArrowData(temp.toArray(), p2.toArray()));
+          } else {
+            const pts: Vertex[] = this.getPathData(new xCanvas.Math.Vector2(sourcePos), new xCanvas.Math.Vector2(targetPos));
+            (leader as xCanvas.Polyline).setGeometry(pts);
+            (arrow as xCanvas.Polygon).setGeometry(this.getArrowData(pts[0], pts[1]));
+          }
         }
       } else if (layer.options.layerType === 'tag' && layer.options.name === name) {
         layer.translate(dx, dy);
@@ -219,6 +228,13 @@ export default class TopoTree extends Vue {
       this.borderLayer = new xCanvas.Rectangle(bound.getSouthWest(), bound.getNorthEast(), {fill: false, color: '#4a96ff'}).addTo(this.stage);
       this.stage.setView(bound.getCenter());
     }
+  }
+  public getQuatraticData(v1: xCanvas.Math.Vector2, v2: xCanvas.Math.Vector2): {[k: string]: xCanvas.Math.Vector2} {
+    const ydir = new xCanvas.Math.Vector2(0, -1);
+    const p1 = v1.clone().add(ydir.clone().scale(this.size / 1.8));
+    const p2 = v2.clone().add(ydir.clone().scale(this.size / 1.8));
+    const cp = new xCanvas.Math.Vector2((p1.x + p2.x) / 2, p1.y - this.step);
+    return {p1, p2, cp};
   }
   public getPathData(v1: xCanvas.Math.Vector2, v2: xCanvas.Math.Vector2): Vertex[] {
     const dir = v2.clone().substract(v1.clone()).normalize();
@@ -244,9 +260,6 @@ export default class TopoTree extends Vue {
   }
   public buildTopoTree() {
     this.bound = undefined;
-    if (!this.stage) {
-      this.stage = new xCanvas.Stage('stage', {zoomChange: 0.1, zoom: 1});
-    }
     this.stage.clearAllLayers();
     if (!this.topoDatas) {
       return;
@@ -263,15 +276,12 @@ export default class TopoTree extends Vue {
       const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
       const path = [];
       if (edge.source.type ===  edge.target.type && helper.isSeparated(source.x, target.x, edge.source.type)) {
-        const ydir = new xCanvas.Math.Vector2(0, -1);
-        const p1 = source.clone().add(ydir.clone().scale(this.size / 1.8));
-        const p2 = target.clone().add(ydir.clone().scale(this.size / 1.8));
-        const p3 = p1.clone().add(ydir.clone().scale(this.step / 3));
-        const p4 = new xCanvas.Math.Vector2(p2.x, p3.y);
-        path.push([p1.toArray(), p3.toArray(), p4.toArray(), p2.toArray()]);
-        const leader = new xCanvas.Polyline(path, {color: '#0276F7', layerType: 'edge-line'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(p4.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
+        const {p1, p2, cp} = this.getQuatraticData(source, target);
+        // 计算结束点的斜率点
+        const temp = p2.clone().substract(new xCanvas.Math.Vector2(p2.x - cp.x, p2.y - cp.y).normalize().scale(1));
+        const leader = new xCanvas.QuatraticBerzier(p1.toArray(), cp.toArray(), p2.toArray(), {color: '#0276F7', layerType: 'edge-line'});
+        const arrow = new xCanvas.Polygon(this.getArrowData(temp.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
+        stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name, isCurve: true}));
       } else {
         const pts: Vertex[] = this.getPathData(source, target);
         const leader = new xCanvas.Polyline(pts, {color: '#0276F7', layerType: 'edge-line'});
@@ -408,6 +418,29 @@ export default class TopoTree extends Vue {
     return !!this.alarmDatas.filter((alarmData: AlarmData) => {
       return alarmData.alarmSourceName === name;
     }).find((alarmData: AlarmData) => alarmData.rcaResult_edit === RCAResult.P);
+  }
+  public initCache() {
+    const preloadImages: string[] = [
+      require('../../assets/ATN.png'),
+      require('../../assets/ATN-Warning.png'),
+      require('../../assets/BSC.png'),
+      require('../../assets/BSC-Warning.png'),
+      require('../../assets/BTS.png'),
+      require('../../assets/BTS-Warning.png'),
+      require('../../assets/MW.png'),
+      require('../../assets/MW-Warning.png'),
+      require('../../assets/RNC.png'),
+      require('../../assets/RNC-Warning.png'),
+      require('../../assets/OTHER.png'),
+      require('../../assets/OTHER-Warning.png'),
+      require('../../assets/red-center-tag.png'),
+      require('../../assets/green-center-tag.png'),
+      require('../../assets/green-right-tag.png'),
+      require('../../assets/blue-center-tag.png'),
+      require('../../assets/blue-right-tag.png'),
+      require('../../assets/blue-left-tag.png')
+    ];
+    this.stage.addImagesCache(preloadImages);
   }
 }
 </script>
