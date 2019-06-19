@@ -3,6 +3,7 @@
     <el-table
       ref="table"
       class="topoTable"
+      border
       :class="{'topoTable-none-confirm': isunConfirmed}"
       :data="tableData"
       tooltip-effect="dark"
@@ -432,7 +433,6 @@ export default class TopoTable extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 .topoTable {
-  cursor: pointer;
   table {
     border-collapse: collapse;
   }
@@ -580,5 +580,8 @@ export default class TopoTable extends Vue {
     color: #ffffff;
     background-image: linear-gradient(99deg, #4d97ff, #3189ff);
   }
+}
+.edit-text {
+  cursor: pointer;
 }
 </style>
