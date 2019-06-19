@@ -275,19 +275,23 @@ export default class TopoTree extends Vue {
       const source = new xCanvas.Math.Vector2(edge.source.position.x, edge.source.position.y);
       const target = new xCanvas.Math.Vector2(edge.target.position.x, edge.target.position.y);
       const path = [];
-      if (edge.source.type ===  edge.target.type && helper.isSeparated(source.x, target.x, edge.source.type)) {
-        const {p1, p2, cp} = this.getQuatraticData(source, target);
-        // 计算结束点的斜率点
-        const temp = p2.clone().substract(new xCanvas.Math.Vector2(p2.x - cp.x, p2.y - cp.y).normalize().scale(1));
-        const leader = new xCanvas.QuatraticBerzier(p1.toArray(), cp.toArray(), p2.toArray(), {color: '#0276F7', layerType: 'edge-line'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(temp.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name, isCurve: true}));
-      } else {
-        const pts: Vertex[] = this.getPathData(source, target);
-        const leader = new xCanvas.Polyline(pts, {color: '#0276F7', layerType: 'edge-line'});
-        const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
-        stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
-      }
+      // if (edge.source.type ===  edge.target.type && helper.isSeparated(source.x, target.x, edge.source.type)) {
+      //   const {p1, p2, cp} = this.getQuatraticData(source, target);
+      //   // 计算结束点的斜率点
+      //   const temp = p2.clone().substract(new xCanvas.Math.Vector2(p2.x - cp.x, p2.y - cp.y).normalize().scale(1));
+      //   const leader = new xCanvas.QuatraticBerzier(p1.toArray(), cp.toArray(), p2.toArray(), {color: '#0276F7', layerType: 'edge-line'});
+      //   const arrow = new xCanvas.Polygon(this.getArrowData(temp.toArray(), p2.toArray()), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
+      //   stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name, isCurve: true}));
+      // } else {
+      //   const pts: Vertex[] = this.getPathData(source, target);
+      //   const leader = new xCanvas.Polyline(pts, {color: '#0276F7', layerType: 'edge-line'});
+      //   const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
+      //   stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
+      // }
+      const pts: Vertex[] = this.getPathData(source, target);
+      const leader = new xCanvas.Polyline(pts, {color: '#0276F7', layerType: 'edge-line'});
+      const arrow = new xCanvas.Polygon(this.getArrowData(pts[0], pts[1]), {color: '#0276F7', fillOpacity: 1, layerType: 'edge-arrow'});
+      stage.addLayer(new xCanvas.LayerGroup([leader, arrow], {layerType: 'edge', sourceName: edge.source.name, targetName: edge.target.name}));
     }
     for (const node of helper.nodes.values()) {
       let dirtyData = this.getDataByAlarmSourceName(node.name);
