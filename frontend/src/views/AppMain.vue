@@ -82,7 +82,7 @@ export default class AppMain extends Vue {
     height: 100%;
     background: #f8f9ff;
     .el-scrollbar__thumb {
-      background-color: rgba(144,147,153,.1);
+      background-color: rgba(144,147,153,.8);
     }
   }
   .app-scroll-wrap {
@@ -119,7 +119,6 @@ export default class AppMain extends Vue {
           top: 50%;
           margin-top: 8%;
           transform: translateX(-50%);
-          font-family: PingFang-SC;
           font-size: 20px;
         }
       }
