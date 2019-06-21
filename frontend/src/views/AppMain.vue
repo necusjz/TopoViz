@@ -84,6 +84,9 @@ export default class AppMain extends Vue {
     .el-scrollbar__thumb {
       background-color: rgba(144,147,153,.8);
     }
+    .el-scrollbar__bar.is-vertical {
+      width: 10px;
+    }
   }
   .app-scroll-wrap {
     height: calc(100% - 30px);
