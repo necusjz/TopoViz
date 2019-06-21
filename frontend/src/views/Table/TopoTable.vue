@@ -433,6 +433,7 @@ export default class TopoTable extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 .topoTable {
+  box-sizing: border-box;
   table {
     border-collapse: collapse;
   }
