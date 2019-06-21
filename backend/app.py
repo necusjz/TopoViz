@@ -8,11 +8,12 @@ import json
 
 from flask import render_template, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_cors import CORS
 from utils import *
 
 app.config.from_object('config')
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(seconds=60)
 CORS(app, resources=r'/*')
 
 
