@@ -15,7 +15,7 @@ $ pip install -r requirements.txt
 ## How to run
 Run Flask application:
 ```
-$ git clone git@github.com:ICHIGOI7E/TopoViewer.git
+$ git clone git@github.com:was48i/TopoViewer.git
 $ cd TopoViewer/backend
 $ flask run
 * Running on http://127.0.0.1:5000/
