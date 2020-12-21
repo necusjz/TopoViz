@@ -1,5 +1,5 @@
 # topology-graph
-Flask + Vue.js to analyze Excel data based on pandas, and display topology graph using Canvas. You can synchronize dist package from frontend with `topology-graph/sync.sh`, and the fake Excel data is in `topology-graph/topo_alarm`.
+Based on pandas, use Flask + Vue.js to analyze Excel and display topology graph via Canvas. You can synchronize the dist packages from frontend with `topology-graph/sync.sh`.
 ## Dependency
 ### Python
 [Python 3.6.8](https://www.python.org/downloads/release/python-368/) (with pip 19.0.3)
