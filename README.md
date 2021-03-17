@@ -6,7 +6,7 @@ Based on pandas, use Flask + Vue.js to analyze Excel and display topology graph 
 
 Install Python and check the version like this:
 
-![](https://raw.githubusercontent.com/was48i/mPOST/master/topology-graph/00.png)
+![](https://raw.githubusercontent.com/snlndod/mPOST/master/topology-graph/00.png)
 ### Install packages
 Install some required dependencies for deployment:
 ```bash
@@ -22,4 +22,4 @@ $ flask run
 ```
 Enter the URL in your browser, you can see the page like this:
 
-![](https://raw.githubusercontent.com/was48i/mPOST/master/topology-graph/01.png)
+![](https://raw.githubusercontent.com/snlndod/mPOST/master/topology-graph/01.png)
