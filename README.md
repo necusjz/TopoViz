@@ -1,25 +1,31 @@
-# topology-graph
-Based on pandas, use Flask + Vue.js to analyze Excel and display topology graph via Canvas. You can synchronize the dist packages from frontend with `synchronize.sh`.
-## Dependency
-### Python
-[Python 3.6.8](https://www.python.org/downloads/release/python-368/) (with pip 19.0.3)
+# TopoViz
+Based on pandas, use Flask + Vue.js to analyze Excel and visualize telecommunications network via Canvas.
 
+We can synchronize the dist packages from frontend with `synchronize.sh`.
+
+## Installation
 Install Python and check the version like this:
+![](https://raw.githubusercontent.com/snlndod/mPOST/master/TopoViz/00.png)
 
-![](https://raw.githubusercontent.com/snlndod/mPOST/master/topology-graph/00.png)
-### Install packages
-Install some required dependencies for deployment:
-```bash
+Install the required packages:
+```
 $ pip install -r requirements.txt
 ```
-## How to run
+
+## Usage
 Run Flask application:
-```bash
-$ git clone git@github.com:was48i/topology-graph.git
-$ cd topology-graph/backend
+```
+$ git clone git@github.com:snlndod/TopoViz.git
+$ cd TopoViz/backend
 $ flask run
 * Running on http://127.0.0.1:5000/
 ```
-Enter the URL in your browser, you can see the page like this:
 
-![](https://raw.githubusercontent.com/snlndod/mPOST/master/topology-graph/01.png)
+Enter this URL in a browser, we'll see the page like this:
+![](https://raw.githubusercontent.com/snlndod/mPOST/master/TopoViz/01.png)
+
+## Contributing
+We love contributions! Before submitting a Pull Request, it's always good to start with a new issue first.
+
+## License
+This repository is licensed under Apache 2.0. Full license text is available in [LICENSE](https://github.com/snlndod/TopoViz/blob/master/LICENSE).
