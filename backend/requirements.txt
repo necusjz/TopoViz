@@ -14,5 +14,5 @@ python-dateutil==2.8.0
 pytz==2018.9
 six==1.12.0
 virtualenv==16.4.3
-Werkzeug==2.2.3
+Werkzeug==3.0.1
 xlrd==1.2.0
